@@ -1,12 +1,13 @@
 
 import requests
 from requests.auth import AuthBase
+from requests.utils import dict_from_cookiejar
 
 from hmac import HMAC
 from hashlib import sha1
 from base64 import b64encode
 
-from .constants import API_VERSION, URL_BASE
+from .constants import API_HOST, URL_BASE
 from .errors import LuminosoLoginError, LuminosoSessionExpired
 from .jstime import datetime2epoch, epoch2datetime, epoch
 
@@ -49,10 +50,12 @@ class LuminosoAuth(object):
         """Fetch a session key to use in this authentication context"""
         params = {'username': username, 'password': password}
         resp = self._session.post(URL_BASE + '/.auth/login',
-                                  params=params)
+                                  verify=False,
+                                  data=params)
 
         # Make sure the session is valid
         if resp.text != 'OK' or resp.status_code == 401:
+            logger.error('%s gave response %r' % (resp.url, resp.text))
             raise LuminosoLoginError
 
         # Save the session cookie
@@ -68,7 +71,7 @@ class LuminosoAuth(object):
             if self._auto_login:
                 raise NotImplemented
 
-        self._session_cookie = resp.cookies['session']
+        self._session_cookie = dict_from_cookiejar(resp.cookies)['session']
 
         return resp
 
@@ -85,10 +88,10 @@ class LuminosoAuth(object):
         # Build the list
         signing_list = [req.method,
                         API_HOST,
-                        req.path_url,
+                        req.path_url.split('?')[0],
                         content_hash,
                         content_type,
-                        expiry]
+                        str(expiry)]
 
         # Canonicalize the dictionary
         for key in sorted(params.keys()):
@@ -102,13 +105,12 @@ class LuminosoAuth(object):
         
         # Determine the expiry
         expiry = epoch() + self._validity_ms
-        req.params['expires'] = expiry
 
         # Set the key id
         req.params['key_id'] = self._key_id
 
         # Determine if this is an upload
-        if isinstance(dict, req.data):
+        if isinstance(req.data, dict):
             params = req.params.copy()
             params.update(req.data)
             content_type = None
@@ -121,11 +123,16 @@ class LuminosoAuth(object):
         # Compute the signing string
         signing_string = self.__signing_string(req, params, expiry,
                                                content_type, content_body)
+        logger.debug('signing string: %r' % signing_string)
 
         # Sign the signing string
         sig = b64encode(HMAC(self._secret, signing_string, sha1).digest())
 
         # Pack the remaining parameters into the request
+        req.params['expires'] = expiry
         req.params['sig'] = sig
+
+        # Load the session cookie into the request
+        req.cookies['session'] = self._session_cookie
 
         return req
