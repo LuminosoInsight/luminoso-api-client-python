@@ -1,5 +1,5 @@
 
-from .constants import URL_BASE
+from ..constants import URL_BASE
 
 class Account(object):
     """An object encapsulating a billing account on Luminoso's servers"""
