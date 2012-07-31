@@ -10,8 +10,9 @@ class BaseWrapper(object):
            NOTE: Construction does not validate the existance or accessibility
            of the API object in question"""
 
-        self.url_base = URL_BASE + '/' + path + '/'
-        self.__session = session
+        self.api_path = path
+        self.url_base = URL_BASE + '/' + self.api_path + '/'
+        self._session = session
 
     def __unicode__(self):
         return u'BaseWrapper("%s")' % self.api_path
@@ -23,23 +24,23 @@ class BaseWrapper(object):
         return str(self)
 
     def _get(self, path, **params):
-        return self.__session.get(self.url_base + path, params=params).json
+        return self._session.get(self.url_base + path, params=params).json
 
     def _post(self, path, **params):
-        return self.__session.post(self.url_base + path, data=params).json
+        return self._session.post(self.url_base + path, data=params).json
 
     def _put(self, path, data, content_type, **params):
-        return self.__session.put(self.url_base + path,
-                                  params=params,
-                                  data=data,
-                                  headers={'Content-Type': content_type}).json
+        return self._session.put(self.url_base + path,
+                                 params=params,
+                                 data=data,
+                                 headers={'Content-Type': content_type}).json
 
     def _patch(self, path, data, content_type, **params):
-        return self.__session.patch(self.url_base + path,
-                                    params=params,
-                                    data=data,
-                                    headers={'Content-Type': content_type}).json
+        return self._session.patch(self.url_base + path,
+                                   params=params,
+                                   data=data,
+                                   headers={'Content-Type': content_type}).json
 
     def _delete(self, path, **params):
-        return self.__session.delete(self.url_base + path, params=params).json
+        return self._session.delete(self.url_base + path, params=params).json
 
