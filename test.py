@@ -2,12 +2,14 @@
 import logging; logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+from luminoso_api import Account
 from luminoso_api.utils import get_session
 
 def main():
     s = get_session()
     logger.info('getting database list')
-    dbs = s.get('https://api.lumino.so/v2/default/.list_dbs/').json
+    acct = Account.accessible(s)[0]
+    dbs = acct.databases()
     return dbs
 
 def create():
