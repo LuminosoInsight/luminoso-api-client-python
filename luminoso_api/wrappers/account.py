@@ -29,3 +29,9 @@ class Account(BaseWrapper):
             dbs.append(Database(path, db_name, meta=db_meta,
                                 session=self._session))
         return dbs
+
+    def create_project(self, db_name):
+        resp = self._post_raw('%s/create_project/' % db_name)
+        if resp == 'Database %s created' % db_name:
+            return None
+        return resp
