@@ -7,15 +7,17 @@ logging.basicConfig(level=logging.INFO)
 from getpass import getpass
 import os
 
-def main():
+def get_session():
     logger.info('creating LuminosoAuth object')
     username = os.environ['USER']
     password = getpass('Password for %s: ' % username)
     auth = LuminosoAuth(username, password)
 
     logger.info('creating requests session')
-    s = requests.session(auth=auth, verify=False)
+    return requests.session(auth=auth, verify=False)
 
+def main():
+    s = get_session()
     logger.info('getting database list')
     dbs = s.get('https://api.lumino.so/v2/default/.list_dbs/').json
     return dbs
