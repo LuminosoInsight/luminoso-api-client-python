@@ -13,6 +13,9 @@ class BaseWrapper(object):
         self.url_base = URL_BASE + '/' + path + '/'
         self.__session = session
 
+    def __unicode__(self):
+        return u'BaseWrapper("%s")' % self.api_path
+
     def __str__(self):
         return str(unicode(self))
 
