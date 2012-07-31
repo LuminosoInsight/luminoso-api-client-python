@@ -23,11 +23,11 @@ class Account(BaseWrapper):
 
     def databases(self):
         db_table = self._get('.list_dbs/')
-        dbs = []
+        dbs = {}
         for db_name, db_meta in db_table.items():
             path = self.api_path + '/' + db_name
-            dbs.append(Database(path, db_name, meta=db_meta,
-                                session=self._session))
+            dbs[db_name]=Database(path, db_name, meta=db_meta,
+                                  session=self._session)
         return dbs
 
     def create_project(self, db_name):
