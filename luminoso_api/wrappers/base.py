@@ -44,3 +44,7 @@ class BaseWrapper(object):
     def _delete(self, path, **params):
         return self._session.delete(self.url_base + path, params=params).json
 
+    def _post_raw(self, path, **params):
+        """DEPRECATED: this method will disappear with api-v3"""
+        return self._session.post(self.url_base + path, data=params).text
+
