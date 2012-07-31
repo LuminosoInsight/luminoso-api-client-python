@@ -1,20 +1,8 @@
 
-import requests
-from luminoso_api.auth import LuminosoAuth
 import logging; logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-from getpass import getpass
-import os
-
-def get_session():
-    logger.info('creating LuminosoAuth object')
-    username = os.environ['USER']
-    password = getpass('Password for %s: ' % username)
-    auth = LuminosoAuth(username, password)
-
-    logger.info('creating requests session')
-    return requests.session(auth=auth, verify=False)
+from luminoso_api.utils import get_session
 
 def main():
     s = get_session()
