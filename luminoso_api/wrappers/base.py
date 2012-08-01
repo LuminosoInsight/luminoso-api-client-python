@@ -7,6 +7,9 @@ class BaseWrapper(object):
         """Construct a wrapper around a particular path from the global URL_BASE
            for a particular session.
 
+           path - relative from URL_BASE (a 'test' database owned by account
+                  'abc123' would have path 'abc123/test', for example)
+
            NOTE: Construction does not validate the existance or accessibility
            of the API object in question"""
 
