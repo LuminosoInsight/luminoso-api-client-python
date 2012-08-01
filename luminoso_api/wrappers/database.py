@@ -16,3 +16,6 @@ class Database(BaseWrapper):
 
     def __unicode__(self):
         return u'Database("%s", "%s")' % (self.api_path, self.db_name)
+
+    def get_relevance(self, limit=10):
+        return self._get('get_relevance/', limit=limit)
