@@ -10,7 +10,7 @@ class Database(BaseWrapper):
         self.db_name = db_name
 
         if meta is None:
-            meta = self._get('meta')
+            meta = self._get('meta/')
 
         self._meta = meta
 
