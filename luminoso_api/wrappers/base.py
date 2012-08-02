@@ -32,6 +32,12 @@ class BaseWrapper(object):
     def _post(self, path, **params):
         return self._session.post(self.url_base + path, data=params).json
 
+    def _post_data(self, path, data, content_type, **params):
+        return self._session.post(self.url_base + path,
+                                  params=params,
+                                  data=data,
+                                  headers={'Content-Type': content_type}).json
+
     def _put(self, path, data, content_type, **params):
         return self._session.put(self.url_base + path,
                                  params=params,
