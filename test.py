@@ -44,7 +44,6 @@ def upload():
     print repr(resp)
 
 if __name__ == '__main__':
-    dbs = main()
-    print repr(dbs)
-    for db in dbs:
-        print db
+    #main()
+    #relevance()
+    upload()
