@@ -78,7 +78,7 @@ class LuminosoAuth(object):
         """Return the signing string for a proposed request"""
         # Determine if there is a payload
         if content_type is not None:
-            content_hash = b64encode(sha1(content_body))
+            content_hash = b64encode(sha1(content_body).digest())
         else:
             content_type = ''
             content_hash = ''
