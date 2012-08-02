@@ -1,6 +1,7 @@
 from .base import BaseWrapper
 from .topic import Topic
 from .document import Document
+from urllib import quote
 
 class Database(BaseWrapper):
     """An object encapsulating a document database (project) on Luminoso's
@@ -19,17 +20,19 @@ class Database(BaseWrapper):
         return u'Database("%s", "%s")' % (self.api_path, self.db_name)
 
     def get_relevance(self, limit=10):
-        return self._get('get_relevance/', limit=limit)
+        return self._get('get_relevance/', limit=limit)['result']
     
     def docvectors(self):
         return self._get('docvectors/')
         
     def doc_ids(self):
-        return self._get('docs/')
+        return self._get('docs/')['ids']
     
     def doc(self,id):
-        """This probably needs to have a document object added"""
-        return Document(self._get('docs/' + id + "/"))
+        """This probably needs to have a document object added.
+            The magic parameter in quote tells it to escape slashes correctly
+        """
+        return Document(self._get('docs/' + quote(id,'') + "/"))
         
     def topics(self):
         return [Topic(topic_dict) for topic_dict in self._get('topics/')['topics']]
@@ -38,6 +41,7 @@ class Database(BaseWrapper):
         return self._get('topics/.calculate/')
         
     def create_topic(self,name,role,color,terms):
+        """Posting appears to be broken here too"""
         return self._post('topics/create/',name=name,role=role,color=color,terms=terms)
         
     def delete_topic(self,topic_id):
@@ -65,12 +69,13 @@ class Database(BaseWrapper):
         return self._get('timeline/')
         
     def term_search(self,text="",limit=10,domain=False):
+        """This seems broken as well"""
         return self._get('term_search/',text=text,limit=limit,domain=domain)
         
     def search(self,query,style="text",limit = 10, near = None, start_at = 0):
         if style == "terms":
             return self._get('search/',terms=query,limit=limit,near=near,start_at=start_at)
-        else if style == "topic":
+        elif style == "topic":
             return self._get('search/',topic=query,limit=limit,near=near,start_at=start_at)
         else:
             return self._get('search/',text=query,limit=limit,near=near,start_at=start_at)
