@@ -1,5 +1,6 @@
-
 from .base import BaseWrapper
+from .topic import Topic
+from .document import Document
 
 class Database(BaseWrapper):
     """An object encapsulating a document database (project) on Luminoso's
@@ -19,3 +20,57 @@ class Database(BaseWrapper):
 
     def get_relevance(self, limit=10):
         return self._get('get_relevance/', limit=limit)
+    
+    def docvectors(self):
+        return self._get('docvectors/')
+        
+    def doc_ids(self):
+        return self._get('docs/')
+    
+    def doc(self,id):
+        """This probably needs to have a document object added"""
+        return Document(self._get('docs/' + id + "/"))
+        
+    def topics(self):
+        return [Topic(topic_dict) for topic_dict in self._get('topics/')['topics']]
+        
+    def recalculate_topics(self):
+        return self._get('topics/.calculate/')
+        
+    def create_topic(self,name,role,color,terms):
+        return self._post('topics/create/',name=name,role=role,color=color,terms=terms)
+        
+    def delete_topic(self,topic_id):
+        return self._post('topics/.delete/',topic_id = topic_id)
+        
+    def get_topic(self,id):
+        return Topic(self._get('topics/' + id + '/'))
+        
+    def get_topic_stats(self):
+        return self._get('topic_stats/')
+        
+    def get_topic_histograms(self,bins=10):
+        return self._get('topic_histograms/')
+        
+    def get_topic_correlation(self,text=""):
+        return self._get('topic_correlation/',text=text)
+        
+    def get_batch_topic_correlation(self,texts):
+        return self._get('batch_topic_correlation/',texts=texts)
+        
+    def all_document_correlations(self):
+        return self._get('all_document_correlations/')
+        
+    def timeline(self,bins=10):
+        return self._get('timeline/')
+        
+    def term_search(self,text="",limit=10,domain=False):
+        return self._get('term_search/',text=text,limit=limit,domain=domain)
+        
+    def search(self,query,style="text",limit = 10, near = None, start_at = 0):
+        if style == "terms":
+            return self._get('search/',terms=query,limit=limit,near=near,start_at=start_at)
+        else if style == "topic":
+            return self._get('search/',topic=query,limit=limit,near=near,start_at=start_at)
+        else:
+            return self._get('search/',text=query,limit=limit,near=near,start_at=start_at)
