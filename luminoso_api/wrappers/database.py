@@ -1,5 +1,6 @@
 
 from .base import BaseWrapper
+import json
 
 class Database(BaseWrapper):
     """An object encapsulating a document database (project) on Luminoso's
@@ -19,3 +20,8 @@ class Database(BaseWrapper):
 
     def get_relevance(self, limit=10):
         return self._get('get_relevance/', limit=limit)
+
+    def upload_documents(self, documents):
+        json_data = json.dumps(documents)
+        return self._post_data('upload_documents/', json_data,
+                               'application/json')
