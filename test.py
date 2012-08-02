@@ -8,7 +8,7 @@ from luminoso_api.utils import get_session
 def main():
     s = get_session()
     logger.info('getting database list')
-    acct = Account.accessible(s)[0]
+    acct = Account('admin', s)
     dbs = acct.databases()
     return dbs
 
