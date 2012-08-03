@@ -14,11 +14,11 @@ class BaseWrapper(object):
            of the API object in question"""
 
         self.api_path = path
-        self.url_base = URL_BASE + '/' + self.api_path + '/'
+        self.url_base = URL_BASE + '/' + self.api_path
         self._session = session
 
     def __unicode__(self):
-        return u'BaseWrapper("%s")' % self.api_path
+        return u'%s("%s")' % (self.__class__.__name__, self.api_path)
 
     def __str__(self):
         return str(unicode(self))

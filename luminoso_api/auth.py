@@ -67,7 +67,7 @@ class LuminosoAuth(object):
         """Handle auto-login and update session cookies"""
         if resp.status_code == 401:
             if self._auto_login:
-                raise NotImplemented
+                raise NotImplementedError
 
         self._session_cookie = dict_from_cookiejar(resp.cookies)['session']
 
@@ -83,10 +83,12 @@ class LuminosoAuth(object):
             content_type = ''
             content_hash = ''
 
+        pathstring = req.path_url.split('?')[0]
+        if not pathstring.endswith('/'): pathstring += '/'
         # Build the list
         signing_list = [req.method,
                         API_HOST,
-                        req.path_url.split('?')[0],
+                        pathstring,
                         content_hash,
                         content_type,
                         str(expiry)]

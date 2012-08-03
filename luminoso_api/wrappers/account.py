@@ -22,7 +22,7 @@ class Account(BaseWrapper):
         return [Account(acct, session) for acct in accounts['accounts']]
 
     def databases(self):
-        db_table = self._get('.list_dbs/')
+        db_table = self._get('/.list_dbs/')
         dbs = {}
         for db_name, db_meta in db_table.items():
             path = self.api_path + '/' + db_meta['name']
@@ -31,7 +31,7 @@ class Account(BaseWrapper):
         return dbs
 
     def create_project(self, db_name):
-        resp = self._post_raw('%s/create_project/' % db_name)
+        resp = self._post_raw('/%s/create_project/' % db_name)
         if resp == 'Database %s created' % db_name:
             return None
         return resp
