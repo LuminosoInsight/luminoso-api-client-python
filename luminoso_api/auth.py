@@ -52,7 +52,7 @@ class LuminosoAuth(object):
         resp = self._session.post(URL_BASE + '/.auth/login', data=params)
 
         # Make sure the session is valid
-        if resp.text != 'OK' or resp.status_code == 401:
+        if resp.status_code == 401:
             logger.error('%s gave response %r' % (resp.url, resp.text))
             raise LuminosoLoginError
 
@@ -60,8 +60,8 @@ class LuminosoAuth(object):
         self._session_cookie = resp.cookies['session']
 
         # Save the key_id
-        self._key_id = self._session.cookies.pop('key_id')
-        self._secret = self._session.cookies.pop('secret')
+        self._key_id = resp.json['key_id']
+        self._secret = resp.json['secret']
 
     def __on_response(self, resp):
         """Handle auto-login and update session cookies"""
@@ -126,7 +126,7 @@ class LuminosoAuth(object):
         logger.debug('signing string: %r' % signing_string)
 
         # Sign the signing string
-        sig = b64encode(HMAC(self._secret, signing_string, sha1).digest())
+        sig = b64encode(HMAC(str(self._secret), signing_string, sha1).digest())
 
         # Pack the remaining parameters into the request
         req.params['expires'] = expiry
