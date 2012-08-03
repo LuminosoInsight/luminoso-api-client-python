@@ -42,21 +42,31 @@ class Database(BaseWrapper):
         
     def topics(self):
         return [Topic(self.api_path + '/topics/' + topic_dict['_id'],
-                      topic_dict, self._session)
+                      topic_dict['_id'], self._session, topic_dict)
                 for topic_dict in self._get('/topics/')['topics']]
-        
+
     def recalculate_topics(self):
         return self._get('/topics/.calculate/')
         
-    def create_topic(self,name,role,color,terms):
-        """Posting appears to be broken here too"""
-        return self._post('/topics/create/',name=name,role=role,color=color,terms=terms)
+    def create_topic(self, **parameters):
+        """
+        Parameters are name, role, color, weighted_terms. (See API for more
+        documentation.)
+        """
+        for key, value in parameters:
+            try:
+                json.loads(value)
+            except:
+                parameters[key] = json.dumps(value)
+        topic_dict = self._post('/topics/create', **parameters)
+        return Topic(self.api_path + '/topics/' + _id, _id,
+                     self._session, topic_dict)
         
     def delete_topic(self,topic_id):
-        return self._post('/topics/.delete/',topic_id = topic_id)
+        return self._post('/topics/.delete',topic_id = topic_id)
         
     def get_topic(self,_id):
-        return Topic(self._get('/topics/' + _id))
+        return Topic(self.api_path + '/topics/' + _id, _id, self._session)
         
     def get_topic_stats(self):
         return self._get('/topic_stats/')
