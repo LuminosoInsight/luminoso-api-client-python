@@ -35,9 +35,6 @@ class Database(BaseWrapper):
         return self._get('/docs/')['ids']
     
     def doc(self,_id):
-        """This probably needs to have a document object added.
-            The magic parameter in quote tells it to escape slashes correctly
-        """
         return Document(self._get('/docs/' + _id + "/"))
         
     def topics(self):
@@ -87,13 +84,12 @@ class Database(BaseWrapper):
         return self._get('/timeline/')
         
     def term_search(self,text="",limit=10,domain=False):
-        """This seems broken as well"""
-        return self._get('/term_search/',text=text,limit=limit,domain=domain)
-        
-    def search(self,query,style="text",limit = 10, near = None, start_at = 0):
-        if style == "terms":
-            return self._get('/search/',terms=query,limit=limit,near=near,start_at=start_at)
-        elif style == "topic":
-            return self._get('/search/',topic=query,limit=limit,near=near,start_at=start_at)
-        else:
-            return self._get('/search/',text=query,limit=limit,near=near,start_at=start_at)
+        return self._get('/term_search/',text=text,limit=limit,
+                         domain=domain)
+
+    def search(self, **parameters):
+        """
+        Parameters are text, topic, terms, limit, near, start_at. (See
+        API for more documentation.)
+        """
+        return self._get('/search/', **parameters)
