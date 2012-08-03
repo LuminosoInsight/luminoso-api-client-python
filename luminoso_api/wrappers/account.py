@@ -22,7 +22,7 @@ class Account(BaseWrapper):
         return [Account(acct, session) for acct in accounts['accounts']]
 
     def databases(self):
-        db_table = self._get('/.list_dbs/')
+        db_table = self._get('/.list_dbs/')['result']
         dbs = {}
         for db_name, db_meta in db_table.items():
             path = self.api_path + '/' + db_meta['name']
