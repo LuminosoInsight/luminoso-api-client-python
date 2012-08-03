@@ -14,10 +14,12 @@ from .jstime import datetime2epoch, epoch2datetime, epoch
 import logging; logger=logging.getLogger(__name__)
 
 from urllib import quote
-def js_compatible_quote(str):
-    if isinstance(str, unicode):
-        str = str.encode('utf-8')
-    return quote(str, safe='~@#$&()*!+=:;,.?/\'')
+def js_compatible_quote(string):
+    if not isinstance(string, basestring):
+        string = str(string)
+    if isinstance(string, unicode):
+        string = string.encode('utf-8')
+    return quote(string, safe='~@#$&()*!+=:;,.?/\'')
 
 class LuminosoAuth(object):
     """Wraps REST requests with Luminoso's required authentication parameters"""
@@ -95,7 +97,10 @@ class LuminosoAuth(object):
 
         # Canonicalize the dictionary
         for key in sorted(params.keys()):
-            signing_list.append('%s: %s' % (key, params[key]))
+            signing_list.append('%s: %s' % (key,
+                                            js_compatible_quote(params[key])
+                                            )
+                                )
 
         return '\n'.join(signing_list) + '\n'
 
