@@ -1,4 +1,6 @@
 
+import logging; logger=logging.getLogger(__name__)
+
 from .base import BaseWrapper
 from .database import Database
 from ..constants import URL_BASE
@@ -25,6 +27,9 @@ class Account(BaseWrapper):
         db_table = self._get('/.list_dbs/')['result']
         dbs = {}
         for db_name, db_meta in db_table.items():
+            if 'name' not in db_meta:
+                logger.warn('skipping %s for incomplete metadata' % db_name)
+                continue
             path = self.api_path + '/' + db_meta['name']
             dbs[db_name]=Database(path, db_name, meta=db_meta,
                                   session=self._session)
