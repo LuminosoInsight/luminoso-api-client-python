@@ -10,4 +10,18 @@ class Document(object):
         raise AttributeError, ("'%s' object has no attribute '%s'" %
                                (self.__class__.__name__, attr))
 
-    # TODO: add a __repr__ to show topic info?
+    def __repr__(self):
+        return '<Document: %s (%s)>' % (self._dict['title'], self._dict['_id'])
+
+    def show_document(self):
+        dict_copy = self._dict.copy()
+        dict_copy[u'fragments'] = (u'<list of %d term triples>' % 
+                                   len(dict_copy['fragments']))
+        dict_copy[u'terms'] = (u'<list of %d term triples>' % 
+                               len(dict_copy['terms']))
+        dict_copy[u'tokens'] = (u'<list of %d token triples>' % 
+                                len(dict_copy['tokens']))
+        dict_copy[u'termlist'] = (u'<list of %d terms>' % 
+                                  len(dict_copy['termlist']))
+        del dict_copy['source']['meta']
+        return dict_copy
