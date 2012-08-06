@@ -56,6 +56,7 @@ class Database(BaseWrapper):
             except:
                 parameters[key] = json.dumps(value)
         topic_dict = self._post('/topics/create', **parameters)
+        _id = topic_dict['_id']
         return Topic(self.api_path + '/topics/' + _id, _id,
                      self._session, topic_dict)
         
