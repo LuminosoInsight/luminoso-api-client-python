@@ -23,11 +23,12 @@ class Topic(BaseWrapper):
         else:
             super(Topic, self).__setattr__(attr, value)
 
-    # TODO: add a __repr__ to show topic info
+    def __repr__(self):
+        return '<Topic: %s (%s)>' % (self._dict['name'], self._dict['_id'])
 
     def show_topic(self):
         dict_copy = dict(self._dict)
-        dict_copy['vector'] = '...'
+        dict_copy[u'vector'] = u'...'
         return dict_copy
 
     def delete_topic(self):
