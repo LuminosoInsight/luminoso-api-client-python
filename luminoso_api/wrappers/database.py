@@ -3,6 +3,7 @@ import json
 from .topic import Topic
 from .document import Document
 from urllib import quote
+from ..constants import URL_BASE
 
 class Database(BaseWrapper):
     """An object encapsulating a document database (project) on Luminoso's
@@ -19,6 +20,17 @@ class Database(BaseWrapper):
 
     def __unicode__(self):
         return u'Database("%s", "%s")' % (self.api_path, self.db_name)
+
+    @classmethod
+    def accessible(cls, session):
+        dbs = session.get(URL_BASE + '/.list_dbs').json
+        return [Database(db_path, db_name, session, meta=db_meta)
+                for db_path, db_name, db_meta
+                in [(db_meta['owner'] + '/' + db_meta['name'],
+                     db_meta['name'],
+                     db_meta)
+                    for db_meta
+                    in dbs.values()]]
 
     def get_relevance(self, limit=10):
         return self._get('/get_relevance/', limit=limit)['result']
