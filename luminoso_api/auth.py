@@ -62,8 +62,8 @@ class LuminosoAuth(object):
         self._session_cookie = resp.cookies['session']
 
         # Save the key_id
-        self._key_id = resp.json['key_id']
-        self._secret = resp.json['secret']
+        self._key_id = resp.json['result']['key_id']
+        self._secret = resp.json['result']['secret']
 
     def __on_response(self, resp):
         """Handle auto-login and update session cookies"""
