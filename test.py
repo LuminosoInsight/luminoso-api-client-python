@@ -10,6 +10,9 @@ def main():
     logger.info('getting database list')
     acct = Account('admin', s)
     dbs = acct.databases()
+    for db in dbs:
+        print "%s: %r" % (db, dbs[db]._meta)
+
     return dbs
 
 def create():
