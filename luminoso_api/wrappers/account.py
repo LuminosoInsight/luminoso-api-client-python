@@ -24,7 +24,7 @@ class Account(BaseWrapper):
         return [Account(acct, session) for acct in accounts['accounts']]
 
     def databases(self):
-        db_table = self._get('/.list_dbs/')['result']
+        db_table = self._get('/.list_dbs')['result']
         dbs = {}
         for db_name, db_meta in db_table.items():
             if 'name' not in db_meta:

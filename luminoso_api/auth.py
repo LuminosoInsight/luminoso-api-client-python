@@ -86,7 +86,7 @@ class LuminosoAuth(object):
             content_hash = ''
 
         pathstring = req.path_url.split('?')[0]
-        if not pathstring.endswith('/'): pathstring += '/'
+
         # Build the list
         signing_list = [req.method,
                         API_HOST,
