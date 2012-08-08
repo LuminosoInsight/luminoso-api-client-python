@@ -23,7 +23,7 @@ class Database(BaseWrapper):
 
     @classmethod
     def accessible(cls, session):
-        dbs = session.get(URL_BASE + '/.list_dbs').json
+        dbs = session.get(URL_BASE + '/.list_dbs').json['result']
         return [Database(db_path, db_name, session, meta=db_meta)
                 for db_path, db_name, db_meta
                 in [(db_meta['owner'] + '/' + db_meta['name'],
