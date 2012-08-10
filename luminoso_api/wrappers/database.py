@@ -6,15 +6,18 @@ from urllib import quote
 from ..constants import URL_BASE
 
 class Database(BaseWrapper):
-    """An object encapsulating a document database (project) on Luminoso's
-       servers"""
+    """
+    An object encapsulating a document database (project) on Luminoso's
+    servers.  It contains the majority of the commands that call the API;
+    see the API for documentation beyond what is included here.
+    """
     def __init__(self, path, db_name, session, meta=None):
         super(Database, self).__init__(path=path,
                                        session=session)
         self.db_name = db_name
 
         if meta is None:
-            meta = self._get('/meta/')
+            meta = self._get('/meta/')['result']
 
         self._meta = meta
 
@@ -33,41 +36,45 @@ class Database(BaseWrapper):
                     in dbs.values()]]
 
     def get_relevance(self, limit=10):
-        return self._get('/get_relevance/', limit=limit)['result']
+        return self._get('/get_relevance/', limit=limit)
 
     def upload_documents(self, documents):
         json_data = json.dumps(documents)
         return self._post_data('/upload_documents/', json_data,
                                'application/json')
-    
+
+    def commit_documents(self, **flags):
+        return self._post('/commit_documents/', **flags)
+
     def docvectors(self):
         return self._get('/docvectors/')
         
     def doc_ids(self):
-        return self._get('/docs/')['ids']
+        return self._get('/docs/')
     
     def doc(self,_id):
-        return Document(self._get('/docs/' + _id + "/"))
+        result = self._get('/docs/' + _id)
+        if result['error']:
+            return result
+        return Document(result['result'])
         
     def topics(self):
         return [Topic(self.api_path + '/topics/' + topic_dict['_id'],
                       topic_dict['_id'], self._session, topic_dict)
-                for topic_dict in self._get('/topics/')['topics']]
+                for topic_dict in self._get('/topics/')['result']]
 
     def recalculate_topics(self):
         return self._get('/topics/.calculate/')
         
     def create_topic(self, **parameters):
         """
-        Parameters are name, role, color, weighted_terms. (See API for more
+        Parameters are name, role, color, surface_texts. (See API for more
         documentation.)
         """
-        for key, value in parameters:
-            try:
-                json.loads(value)
-            except:
+        for key, value in parameters.items():
+            if not isinstance(value, basestring):
                 parameters[key] = json.dumps(value)
-        topic_dict = self._post('/topics/create', **parameters)
+        topic_dict = self._post('/topics/create', **parameters)['result']
         _id = topic_dict['_id']
         return Topic(self.api_path + '/topics/' + _id, _id,
                      self._session, topic_dict)

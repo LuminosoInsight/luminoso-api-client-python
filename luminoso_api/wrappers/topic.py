@@ -7,7 +7,7 @@ class Topic(BaseWrapper):
         super(Topic, self).__init__(path=path,
                                     session=session)
         if topic_dict is None:
-            topic_dict = self._get('')['topic']
+            topic_dict = self._get('')['result']
         self._dict = topic_dict
 
     def __getattr__(self, attr):
@@ -54,5 +54,7 @@ class Topic(BaseWrapper):
         Used to store changes to the database.
         """
         dict_copy = dict(self._dict)
-        dict_copy['weighted_terms'] = json.dumps(dict_copy['weighted_terms'])
+        definer = ('weighted_terms' if 'weighted_terms' in dict_copy
+                   else 'surface_texts')
+        dict_copy[definer] = json.dumps(dict_copy[definer])
         return self._put('', **dict_copy)
