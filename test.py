@@ -15,7 +15,7 @@ def create():
     print result
 
 def relevance():
-    client = LuminosoClient.connect('/admin/api-create-test-6')
+    client = LuminosoClient.connect('/admin/api-create-test-3')
     relevance = client.get('get_relevance')
     print relevance
 

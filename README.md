@@ -83,7 +83,8 @@ from luminoso_api import LuminosoClient
 project = LuminosoClient.connect('/jane/test-project')
 project.post('create_project')
 docs = [{'title': 'First example', 'text': 'This is an example document.'},
-        {'title': 'Second example', 'text': 'Examples are a great source of inspiration.'}]
+        {'title': 'Second example', 'text': 'Examples are a great source of inspiration.'}
+        {'title': 'Third example', 'text': 'Great things come in threes.'}]
 project.upload_documents(docs)
 
 result = project.post('create_project')
