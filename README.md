@@ -68,9 +68,8 @@ print project_names
 ```
 
 For that reason, we have a simpler form for making a single GET request:
-```
+```python
 result = LuminosoClient.get_once('.list_dbs', username='jane', password=SECRET_PASSWORD)
-
 project_names = [project['name'] for project in result]
 print project_names
 ```
