@@ -11,7 +11,7 @@ classifiers=[
     'Topic :: Text Processing :: Linguistic']
 
 setup(
-    name="luminoso_api",
+    name="luminoso-api",
     version = VERSION,
     maintainer='Luminoso, LLC',
     maintainer_email='team@lumino.so',
