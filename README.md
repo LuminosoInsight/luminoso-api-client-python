@@ -67,9 +67,11 @@ project_names = [project['name'] for project in client.get('.list_dbs')]
 print project_names
 ```
 
-For that reason, we have a shorter form for making a single GET request:
+For that reason, we have a simpler form for making a single GET request:
 ```
-project_names = [project['name'] for project in LuminosoClient.get_once('.list_dbs', username='jane', password=SECRET_PASSWORD)]
+result = LuminosoClient.get_once('.list_dbs', username='jane', password=SECRET_PASSWORD)
+
+project_names = [project['name'] for project in result]
 print project_names
 ```
 
