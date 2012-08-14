@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-VERSION = "0.3.0"
+VERSION = "0.3.1"
+VERSION = "0.2.2"
 
 from setuptools import setup, find_packages
 

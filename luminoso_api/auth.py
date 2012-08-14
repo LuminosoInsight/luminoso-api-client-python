@@ -1,19 +1,21 @@
-
 import requests
-from requests.auth import AuthBase
 from requests.utils import dict_from_cookiejar
 
 from hmac import HMAC
 from hashlib import sha1
 from base64 import b64encode
 
-from .constants import API_HOST, URL_BASE
+from .constants import URL_BASE
 from .errors import LuminosoLoginError, LuminosoSessionExpired
-from .jstime import datetime2epoch, epoch2datetime, epoch
+from .jstime import epoch
 
-import logging; logger=logging.getLogger(__name__)
+import logging
+logger = logging.getLogger(__name__)
 
 from urllib import quote
+from urllib2 import urlparse
+
+
 def js_compatible_quote(string):
     if not isinstance(string, basestring):
         string = str(string)
@@ -21,10 +23,11 @@ def js_compatible_quote(string):
         string = string.encode('utf-8')
     return quote(string, safe='~@#$&()*!+=:;,.?/\'')
 
+
 class LuminosoAuth(object):
     """Wraps REST requests with Luminoso's required authentication parameters"""
-    def __init__(self, username, password,
-                 validity_ms=30000, auto_login=True, 
+    def __init__(self, username, password, url=URL_BASE,
+                 validity_ms=30000, auto_login=True,
                  session=None):
         """Log-in to the Luminoso API
 
@@ -38,6 +41,9 @@ class LuminosoAuth(object):
         self._auto_login = auto_login
         self.username = username if auto_login else None
         self.password = password if auto_login else None
+        self.url = url.rstrip('/')
+        parsed = urlparse.urlparse(self.url)
+        self._host = parsed.netloc
 
         # Store the validity parameter
         self._validity_ms = validity_ms
@@ -51,7 +57,7 @@ class LuminosoAuth(object):
     def login(self, username, password):
         """Fetch a session key to use in this authentication context"""
         params = {'username': username, 'password': password}
-        resp = self._session.post(URL_BASE + '/.auth/login', data=params)
+        resp = self._session.post(self.url + '/.auth/login', data=params)
 
         # Make sure the session is valid
         if resp.status_code == 401:
@@ -86,10 +92,11 @@ class LuminosoAuth(object):
             content_hash = ''
 
         pathstring = req.path_url.split('?')[0]
-
+        if not pathstring.endswith('/'):
+            pathstring += '/'
         # Build the list
         signing_list = [req.method,
-                        API_HOST,
+                        self._host,
                         pathstring,
                         content_hash,
                         content_type,
@@ -107,7 +114,7 @@ class LuminosoAuth(object):
     def __call__(self, req):
         # Register the on_response hook
         req.register_hook('response', self.__on_response)
-        
+
         # Determine the expiry
         expiry = epoch() + self._validity_ms
 
