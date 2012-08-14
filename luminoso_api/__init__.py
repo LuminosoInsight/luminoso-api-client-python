@@ -1,4 +1,4 @@
 
 from .errors import *
-from .wrappers import *
+from .client import *
 from .auth import LuminosoAuth
