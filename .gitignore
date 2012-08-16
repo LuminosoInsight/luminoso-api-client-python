@@ -4,3 +4,4 @@
 .*.swp
 *.egg-info
 constants.py
+dist

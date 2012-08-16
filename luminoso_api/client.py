@@ -12,14 +12,24 @@ def ensure_trailing_slash(url):
     return url.rstrip('/') + '/'
 
 
+def get_root_url(url):
+    """
+    If we have to guess a root URL, assume it contains the scheme,
+    hostname, and one path component, as in "https://api.lumino.so/v4".
+    """
+    # make sure it's a complete URL, not a relative one
+    assert ':' in url
+    return '/'.join(url.split('/')[:4])
+
 class LuminosoClient(object):
-    def __init__(self, auth, path):
+    def __init__(self, auth, url, root_url=None):
         self._auth = auth
         self._session = requests.session(auth=auth)
-        self.path = ensure_trailing_slash(path)
+        self.url = ensure_trailing_slash(url)
+        self.root_url = root_url or get_root_url(url)
 
     def __repr__(self):
-        return '<LuminosoClient for %s>' % self.path
+        return '<LuminosoClient for %s>' % self.url
 
     @staticmethod
     def connect(url='/', username=None, password=None, root_url=None):
@@ -39,9 +49,7 @@ class LuminosoClient(object):
             url = URL_BASE + url
 
         if root_url is None:
-            # Extract just the part of the URL up to the first path
-            # component, such as "http://api.lumino.so/v3".
-            root_url = '/'.join(url.split('/')[:4])
+            root_url = get_root_url(url)
 
         logger.info('collecting credentials')
         username = username or os.environ['USER']
@@ -75,24 +83,45 @@ class LuminosoClient(object):
         return result
 
     def get(self, path='', **params):
-        url = ensure_trailing_slash(self.path + path.lstrip('/'))
+        url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('get', url, params=params).json
 
     def post(self, path, **params):
-        url = ensure_trailing_slash(self.path + path.lstrip('/'))
+        url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('post', url, params=params).json
 
     def put(self, path, **params):
-        url = ensure_trailing_slash(self.path + path.lstrip('/'))
+        url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('put', url, params=params).json
 
     def post_data(self, path, data, content_type, **params):
-        url = ensure_trailing_slash(self.path + path.lstrip('/'))
+        url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('post', url,
             params=params,
             data=data,
             headers={'Content-Type': content_type}
         ).json
+
+    def add_path(self, path):
+        """
+        Return a new LuminosoClient for a subpath of this one.
+
+        For example, you might want to start with a LuminosoClient for
+        `https://api.lumino.so/v3/`, then get a new one for
+        `https://api.lumino.so/v3/myname/projects/myproject`. You
+        accomplish that with the following call:
+
+            >>> newclient = client.add_path('myname/projects/myproject')
+        """
+        url = self.url + path
+        return LuminosoClient(self._auth, url, self.root_url)
+
+    def documentation(self):
+        """
+        Get the documentation that the server sends for the API.
+        """
+        newclient = LuminosoClient(self._auth, self.root_url, self.root_url)
+        return newclient._get_raw('/')
 
     def upload_documents(self, docs):
         """
@@ -103,7 +132,7 @@ class LuminosoClient(object):
         return self.post_data('upload_documents', json_data, 'application/json')
 
     def put_data(self, path, data, content_type, **params):
-        url = ensure_trailing_slash(path + path.lstrip('/'))
+        url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('put', url,
             params=params,
             data=data,
@@ -111,7 +140,7 @@ class LuminosoClient(object):
         ).json
 
     def patch(self, path, data, content_type, **params):
-        url = ensure_trailing_slash(path + path.lstrip('/'))
+        url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('patch', url,
             params=params,
             data=data,
@@ -119,15 +148,15 @@ class LuminosoClient(object):
         ).json
 
     def delete(self, path, **params):
-        url = ensure_trailing_slash(path + path.lstrip('/'))
+        url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('patch', url, params=params).json
 
-    def get_raw(self, path, **params):
-        """DEPRECATED: this method will disappear with api-v3"""
-        url = ensure_trailing_slash(path + path.lstrip('/'))
-        return self._request('get', url, params=params).text
+    def _get_raw(self, path, **params):
+        """
+        Get the raw text of a response.
 
-    def post_raw(self, path, **params):
-        """DEPRECATED: this method will disappear with api-v3"""
-        url = ensure_trailing_slash(path + path.lstrip('/'))
-        return self._request('post', url, params=params).text
+        Marked as a private function because it is only useful for specific
+        URLs, such as documentation.
+        """
+        url = ensure_trailing_slash(self.url + path.lstrip('/'))
+        return self._request('get', url, params=params).text
