@@ -3,5 +3,4 @@
 .DS_Store
 .*.swp
 *.egg-info
-constants.py
 dist
