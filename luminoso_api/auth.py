@@ -57,7 +57,7 @@ class LuminosoAuth(object):
     def login(self, username, password):
         """Fetch a session key to use in this authentication context"""
         params = {'username': username, 'password': password}
-        resp = self._session.post(self.url + '/.auth/login', data=params)
+        resp = self._session.post(self.url + '/.auth/login/', data=params)
 
         # Make sure the session is valid
         if resp.status_code == 401:
