@@ -92,11 +92,11 @@ class LuminosoClient(object):
 
     def post(self, path, **params):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._request('post', url, params=params).json
+        return self._request('post', url, data=params).json
 
     def put(self, path, **params):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._request('put', url, params=params).json
+        return self._request('put', url, data=params).json
 
     def post_data(self, path, data, content_type, **params):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
@@ -153,7 +153,7 @@ class LuminosoClient(object):
 
     def delete(self, path, **params):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._request('patch', url, params=params).json
+        return self._request('delete', url, params=params).json
 
     def _get_raw(self, path, **params):
         """

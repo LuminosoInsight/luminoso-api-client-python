@@ -25,8 +25,8 @@ def setup():
         username=USERNAME,
         password=user_info['password'])
 
-    ROOT_CLIENT.post(USERNAME + '/projects', project='test')
-    PROJECT = ROOT_CLIENT.subpath(USERNAME + '/projects/test')
+    ROOT_CLIENT.post(USERNAME + '/projects', project='test3')
+    PROJECT = ROOT_CLIENT.subpath(USERNAME + '/projects/test3')
     assert not_error(PROJECT.get())
 
 def test_list_dbs():
@@ -36,8 +36,8 @@ def test_relevance():
     assert not_error(PROJECT.get('terms'))
 
 def teardown():
-    ROOT_CLIENT.delete(USERNAME + '/projects', project='test')
-    PROJECT = ROOT_CLIENT.subpath(USERNAME + '/projects/test')
+    ROOT_CLIENT.delete(USERNAME + '/projects/test3')
+    PROJECT = ROOT_CLIENT.subpath(USERNAME + '/projects/test3')
     assert error(PROJECT.get())
 
 #def upload():
