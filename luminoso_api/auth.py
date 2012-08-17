@@ -27,8 +27,7 @@ def js_compatible_quote(string):
 class LuminosoAuth(object):
     """Wraps REST requests with Luminoso's required authentication parameters"""
     def __init__(self, username, password, url=URL_BASE,
-                 validity_ms=30000, auto_login=True,
-                 session=None):
+                 validity_ms=30000, auto_login=True, proxies={}):
         """Log-in to the Luminoso API
 
            username, password => (str) credentials to access the server
@@ -49,7 +48,7 @@ class LuminosoAuth(object):
         self._validity_ms = validity_ms
 
         # Initialize the requests session
-        self._session = session or requests.session()
+        self._session = requests.session(proxies=proxies)
 
         # Fetch session credentials
         self.login(username, password)

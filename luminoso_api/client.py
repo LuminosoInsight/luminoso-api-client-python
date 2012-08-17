@@ -22,9 +22,9 @@ def get_root_url(url):
     return '/'.join(url.split('/')[:4])
 
 class LuminosoClient(object):
-    def __init__(self, auth, url, root_url=None):
+    def __init__(self, auth, url, root_url=None, proxies={}):
         self._auth = auth
-        self._session = requests.session(auth=auth)
+        self._session = requests.session(auth=auth, proxies=proxies)
         self.url = ensure_trailing_slash(url)
         self.root_url = root_url or get_root_url(url)
 
