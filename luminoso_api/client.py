@@ -32,7 +32,8 @@ class LuminosoClient(object):
         return '<LuminosoClient for %s>' % self.url
 
     @staticmethod
-    def connect(url='/', username=None, password=None, root_url=None):
+    def connect(url='/', username=None, password=None, root_url=None,
+                proxies={}):
         """
         Returns an object that makes requests to the API, authenticated
         with the provided username/password, at URLs beginning with `url`.
@@ -44,6 +45,9 @@ class LuminosoClient(object):
         You probably want `path` to include your account/database name, unless
         you are working with multiple databases simultaneously or don't
         know which database you need yet.
+
+        `proxies` is a dictionary from URL schemes (like 'http') to proxy
+        servers, in the same form used by the `requests` module.
         """
         if url.startswith('/'):
             url = URL_BASE + url
@@ -57,7 +61,7 @@ class LuminosoClient(object):
             password = getpass('Password for %s: ' % username)
 
         logger.info('creating LuminosoAuth object')
-        auth = LuminosoAuth(username, password, url=root_url)
+        auth = LuminosoAuth(username, password, url=root_url, proxies=proxies)
         return LuminosoClient(auth, url)
 
     @staticmethod
@@ -102,7 +106,7 @@ class LuminosoClient(object):
             headers={'Content-Type': content_type}
         ).json
 
-    def add_path(self, path):
+    def subpath(self, path):
         """
         Return a new LuminosoClient for a subpath of this one.
 
@@ -111,7 +115,7 @@ class LuminosoClient(object):
         `https://api.lumino.so/v3/myname/projects/myproject`. You
         accomplish that with the following call:
 
-            >>> newclient = client.add_path('myname/projects/myproject')
+            >>> newclient = client.subpath('myname/projects/myproject')
         """
         url = self.url + path
         return LuminosoClient(self._auth, url, self.root_url)
