@@ -25,19 +25,31 @@ def setup():
         username=USERNAME,
         password=user_info['password'])
 
+    # ensure that the project is deleted
+    PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/test3')
+    PROJECT.delete()
+
+    # create the project
     ROOT_CLIENT.post(USERNAME + '/projects', project='test3')
-    PROJECT = ROOT_CLIENT.subpath(USERNAME + '/projects/test3')
     assert not_error(PROJECT.get())
 
 def test_list_dbs():
     assert not_error(ROOT_CLIENT.get(USERNAME + '/projects'))
+
+def test_paths():
+    client1 = ROOT_CLIENT.change_path('snoop')
+    assert client1.url == ROOT_CLIENT.url + 'snoop/'
+    client2 = client1.change_path('dogg')
+    assert client2.url == ROOT_CLIENT.url + 'snoop/dogg/'
+    client3 = client2.change_path('/snoop/lion')
+    assert client3.url == ROOT_CLIENT.url + 'snoop/lion/'
 
 def test_relevance():
     assert not_error(PROJECT.get('terms'))
 
 def teardown():
     ROOT_CLIENT.delete(USERNAME + '/projects/test3')
-    PROJECT = ROOT_CLIENT.subpath(USERNAME + '/projects/test3')
+    PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/test3')
     assert error(PROJECT.get())
 
 #def upload():

@@ -22,7 +22,7 @@ def get_root_url(url):
     return '/'.join(url.split('/')[:4])
 
 class LuminosoClient(object):
-    def __init__(self, auth, url, root_url=None, proxies={}):
+    def __init__(self, auth, url, root_url=None, proxies=None):
         self._auth = auth
         self._session = requests.session(auth=auth, proxies=proxies)
         self.url = ensure_trailing_slash(url)
@@ -33,7 +33,7 @@ class LuminosoClient(object):
 
     @staticmethod
     def connect(url='/', username=None, password=None, root_url=None,
-                proxies={}):
+                proxies=None):
         """
         Returns an object that makes requests to the API, authenticated
         with the provided username/password, at URLs beginning with `url`.
@@ -64,21 +64,6 @@ class LuminosoClient(object):
         auth = LuminosoAuth(username, password, url=root_url, proxies=proxies)
         return LuminosoClient(auth, url)
 
-    @staticmethod
-    def get_single(path, username=None, password=None, **params):
-        """
-        Gets the result of a single request, without creating a persistent
-        object.
-
-        This is useful for top-level things like listing databases:
-
-            LuminosoClient.get_single('/.list_dbs', username=username)
-        """
-        path = '/' + path.lstrip('/')
-        return LuminosoClient.connect(
-            path, username=username, password=password
-        ).get(**params)
-
     def _request(self, req_type, url, **kwargs):
         logger.debug('%s %s' % (req_type, url))
         func = getattr(self._session, req_type)
@@ -90,11 +75,11 @@ class LuminosoClient(object):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('get', url, params=params).json
 
-    def post(self, path, **params):
+    def post(self, path='', **params):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('post', url, data=params).json
 
-    def put(self, path, **params):
+    def put(self, path='', **params):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('put', url, data=params).json
 
@@ -106,7 +91,7 @@ class LuminosoClient(object):
             headers={'Content-Type': content_type}
         ).json
 
-    def subpath(self, path):
+    def change_path(self, path):
         """
         Return a new LuminosoClient for a subpath of this one.
 
@@ -115,9 +100,23 @@ class LuminosoClient(object):
         `https://api.lumino.so/v3/myname/projects/myproject`. You
         accomplish that with the following call:
 
-            >>> newclient = client.subpath('myname/projects/myproject')
+            newclient = client.change_path('myname/projects/myproject')
+
+        If you start the path with `/`, it will start from the root_url
+        instead of the current url:
+
+            project_area = newclient.change_path('/myname/projects')
+
+        The advantage of using `.change_path` is that you will not need to
+        re-authenticate like you would if you ran `.connect` again. You can
+        use `.change_path` to split off as many sub-clients as you want, and
+        you don't have to stop using the old one just because you got a new
+        one with `.change_path`.
         """
-        url = self.url + path
+        if path.startswith('/'):
+            url = self.root_url + path
+        else:
+            url = self.url + path
         return LuminosoClient(self._auth, url, self.root_url)
 
     def documentation(self):
@@ -151,7 +150,7 @@ class LuminosoClient(object):
             headers={'Content-Type': content_type}
         ).json
 
-    def delete(self, path, **params):
+    def delete(self, path='', **params):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('delete', url, params=params).json
 
