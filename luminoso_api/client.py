@@ -107,7 +107,7 @@ class LuminosoClient(object):
 
     def delete(self, path, **params):
         path = ensure_trailing_slash(path.lstrip('/'))
-        return self._request('patch', self.path+path, params=params).json
+        return self._request('delete', self.path+path, params=params).json
 
     def get_raw(self, path, **params):
         """DEPRECATED: this method will disappear with api-v3"""
