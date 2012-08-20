@@ -9,9 +9,6 @@ ROOT_CLIENT = None
 PROJECT = None
 USERNAME = None
 
-def not_error(obj):
-    return obj.get('result')
-
 def error(obj):
     return obj.get('error')
 
@@ -31,10 +28,10 @@ def setup():
 
     # create the project
     ROOT_CLIENT.post(USERNAME + '/projects', project='test3')
-    assert not_error(PROJECT.get())
+    assert not error(PROJECT.get())
 
 def test_list_dbs():
-    assert not_error(ROOT_CLIENT.get(USERNAME + '/projects'))
+    assert not error(ROOT_CLIENT.get(USERNAME + '/projects'))
 
 def test_paths():
     client1 = ROOT_CLIENT.change_path('snoop')
@@ -44,8 +41,8 @@ def test_paths():
     client3 = client2.change_path('/snoop/lion')
     assert client3.url == ROOT_CLIENT.url + 'snoop/lion/'
 
-def test_relevance():
-    assert not_error(PROJECT.get('terms'))
+def test_empty_relevance():
+    assert error(PROJECT.get('terms'))
 
 def teardown():
     ROOT_CLIENT.delete(USERNAME + '/projects/test3')
