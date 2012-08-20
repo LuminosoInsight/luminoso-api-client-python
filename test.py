@@ -3,7 +3,7 @@ import subprocess
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-from luminoso_api import LuminosoClient
+from luminoso_api import LuminosoClient, LuminosoAuthError
 
 ROOT_CLIENT = None
 PROJECT = None
@@ -27,7 +27,7 @@ def setup():
 
     # ensure that the project is deleted
     PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/test3')
-    PROJECT.delete()
+    #PROJECT.delete()
 
     # create the project
     ROOT_CLIENT.post(USERNAME + '/projects', project='test3')
@@ -50,7 +50,11 @@ def test_relevance():
 def teardown():
     ROOT_CLIENT.delete(USERNAME + '/projects/test3')
     PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/test3')
-    assert error(PROJECT.get())
+    try:
+        PROJECT.get()
+        raise ValueError("Getting a deleted database should have failed")
+    except LuminosoAuthError:
+        pass
 
 #def upload():
 #    s = get_session()

@@ -1,5 +1,7 @@
+class LuminosoError(Exception):
+    pass
 
-class LuminosoAuthError(Exception):
+class LuminosoAuthError(LuminosoError):
     pass
 
 class LuminosoLoginError(LuminosoAuthError):
@@ -7,3 +9,10 @@ class LuminosoLoginError(LuminosoAuthError):
 
 class LuminosoSessionExpired(LuminosoAuthError):
     pass
+
+class LuminosoClientError(LuminosoError):
+    pass
+
+class LuminosoServerError(LuminosoError):
+    pass
+

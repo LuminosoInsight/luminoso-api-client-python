@@ -1,15 +1,13 @@
 from .auth import LuminosoAuth
 from .constants import URL_BASE
+from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
+    LuminosoServerError)
 from getpass import getpass
 import os
 import requests
 import logging
 import json
 logger = logging.getLogger(__name__)
-
-
-def ensure_trailing_slash(url):
-    return url.rstrip('/') + '/'
 
 
 def get_root_url(url):
@@ -21,7 +19,33 @@ def get_root_url(url):
     assert ':' in url
     return '/'.join(url.split('/')[:4])
 
+def ensure_trailing_slash(url):
+    return url.rstrip('/') + '/'
+
+
 class LuminosoClient(object):
+    """
+    A tool for making authenticated requests to the Luminoso API version 3.
+
+    A LuminosoClient is a thin wrapper around the REST API documented at
+    https://api.lumino.so/v3. As such, you interact with it by calling its
+    methods that correspond to HTTP methods: `.get(url)`, `.post(url)`,
+    `.put(url)`, and `.delete(url)`.
+
+    These calls take parameters as keyword arguments, and encode them in
+    the appropriate way for the request.
+
+    A LuminosoClient requires a LuminosoAuth object. The easiest way to
+    create a LuminosoClient is using the `LuminosoClient.connect(url)`
+    static method, which will take in your username and optionally your
+    password, or prompt you for the password if it is not specified.
+
+    The LuminosoClient has a `root_url`, pointing to the root of the API,
+    such as https://api.lumino.so/v3. It also has a `url` that forms the
+    prefix of all of its requests, such as
+    `https://api.lumino.so/v3/myname/projects`. You can break the URLs
+    down into client objects in whatever way is convenient.
+    """
     def __init__(self, auth, url, root_url=None, proxies=None):
         self._auth = auth
         self._session = requests.session(auth=auth, proxies=proxies)
@@ -68,7 +92,19 @@ class LuminosoClient(object):
         logger.debug('%s %s' % (req_type, url))
         func = getattr(self._session, req_type)
         result = func(url, **kwargs)
-        result.raise_for_status()
+        try:
+            result.raise_for_status()
+        except requests.HTTPError:
+            error = result.text
+            if result.status_code == 401:
+                error_class = LuminosoAuthError
+            if result.status_code in (404, 405):
+                error_class = LuminosoClientError
+            elif result.status_code >= 500:
+                error_class = LuminosoServerError
+            else:
+                error_class = LuminosoError
+            raise error_class(error)
         return result
 
     def get(self, path='', **params):
@@ -108,7 +144,9 @@ class LuminosoClient(object):
             project_area = newclient.change_path('/myname/projects')
 
         The advantage of using `.change_path` is that you will not need to
-        re-authenticate like you would if you ran `.connect` again. You can
+        re-authenticate like you would if you ran `.connect` again.
+
+        You can
         use `.change_path` to split off as many sub-clients as you want, and
         you don't have to stop using the old one just because you got a new
         one with `.change_path`.
