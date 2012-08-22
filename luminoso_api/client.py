@@ -108,6 +108,7 @@ class LuminosoClient(object):
             raise error_class(error)
         return result
 
+    # Simple REST operations
     def get(self, path='', **params):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('get', url, params=params).json
@@ -120,6 +121,11 @@ class LuminosoClient(object):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('put', url, data=params).json
 
+    def delete(self, path='', **params):
+        url = ensure_trailing_slash(self.url + path.lstrip('/'))
+        return self._request('delete', url, params=params).json
+
+    # Operations with a data payload
     def post_data(self, path, data, content_type, **params):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('post', url,
@@ -128,22 +134,23 @@ class LuminosoClient(object):
             headers={'Content-Type': content_type}
         ).json
 
-    def wait_for_assoc(self, path='', min_version=0, interval=5):
-        """
-        Poll every 5 seconds until you get an assoc_space with a version
-        greater than or equal to `min_version`. Returns the version
-        number.
-        """
-        while True:
-            response = self.get(path)
-            if response['error']:
-                raise LuminosoError(str(response['error']))
-            else:
-                result = response['result']
-                if result['current_assoc_version'] >= min_version:
-                    return result['current_assoc_version']
-                time.sleep(interval)
+    def put_data(self, path, data, content_type, **params):
+        url = ensure_trailing_slash(self.url + path.lstrip('/'))
+        return self._request('put', url,
+            params=params,
+            data=data,
+            headers={'Content-Type': content_type}
+        ).json
 
+    def patch(self, path, data, content_type, **params):
+        url = ensure_trailing_slash(self.url + path.lstrip('/'))
+        return self._request('patch', url,
+            params=params,
+            data=data,
+            headers={'Content-Type': content_type}
+        ).json
+
+    # Useful abstractions
     def change_path(self, path):
         """
         Return a new LuminosoClient for a subpath of this one.
@@ -190,26 +197,23 @@ class LuminosoClient(object):
         json_data = json.dumps(docs)
         return self.post_data(path, json_data, 'application/json')
 
-    def put_data(self, path, data, content_type, **params):
-        url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._request('put', url,
-            params=params,
-            data=data,
-            headers={'Content-Type': content_type}
-        ).json
+    def wait_for_assoc(self, path='', min_version=0, interval=5):
+        """
+        Poll every 5 seconds until you get an assoc_space with a version
+        greater than or equal to `min_version`. Returns the version
+        number.
+        """
+        while True:
+            response = self.get(path)
+            if response['error']:
+                raise LuminosoError(str(response['error']))
+            else:
+                result = response['result']
+                if result['current_assoc_version'] >= min_version:
+                    return result['current_assoc_version']
+                time.sleep(interval)
 
-    def patch(self, path, data, content_type, **params):
-        url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._request('patch', url,
-            params=params,
-            data=data,
-            headers={'Content-Type': content_type}
-        ).json
-
-    def delete(self, path='', **params):
-        url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._request('delete', url, params=params).json
-
+    # Internal stuff
     def _get_raw(self, path, **params):
         """
         Get the raw text of a response.
