@@ -1,5 +1,6 @@
 import logging
 import subprocess
+import time
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
@@ -8,6 +9,9 @@ from luminoso_api import LuminosoClient, LuminosoAuthError
 ROOT_CLIENT = None
 PROJECT = None
 USERNAME = None
+
+PROJECT_NAME = 'test5'
+ROOT_URL = 'http://localhost:5000/v3'
 
 def error(obj):
     return obj.get('error')
@@ -18,55 +22,48 @@ def setup():
     user_info = eval(user_info_str)
     USERNAME = user_info['username']
 
-    ROOT_CLIENT = LuminosoClient.connect('/',
+    ROOT_CLIENT = LuminosoClient.connect(ROOT_URL,
         username=USERNAME,
         password=user_info['password'])
 
     # ensure that the project is deleted
-    PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/test3')
+    PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/' + PROJECT_NAME)
     #PROJECT.delete()
 
     # create the project
-    ROOT_CLIENT.post(USERNAME + '/projects', project='test3')
-    assert not error(PROJECT.get())
+    ROOT_CLIENT.post(USERNAME + '/projects', project=PROJECT_NAME)
+    result = PROJECT.get()
+    assert not error(result), result
 
 def test_list_dbs():
     assert not error(ROOT_CLIENT.get(USERNAME + '/projects'))
 
 def test_paths():
-    client1 = ROOT_CLIENT.change_path('snoop')
-    assert client1.url == ROOT_CLIENT.url + 'snoop/'
-    client2 = client1.change_path('dogg')
-    assert client2.url == ROOT_CLIENT.url + 'snoop/dogg/'
-    client3 = client2.change_path('/snoop/lion')
-    assert client3.url == ROOT_CLIENT.url + 'snoop/lion/'
+    client1 = ROOT_CLIENT.change_path('foo')
+    assert client1.url == ROOT_CLIENT.url + 'foo/'
+    client2 = client1.change_path('bar')
+    assert client2.url == ROOT_CLIENT.url + 'foo/bar/'
+    client3 = client2.change_path('/baz')
+    assert client3.url == ROOT_CLIENT.url + 'baz/'
 
 def test_empty_relevance():
-    assert error(PROJECT.get('terms'))
+    result = PROJECT.get('terms')
+    assert error(result), result
+
+def test_upload():
+    docs = [
+        {'text': 'This is an example',
+         'title': 'example-1'},
+        {'text': 'Examples are a great source of inspiration',
+         'title': 'example-2'},
+    ]
+    assert not error(PROJECT.upload('docs', docs))
+    assert not error(PROJECT.post('docs/calculate'))
+    assert not error(PROJECT.get('docs/calculate'))
+    PROJECT.wait_for_assoc()
+    assert not error(PROJECT.get('terms'))
 
 def teardown():
-    ROOT_CLIENT.delete(USERNAME + '/projects/test3')
-    PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/test3')
-    try:
-        PROJECT.get()
-        raise ValueError("Getting a deleted database should have failed")
-    except LuminosoAuthError:
-        pass
-
-#def upload():
-#    s = get_session()
-#    acct = Account('admin', s)
-#    resp = acct.create_project('api-create-test-2')
-#    if resp is not None:
-#        print 'error: %s' % resp
-#        return
-#    db = Database('admin/api-create-test-2', 'api-create-test-2', s)
-#    docs = [{'text': 'Examples are a great source of inspiration',
-#             'title': 'example-1'},
-#            {'text': 'W3C specifications are habitually in BNF',
-#             'title': 'example-2'},
-#            {'text': 'W3C specifications are inscrutible',
-#             'title': 'example-3'},
-#           ]
-#    resp = db.upload_documents(docs)
-#    print repr(resp)
+    ROOT_CLIENT.delete(USERNAME + '/projects/' + PROJECT_NAME)
+    PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/' + PROJECT_NAME)
+    assert error(PROJECT.get())

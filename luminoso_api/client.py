@@ -7,6 +7,7 @@ import os
 import requests
 import logging
 import json
+import time
 logger = logging.getLogger(__name__)
 
 
@@ -127,6 +128,22 @@ class LuminosoClient(object):
             headers={'Content-Type': content_type}
         ).json
 
+    def wait_for_assoc(self, path='', min_version=0, interval=5):
+        """
+        Poll every 5 seconds until you get an assoc_space with a version
+        greater than or equal to `min_version`. Returns the version
+        number.
+        """
+        while True:
+            response = self.get(path)
+            if response['error']:
+                raise LuminosoError(str(response['error']))
+            else:
+                result = response['result']
+                if result['current_assoc_version'] >= min_version:
+                    return result['current_assoc_version']
+                time.sleep(interval)
+
     def change_path(self, path):
         """
         Return a new LuminosoClient for a subpath of this one.
@@ -164,13 +181,14 @@ class LuminosoClient(object):
         newclient = LuminosoClient(self._auth, self.root_url, self.root_url)
         return newclient._get_raw('/')
 
-    def upload_documents(self, docs):
+    def upload(self, path, docs):
         """
         A convenience method for uploading a set of dictionaries representing
-        documents.
+        documents. You still need to specify the URL to upload to, which will
+        look like ROOT_URL/myname/projects/projectname/docs.
         """
         json_data = json.dumps(docs)
-        return self.post_data('upload_documents', json_data, 'application/json')
+        return self.post_data(path, json_data, 'application/json')
 
     def put_data(self, path, data, content_type, **params):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
