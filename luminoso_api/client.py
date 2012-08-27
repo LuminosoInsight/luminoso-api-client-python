@@ -67,11 +67,11 @@ class LuminosoClient(object):
 
     def post(self, path, **params):
         path = ensure_trailing_slash(path.lstrip('/'))
-        return self._request('post', self.path+path, params=params).json
+        return self._request('post', self.path+path, data=params).json
 
     def put(self, path, **params):
         path = ensure_trailing_slash(path.lstrip('/'))
-        return self._request('put', self.path+path, params=params).json
+        return self._request('put', self.path+path, data=params).json
 
     def post_data(self, path, data, content_type, **params):
         path = ensure_trailing_slash(path.lstrip('/'))
