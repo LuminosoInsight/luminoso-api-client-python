@@ -23,6 +23,19 @@ def get_root_url(url):
 def ensure_trailing_slash(url):
     return url.rstrip('/') + '/'
 
+def jsonify_parameters(params):
+    """
+    When sent in an authorized REST request, only strings and integers can be
+    transmitted accurately. Other types of data need to be encoded into JSON.
+    """
+    result = {}
+    for param, value in params.iteritems():
+        if (isinstance(value, int) or isinstance(value, long)
+            or isinstance(value, basestring)):
+            result[param] = value
+        else:
+            result[param] = json.dumps(value)
+    return result
 
 class LuminosoClient(object):
     """
@@ -110,23 +123,28 @@ class LuminosoClient(object):
 
     # Simple REST operations
     def get(self, path='', **params):
+        params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('get', url, params=params).json
 
     def post(self, path='', **params):
+        params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('post', url, data=params).json
 
     def put(self, path='', **params):
+        params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('put', url, data=params).json
 
     def delete(self, path='', **params):
+        params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('delete', url, params=params).json
 
     # Operations with a data payload
     def post_data(self, path, data, content_type, **params):
+        params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('post', url,
             params=params,
@@ -135,6 +153,7 @@ class LuminosoClient(object):
         ).json
 
     def put_data(self, path, data, content_type, **params):
+        params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('put', url,
             params=params,
@@ -143,6 +162,7 @@ class LuminosoClient(object):
         ).json
 
     def patch(self, path, data, content_type, **params):
+        params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('patch', url,
             params=params,
@@ -199,6 +219,8 @@ class LuminosoClient(object):
 
     def wait_for_assoc(self, path='', min_version=0, interval=5):
         """
+        DEPRECATED: use wait_for instead.
+
         Poll every 5 seconds until you get an assoc_space with a version
         greater than or equal to `min_version`. Returns the version
         number.
@@ -211,6 +233,23 @@ class LuminosoClient(object):
                 result = response['result']
                 if result['current_assoc_version'] >= min_version:
                     return result['current_assoc_version']
+                time.sleep(interval)
+
+    def wait_for(self, job_id, basepath=None, interval=5):
+        """
+        Poll every 5 seconds until the job numbered `job_id` is done.
+        """
+        if basepath is None:
+            basepath = 'jobs/id' % job_id
+        path = '%s%d' % (ensure_trailing_slash(basepath), job_id)
+        while True:
+            response = self.get(path)
+            if response['error']:
+                raise LuminosoError(str(response['error']))
+            else:
+                result = response['result']
+                if result['stop']:
+                    return result
                 time.sleep(interval)
 
     # Internal stuff
