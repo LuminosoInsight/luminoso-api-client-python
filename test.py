@@ -12,7 +12,7 @@ ROOT_CLIENT = None
 PROJECT = None
 USERNAME = None
 
-PROJECT_NAME = 'test15'
+PROJECT_NAME = 'test16'
 ROOT_URL = 'http://localhost:5000/v3'
 
 def fileno_monkeypatch(self):
