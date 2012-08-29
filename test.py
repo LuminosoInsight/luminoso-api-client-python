@@ -2,9 +2,6 @@ import logging
 import subprocess
 import sys
 import time
-import gevent
-from gevent import monkey
-monkey.patch_all()
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -27,14 +24,8 @@ StringIO.StringIO.fileno = fileno_monkeypatch
 def error(obj):
     return obj.get('error')
 
-def run_api_server():
-    from lumi_api.flask_init import init_flask
-    gevent.spawn(init_flask, api_name='localhost:5000')
-    gevent.sleep(2)
-
 def setup():
     global ROOT_CLIENT, PROJECT, USERNAME
-    run_api_server()
     user_info_str = subprocess.check_output('tellme lumi-test', shell=True)
     user_info = eval(user_info_str)
     USERNAME = user_info['username']
