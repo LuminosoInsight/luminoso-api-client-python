@@ -15,7 +15,7 @@ ROOT_CLIENT = None
 PROJECT = None
 USERNAME = None
 
-PROJECT_NAME = 'test11'
+PROJECT_NAME = 'test15'
 ROOT_URL = 'http://localhost:5000/v3'
 
 def fileno_monkeypatch(self):
@@ -77,10 +77,9 @@ def test_upload():
          'title': 'example-3'},
     ]
     job_id = PROJECT.upload('docs', docs)['result']
-    job_id_2 = PROJECT.post('docs/calculate')
+    job_id_2 = PROJECT.post('docs/calculate')['result']
     assert job_id_2 > job_id
-    assert not error(PROJECT.get('docs/calculate'))
-    PROJECT.wait_for_assoc()
+    PROJECT.wait_for(job_id_2)
     assert not error(PROJECT.get('terms'))
 
 def test_topics():
@@ -101,10 +100,10 @@ def test_topics():
     assert topic['name'] == 'Example topic'
     assert topic['surface_texts'] == ['Examples']
     assert topic['color'] == '#aabbcc'
-    topic_id = topic['id']
+    topic_id = topic['_id']
 
-    topic2 = PROJECT.get('topics/id/%s' % topic_id)
-    assert topic2 == topic
+    topic2 = PROJECT.get('topics/id/%s' % topic_id)['result']
+    assert topic2 == topic, '%s != %s' % (topic2, topic)
 
 def teardown():
     if ROOT_CLIENT is not None:

@@ -240,7 +240,7 @@ class LuminosoClient(object):
         Poll every 5 seconds until the job numbered `job_id` is done.
         """
         if basepath is None:
-            basepath = 'jobs/id' % job_id
+            basepath = 'jobs/id'
         path = '%s%d' % (ensure_trailing_slash(basepath), job_id)
         while True:
             response = self.get(path)
@@ -248,7 +248,7 @@ class LuminosoClient(object):
                 raise LuminosoError(str(response['error']))
             else:
                 result = response['result']
-                if result['stop']:
+                if result['stop_time']:
                     return result
                 time.sleep(interval)
 
