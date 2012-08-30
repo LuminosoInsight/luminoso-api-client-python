@@ -10,7 +10,7 @@ import json
 import time
 logger = logging.getLogger(__name__)
 
-
+FORM_TYPE = 'application/x-www-form-urlencoded'
 def get_root_url(url):
     """
     If we have to guess a root URL, assume it contains the scheme,
@@ -130,17 +130,26 @@ class LuminosoClient(object):
     def post(self, path='', **params):
         params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._request('post', url, data=params).json
+        return self._request('post', url,
+            data=params,
+            headers={'Content-Type': FORM_TYPE}
+        ).json
 
     def put(self, path='', **params):
         params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._request('put', url, data=params).json
+        return self._request('put', url,
+            data=params,
+            headers={'Content-Type': FORM_TYPE}
+        ).json
 
     def delete(self, path='', **params):
         params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._request('delete', url, params=params).json
+        return self._request('delete', url,
+            params=params,
+            headers={'Content-Type': FORM_TYPE}
+        ).json
 
     # Operations with a data payload
     def post_data(self, path, data, content_type, **params):
@@ -216,24 +225,6 @@ class LuminosoClient(object):
         """
         json_data = json.dumps(docs)
         return self.post_data(path, json_data, 'application/json')
-
-    def wait_for_assoc(self, path='', min_version=0, interval=5):
-        """
-        DEPRECATED: use wait_for instead.
-
-        Poll every 5 seconds until you get an assoc_space with a version
-        greater than or equal to `min_version`. Returns the version
-        number.
-        """
-        while True:
-            response = self.get(path)
-            if response['error']:
-                raise LuminosoError(str(response['error']))
-            else:
-                result = response['result']
-                if result['current_assoc_version'] >= min_version:
-                    return result['current_assoc_version']
-                time.sleep(interval)
 
     def wait_for(self, job_id, basepath=None, interval=5):
         """
