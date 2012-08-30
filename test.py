@@ -43,7 +43,7 @@ def setup():
     PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/' + PROJECT_NAME)
 
     assert not error(projlist)
-    if PROJECT_NAME in projlist['result']:
+    if USERNAME + '_' + PROJECT_NAME in projlist['result']:
         logger.warn('The test database existed already. We have to clean it up.')
         PROJECT.delete()
 
