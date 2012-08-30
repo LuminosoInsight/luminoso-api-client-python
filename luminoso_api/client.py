@@ -132,7 +132,6 @@ class LuminosoClient(object):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('post', url,
             data=params,
-            headers={'Content-Type': FORM_TYPE}
         ).json
 
     def put(self, path='', **params):
@@ -140,7 +139,6 @@ class LuminosoClient(object):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('put', url,
             data=params,
-            headers={'Content-Type': FORM_TYPE}
         ).json
 
     def delete(self, path='', **params):
@@ -148,8 +146,6 @@ class LuminosoClient(object):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('delete', url,
             params=params,
-            data={},
-            headers={'Content-Type': FORM_TYPE}
         ).json
 
     # Operations with a data payload
