@@ -12,7 +12,7 @@ ROOT_CLIENT = None
 PROJECT = None
 USERNAME = None
 
-PROJECT_NAME = 'test16'
+PROJECT_NAME = 'test17'
 ROOT_URL = 'http://localhost:5000/v3'
 
 def fileno_monkeypatch(self):
@@ -34,9 +34,13 @@ def setup():
         username=USERNAME,
         password=user_info['password'])
 
-    # ensure that the project is deleted
+    projlist = ROOT_CLIENT.get(USERNAME+'/projects')
     PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/' + PROJECT_NAME)
-    #PROJECT.delete()
+
+    assert not error(projlist)
+    if PROJECT_NAME in projlist['result']:
+        logger.warn('The test database existed already. We have to clean it up.')
+        PROJECT.delete()
 
     # create the project
     ROOT_CLIENT.post(USERNAME + '/projects', project=PROJECT_NAME)
@@ -44,7 +48,7 @@ def setup():
     assert not error(result), result
 
 def test_list_dbs():
-    assert not error(ROOT_CLIENT.get(USERNAME + '/projects'))
+    assert ROOT_CLIENT.get(USERNAME + '/projects')
 
 def test_paths():
     client1 = ROOT_CLIENT.change_path('foo')
