@@ -1,7 +1,7 @@
 import logging
 import subprocess
 import sys
-import time
+import os
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -12,7 +12,7 @@ ROOT_CLIENT = None
 PROJECT = None
 USERNAME = None
 
-PROJECT_NAME = 'test17'
+PROJECT_NAME = os.environ['USER'] + '-test'
 ROOT_URL = 'http://localhost:5000/v3'
 
 def fileno_monkeypatch(self):
