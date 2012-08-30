@@ -148,6 +148,7 @@ class LuminosoClient(object):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('delete', url,
             params=params,
+            data={},
             headers={'Content-Type': FORM_TYPE}
         ).json
 
