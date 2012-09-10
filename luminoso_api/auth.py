@@ -27,13 +27,13 @@ def js_compatible_quote(string):
 class LuminosoAuth(object):
     """Wraps REST requests with Luminoso's required authentication parameters"""
     def __init__(self, username, password, url=URL_BASE,
-                 validity_ms=30000, auto_login=True, proxies=None):
+                 validity_ms=30000, auto_login=False, proxies=None):
         """Log-in to the Luminoso API
 
            username, password => (str) credentials to access the server
            validity_ms => milliseconds of validity for signed messages
            auto_login => remember the credentials and use them when the
-                         connection times out
+                         connection times out (NOT IMPLEMENTED YET)
            session => requests session to use for queries"""
 
         # Store the login parameters
