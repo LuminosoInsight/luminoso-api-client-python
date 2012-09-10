@@ -332,7 +332,7 @@ class LuminosoClient(object):
         """
         if base_path is None:
             base_path = 'jobs/id'
-        path = '%s%d' % (ensure_trailing_slash(basepath), job_id)
+        path = '%s%d' % (ensure_trailing_slash(base_path), job_id)
         while True:
             response = self.get(path)
             if response['stop_time']:
