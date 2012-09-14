@@ -14,7 +14,7 @@ ROOT_CLIENT = None
 PROJECT = None
 USERNAME = None
 
-PROJECT_NAME = os.environ['USER'] + '-test'
+PROJECT_NAME = os.environ['USER'] + '-test3'
 ROOT_URL = 'http://localhost:5000/v3'
 
 def fileno_monkeypatch(self):
@@ -81,9 +81,11 @@ def test_upload():
         {'text': 'Great things come in threes',
          'title': 'example-3'},
     ]
+    logger.info('uploading')
     job_id = PROJECT.upload('docs', docs)
     job_id_2 = PROJECT.post('docs/calculate')
     assert job_id_2 > job_id
+    logger.info('waiting')
     PROJECT.wait_for(job_id_2)
     assert PROJECT.get('terms')
 

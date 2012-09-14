@@ -333,8 +333,10 @@ class LuminosoClient(object):
         if base_path is None:
             base_path = 'jobs/id'
         path = '%s%d' % (ensure_trailing_slash(base_path), job_id)
+        logger.info('waiting')
         while True:
             response = self.get(path)
+            logger.info(response)
             if response['stop_time']:
                 return response
             time.sleep(interval)
