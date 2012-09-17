@@ -38,7 +38,8 @@ def setup():
         password=user_info['password'])
 
     # check to see if the project exists; also create the client we'll use
-    projlist = ROOT_CLIENT.get(USERNAME + '/projects')
+    projects = ROOT_CLIENT.get(USERNAME + '/projects')
+    projlist = [proj['name'] for proj in projects]
     PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/' + PROJECT_NAME)
 
     if PROJECT_NAME in projlist:
@@ -46,6 +47,8 @@ def setup():
         PROJECT.delete()
 
     # create the project
+    logger.info("Creating project: "+PROJECT_NAME)
+    logger.info("Existing projects: %r" % projlist)
     ROOT_CLIENT.post(USERNAME + '/projects', project=PROJECT_NAME)
     PROJECT.get()
 
