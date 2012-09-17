@@ -63,12 +63,12 @@ project (also known as a database), but one case where you don't is to get a lis
 ```python
 from luminoso_api import LuminosoClient
 client = LuminosoClient.connect(username='jane', password=MY_SECRET_PASSWORD)
-project_names = [project['name'] for project in client.get('.list_dbs')]
+project_names = [project['name'] for project in client.get('projects')]
 print project_names
 ```
 
 
-An example of working with a project, including the `.upload_documents` method
+An example of working with a project, including the `upload` method
 that we provide to make it convenient to upload documents in the right format:
 
 ```python
@@ -77,18 +77,19 @@ from luminoso_api import LuminosoClient
 account = LuminosoClient.connect('/jane', username='jane')
 
 # Create a new project by POSTing its name
-account.post('projects', {project: 'testproject'})
+account.post('projects', project='testproject')
 
 # use that project from here on
-project = account.subpath('projects/testproject')
+project = account.change_path('projects/testproject')
 
 docs = [{'title': 'First example', 'text': 'This is an example document.'},
         {'title': 'Second example', 'text': 'Examples are a great source of inspiration.'}
         {'title': 'Third example', 'text': 'Great things come in threes.'}]
-project.upload_documents(docs)
+project.upload('docs',docs)
+project.post('docs/calculate')
 ```
 
-When the project is ready (it shouldn't take long with 2 documents)*:
+When the project is ready (it shouldn't take long with 3 documents)*:
 
 ```python
 response = project.get('terms')
