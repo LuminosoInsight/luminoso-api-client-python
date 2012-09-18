@@ -44,7 +44,7 @@ def setup():
 
     if PROJECT_NAME in projlist:
         logger.warn('The test database existed already. We have to clean it up.')
-        PROJECT.delete()
+        ROOT_CLIENT.delete(USERNAME + '/projects', project=PROJECT_NAME)
 
     # create the project
     logger.info("Creating project: "+PROJECT_NAME)
@@ -123,7 +123,7 @@ def teardown():
     Pack everything up, we're done.
     """
     if ROOT_CLIENT is not None:
-        ROOT_CLIENT.delete(USERNAME + '/projects/' + PROJECT_NAME)
+        ROOT_CLIENT.delete(USERNAME + '/projects', project=PROJECT_NAME)
         PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/' + PROJECT_NAME)
         try:
             got = PROJECT.get()
