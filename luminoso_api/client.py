@@ -175,7 +175,7 @@ class LuminosoClient(object):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._json_request('put', url,
             data=params,
-        ).json
+        )
 
     def delete(self, path='', **params):
         """
