@@ -300,6 +300,13 @@ class LuminosoClient(object):
         newclient = LuminosoClient(self._auth, self.root_url, self.root_url)
         return newclient.get_raw('/')
 
+    def keepalive(self):
+        """
+        Send a pointless POST request so that auth doesn't time out.
+        """
+        newclient = LuminosoClient(self._auth, self.root_url, self.root_url)
+        return newclient.post('ping')
+
     def upload(self, path, docs):
         """
         A convenience method for uploading a set of dictionaries representing
@@ -334,7 +341,11 @@ class LuminosoClient(object):
             base_path = 'jobs/id'
         path = '%s%d' % (ensure_trailing_slash(base_path), job_id)
         logger.info('waiting')
+        count = 0
         while True:
+            count += 1
+            if count % 10 == 0:
+                self.keepalive()
             response = self.get(path)
             logger.info(response)
             if response['stop_time']:
