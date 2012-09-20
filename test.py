@@ -52,6 +52,15 @@ def setup():
     ROOT_CLIENT.post(USERNAME + '/projects', project=PROJECT_NAME)
     PROJECT.get()
 
+def test_noop():
+    """
+    Sometimes you just need to do nothing.
+    """
+    assert ROOT_CLIENT.get('ping') == 'pong'
+    assert ROOT_CLIENT.post('ping') == 'pong'
+    assert ROOT_CLIENT.put('ping') == 'pong'
+    assert ROOT_CLIENT.delete('ping') == 'pong'
+
 def test_paths():
     """
     Without interacting with the network, make sure our path logic works.
