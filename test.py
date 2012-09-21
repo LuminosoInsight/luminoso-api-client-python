@@ -127,6 +127,11 @@ def test_topics():
     topic2 = PROJECT.get('topics/id/%s' % topic_id)
     assert topic2 == topic, '%s != %s' % (topic2, topic)
 
+def test_terms():
+    terms = PROJECT.get('terms')
+    assert len(terms)
+    assert terms[0]['text'] != 'person'
+
 def teardown():
     """
     Pack everything up, we're done.
