@@ -1,0 +1,23 @@
+Version 0.3.1 (2012-09-21)
+
+This is the first published version of the client that works with the Luminoso
+API v3. Significant changes since we first made it available on Git are:
+
+  * Server changes
+
+    - The project list (GET /v3/<account>/projects/) now returns just the
+      names of the projects, not strings with your account name attached.
+    - The endpoint for deleting a project is now DELETE /v3/<account>/projects,
+      with a project=<projectname> parameter.
+    - The API now provides .../jobs/<id> endpoints, for possibly long-running
+      asynchronous tasks.
+    - Running DELETE on the project URL itself will instead clear all data
+      from the project, while leaving it in existence.
+
+  * Client changes
+  
+    - PUT requests (for example, for replacing an exsiting document) work
+      correctly.
+    - The client has a special `wait_for` function that polls a .../jobs/<id>
+      endpoint until a given task finishes. (See test.py for an example of
+      using this.)

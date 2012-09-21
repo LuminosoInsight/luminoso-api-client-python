@@ -63,7 +63,7 @@ project (also known as a database), but one case where you don't is to get a lis
 ```python
 from luminoso_api import LuminosoClient
 client = LuminosoClient.connect(username='jane', password=MY_SECRET_PASSWORD)
-project_names = [project['name'] for project in client.get('projects')]
+project_names = client.get('projects')
 print project_names
 ```
 
@@ -86,18 +86,23 @@ docs = [{'title': 'First example', 'text': 'This is an example document.'},
         {'title': 'Second example', 'text': 'Examples are a great source of inspiration.'}
         {'title': 'Third example', 'text': 'Great things come in threes.'}]
 project.upload('docs',docs)
-project.post('docs/calculate')
+job_id = project.post('docs/calculate')
 ```
 
-When the project is ready (it shouldn't take long with 3 documents)*:
+This starts an asynchronous job, returning us its ID number. We can use
+`wait\_for` to block until it's ready:
+
+```python
+project.wait_for(job_id)
+```
+
+When the project is ready:
 
 ```python
 response = project.get('terms')
 terms = [(term['text'], term['score']) for term in response['result']]
 print terms
 ```
-
-\* We're working on an API call to see the progress of your project.
 
 Vectors
 -------
