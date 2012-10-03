@@ -5,7 +5,7 @@ import os
 from nose.tools import raises
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 from luminoso_api import LuminosoClient
 from luminoso_api.errors import LuminosoAPIError, LuminosoError
