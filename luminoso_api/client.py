@@ -177,6 +177,23 @@ class LuminosoClient(object):
             data=params,
         )
 
+    def patch(self, path='', **params):
+        """
+        Make a PATCH request to the given path, and return the JSON-decoded
+        result.
+
+        Keyword parameters will be converted to form values, sent in the body
+        of the PATCH.
+
+        PATCH requests are usually requests to make *small fixes* to the
+        object represented by this URL.
+        """
+        params = jsonify_parameters(params)
+        url = ensure_trailing_slash(self.url + path.lstrip('/'))
+        return self._json_request('patch', url,
+            data=params,
+        )
+
     def delete(self, path='', **params):
         """
         Make a DELETE request to the given path, and return the JSON-decoded
