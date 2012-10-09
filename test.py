@@ -187,6 +187,16 @@ def test_csv_endpoints():
     assert correlations[1][0] == 'All Documents'
     assert correlations[2][0] == 'sample'
 
+    # Check topic-by-timeline
+    correlations = PROJECT.get_raw('topics/timeline_correlation')
+    correlations = [line.split(',') for line in correlations.splitlines()]
+
+    assert len(correlations) == 4
+    assert set(correlations[0][1:]) == set(topic_names)
+    assert float(correlations[1][1])
+
+    # Better tests to ensure that the numbers are right?
+
 def test_subset_removal():
     """Removing documents from subsets"""
     documents = PROJECT.get('docs', subset='__all__')
