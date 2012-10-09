@@ -128,12 +128,13 @@ def test_topics():
     assert topic2 == topic, '%s != %s' % (topic2, topic)
 
 def test_terms():
+    """Simple test of termstats"""
     terms = PROJECT.get('terms')
     assert len(terms)
     assert terms[0]['text'] != 'person'
 
-def test_subset_manipulation():
-    """Adding/removing documents to/from subsets"""
+def test_subset_addition():
+    """Adding documents to subsets"""
     documents = PROJECT.get('docs', subset='__all__')
     docids = dict((doc['title'], doc['_id']) for doc in documents)
     ids = '["%s","%s"]' % (docids['example-1'], docids['example-3'])
@@ -152,16 +153,6 @@ def test_subset_manipulation():
     assert docids['example-1'] in sample_ids
     assert docids['example-3'] in sample_ids
     assert docids['example-2'] not in sample_ids
-
-    # Remove one document from "sample".
-    ids = '["%s"]' % docids['example-1']
-    job_id = PROJECT.delete('docs/subset', subset='sample', ids=ids)
-    PROJECT.wait_for(job_id)
-
-    # Ensure that it is no longer in the subset (but the other is).
-    sample_ids = PROJECT.get('docs/ids', subset='sample')
-    assert docids['example-1'] not in sample_ids
-    assert docids['example-3'] in sample_ids
 
     # Test termstats?
 
@@ -195,6 +186,22 @@ def test_csv_endpoints():
     assert correlations[0][1:] == topic_names
     assert correlations[1][0] == 'All Documents'
     assert correlations[2][0] == 'sample'
+
+def test_subset_removal():
+    """Removing documents from subsets"""
+    documents = PROJECT.get('docs', subset='__all__')
+    docids = dict((doc['title'], doc['_id']) for doc in documents)
+
+    # Remove one document from "sample".
+    ids = '["%s"]' % docids['example-1']
+    job_id = PROJECT.delete('docs/subset', subset='sample', ids=ids)
+    PROJECT.wait_for(job_id)
+
+    # Ensure that it is no longer in the subset (but the other is).
+    sample_ids = PROJECT.get('docs/ids', subset='sample')
+    assert docids['example-1'] not in sample_ids
+    assert docids['example-3'] in sample_ids
+
 
 def teardown():
     """
