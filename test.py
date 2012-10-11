@@ -87,11 +87,14 @@ def test_upload():
     """
     docs = [
         {'text': 'This is an example',
-         'title': 'example-1'},
+         'title': 'example-1',
+         'date': 0},
         {'text': 'Examples are a great source of inspiration',
-         'title': 'example-2'},
+         'title': 'example-2',
+         'date': 5},
         {'text': 'Great things come in threes',
-         'title': 'example-3'},
+         'title': 'example-3',
+         'date': 20},
     ]
     job_id = PROJECT.upload('docs', docs)
     job_id_2 = PROJECT.post('docs/calculate')
