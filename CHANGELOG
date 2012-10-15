@@ -1,4 +1,17 @@
-Version 0.3.1 (2012-09-??)
+Version 0.3.2 (2012-10-15)
+
+  * Server changes
+
+    - The API has new endpoints for uploading data in CSV format.
+    - Attributes of documents can be changed without re-processing the entire
+      document, using the PATCH method instead of PUT.
+
+  * Client changes
+
+    - Support the HTTP PATCH method.
+
+
+Version 0.3.1 (2012-09-21)
 
 This is the first published version of the client that works with the Luminoso
 API v3. Significant changes since we first made it available on Git are:
