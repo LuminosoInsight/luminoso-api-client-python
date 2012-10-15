@@ -14,7 +14,7 @@ ROOT_CLIENT = None
 PROJECT = None
 USERNAME = None
 
-PROJECT_NAME = os.environ['USER'] + '-test'
+PROJECT_NAME = os.environ.get('USER', 'jenkins') + '-test'
 ROOT_URL = 'http://localhost:5000/v3'
 
 def fileno_monkeypatch(self):
