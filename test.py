@@ -216,6 +216,26 @@ def test_subset_removal():
     assert docids['example-3'] in sample_ids
 
 
+def test_pipeline_crushing():
+    """Overlord should kill pipelines on crash"""
+    # The presence of "poison_pill" as a keyword will cause stage-two to assert
+    # False.
+    docs = [
+        {'text': 'This is an example',
+         'title': 'example-1',
+         'date': 0},
+        {'text': 'Examples are a great source of inspiration',
+         'title': 'example-2',
+         'date': 5},
+        {'text': 'Great things come in threes',
+         'title': 'example-3',
+         'date': 20,
+         'poison_pill': True},
+    ]
+    job_id = PROJECT.upload('docs', docs)
+    job_result = PROJECT.wait_for(job_id)
+    assert job_result['success'] is False
+
 def teardown():
     """
     Pack everything up, we're done.
