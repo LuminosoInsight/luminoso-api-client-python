@@ -2,6 +2,7 @@ import logging
 import subprocess
 import sys
 import os
+import json
 from nose.tools import raises
 
 logger = logging.getLogger(__name__)
@@ -219,7 +220,7 @@ def test_subset_removal():
 def test_pipeline_crushing():
     """Overlord should kill pipelines on crash"""
     # The presence of "poison_pill" as a keyword will cause stage-two to assert
-    # False.
+    # False mid-run.
     docs = [
         {'text': 'This is an example',
          'title': 'example-1',
@@ -234,6 +235,15 @@ def test_pipeline_crushing():
     ]
     job_id = PROJECT.upload('docs', docs)
     job_result = PROJECT.wait_for(job_id)
+    assert job_result['success'] is False
+
+    # Giving a spurious background-space name will cause a failure on startup.
+    # In this case, there's no need to wait; the crushing should happen before
+    # the job number even comes back.
+    job_id = PROJECT.post_data('docs', json.dumps(docs), 'application/json',
+                               background_name='spuriousname')
+    job_result = PROJECT.get('jobs/id/' + str(job_id))
+    assert job_result['stop_time'] is not None
     assert job_result['success'] is False
 
 def teardown():
