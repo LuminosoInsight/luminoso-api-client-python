@@ -37,7 +37,7 @@ authentication information.
 
 ```
 >>> from luminoso_api import LuminosoClient
->>> proj = LuminosoClient.connect('/my_username/projects/my_project',
+>>> proj = LuminosoClient.connect('/my_billing_account/projects/my_project',
                                   username='my_username')
 Password for my_username: [here you enter your password]
 >>> proj.get('terms')
@@ -62,7 +62,7 @@ project (also known as a database), but one case where you don't is to get a lis
 
 ```python
 from luminoso_api import LuminosoClient
-client = LuminosoClient.connect(username='jane', password=MY_SECRET_PASSWORD)
+client = LuminosoClient.connect('/my_billing_account',username='jane', password=MY_SECRET_PASSWORD)
 project_names = client.get('projects')
 print project_names
 ```
@@ -74,7 +74,7 @@ that we provide to make it convenient to upload documents in the right format:
 ```python
 from luminoso_api import LuminosoClient
 
-account = LuminosoClient.connect('/jane', username='jane')
+account = LuminosoClient.connect('/janes_billing_account', username='jane')
 
 # Create a new project by POSTing its name
 account.post('projects', project='testproject')
