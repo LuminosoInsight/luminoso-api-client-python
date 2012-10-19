@@ -83,7 +83,7 @@ account.post('projects', project='testproject')
 project = account.change_path('projects/testproject')
 
 docs = [{'title': 'First example', 'text': 'This is an example document.'},
-        {'title': 'Second example', 'text': 'Examples are a great source of inspiration.'}
+        {'title': 'Second example', 'text': 'Examples are a great source of inspiration.'},
         {'title': 'Third example', 'text': 'Great things come in threes.'}]
 project.upload('docs',docs)
 job_id = project.post('docs/calculate')
