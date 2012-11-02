@@ -196,7 +196,10 @@ def test_csv_endpoints():
     correlations = PROJECT.get_raw('topics/timeline_correlation')
     correlations = [line.split(',') for line in correlations.splitlines()]
 
-    assert len(correlations) == 4
+#    assert len(correlations) == 4
+    if len(correlations) != 4:
+        print('\n\n%r\n\n' % correlations)
+        assert False
     assert set(correlations[0][1:]) == set(topic_names)
     assert float(correlations[1][1])
 
@@ -220,8 +223,8 @@ def test_subset_removal():
 
 def test_pipeline_crushing():
     """Overlord should kill pipelines on crash"""
-    # The presence of "poison_pill" as a keyword will cause stage-two to assert
-    # False mid-run.
+    # The presence of "poison_pill" set to "stage_two" will cause stage-two to
+    # assert False mid-run.
     docs = [
         {'text': 'This is an example',
          'title': 'example-1',
@@ -232,7 +235,7 @@ def test_pipeline_crushing():
         {'text': 'Great things come in threes',
          'title': 'example-3',
          'date': 20,
-         'poison_pill': True},
+         'poison_pill': 'stage_two'},
     ]
     job_id = PROJECT.upload('docs', docs)
     job_result = PROJECT.wait_for(job_id)
