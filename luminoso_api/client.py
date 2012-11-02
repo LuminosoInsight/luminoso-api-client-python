@@ -105,7 +105,7 @@ class LuminosoClient(object):
             error = result.text
             if result.status_code == 401:
                 error_class = LuminosoAuthError
-            if result.status_code in (404, 405):
+            elif result.status_code in (404, 405):
                 error_class = LuminosoClientError
             elif result.status_code >= 500:
                 error_class = LuminosoServerError

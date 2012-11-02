@@ -220,6 +220,100 @@ def test_subset_removal():
     assert docids['example-1'] not in sample_ids
     assert docids['example-3'] in sample_ids
 
+def test_vw_classify():
+    """Make sure vw classify gives reasonable responses.
+    (The tests for whether it actually classifies are in lumi_pipeline.)"""
+    # put some documents (copied from the lumi_pipeline tests)
+    train_docs = [
+        {'title': 'pos_train_1',
+         'text': ('Happy!  Lots of positive words!  Exclamations!  '
+                  'Smiley faces! =)'),
+         'queries': ['train'], 'fields': {'label': 'positive'}},
+        {'title': 'neg_train_1',
+         'text': 'Unhappy!  Annoying.  Negative.  Boredom, sadness, anger.',
+         'queries': ['train'], 'fields': {'label': 'negative'}},
+        {'title': 'pos_train_2',
+         'text': ('not unhappy.  quite well.  sunshine and rainbows and kittens. '
+                  'happy positive smileness.'),
+         'queries': ['train'], 'fields': {'label': 'positive'}},
+        {'title': 'neg_train_2',
+         'text': ('Anger, sadness.  death and pain and crying ... '
+                  '(just writing this document is depressing).  Negative.'),
+         'queries': ['train'], 'fields': {'label': 'negative'}},
+    ]
+    test_docs = [
+        {'title': 'pos_test', 'text': 'happy', 'queries': ['test']},
+        {'title': 'neg_test', 'text': 'sadness', 'queries': ['test']},
+    ]
+    # upload the train docs and incorporate them into an assoc space
+    PROJECT.upload('docs', train_docs)
+    job_id = PROJECT.post('docs/calculate')
+    PROJECT.wait_for(job_id)
+
+    # upload the test docs but don't vectorize
+    PROJECT.upload('docs', test_docs, stage = True)
+    # this seems to be the only way to get the IDs, because 'test' apparently
+    #   is not yet a subset, it's only a query.
+    # (they're not actually in __all__ yet either, but this works anyway.)
+    docs = PROJECT.get('/docs/', subset = '__all__')
+    old_test_ids = [d['_id'] for d in docs if 'test' in d['queries']]
+    response = PROJECT.post('/classify/vw/',
+                            train_set = 'train',
+                            test_set = 'test',
+                            train_labels = 'label')
+    # test docs aren't vectorized, so nothing to classify
+    assert response == {}
+
+    # apparently now we have to delete them, because there's no way
+    #  to vectorize them without running calculate?
+    job_id_2 = PROJECT.delete('docs', ids = old_test_ids)
+    PROJECT.wait_for(job_id_2)
+    # now re-upload them, this time vectorizing
+    job_id_3 = PROJECT.upload('docs', test_docs)
+    PROJECT.wait_for(job_id_3)
+    # and get their IDs
+    test_ids = PROJECT.get('/docs/ids/', subset = 'test')
+    response = PROJECT.post('/classify/vw/',
+                            train_set = 'train',
+                            test_set = 'test',
+                            train_labels = 'label')
+    # make sure it classified them
+    assert set(response.keys()) == set(test_ids)
+    assert set(response.values()).issubset(set(['positive', 'negative']))
+    
+    # leave out some parameters
+    try:
+        PROJECT.post('/classify/vw/',
+                     test_set = 'test')
+        assert False
+    except LuminosoAPIError as e:
+        assert e.message['code'] == 'PARAM_MISSING'
+    
+    # put extra parameters
+    try:
+        PROJECT.post('/classify/vw/',
+                     train_set = 'train', test_set = 'test',
+                     train_labels = 'label', other_stuff = 'foo')
+        assert False
+    except LuminosoAPIError as e:
+        assert e.message['code'] == 'UNEXPECTED_PARAM'
+
+    # put invalid parameters
+    try:
+        PROJECT.post('/classify/vw/',
+                     train_set = 'train', test_set = 'test',
+                     train_labels = ['label'])
+        assert False
+    except LuminosoAPIError as e:
+        assert e.message['code'] == 'PARAM_INVALID'
+    try:
+        PROJECT.post('/classify/vw/',
+                     train_set = 'train', test_set = 'test',
+                     train_labels = 'fields.label')
+        assert False
+    except LuminosoAPIError as e:
+        assert e.message['code'] == 'NO_LABEL'
+    
 
 def test_pipeline_crushing():
     """Overlord should kill pipelines on crash"""
