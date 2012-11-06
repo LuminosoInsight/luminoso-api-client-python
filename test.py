@@ -256,7 +256,7 @@ def test_vw_classify():
     #   is not yet a subset, it's only a query.
     # (they're not actually in __all__ yet either, but this works anyway.)
     docs = PROJECT.get('/docs/', subset = '__all__')
-    old_test_ids = [d['_id'] for d in docs if 'test' in d['queries']]
+    old_test_ids = json.dumps([d['_id'] for d in docs if 'test' in d['queries']])
     response = PROJECT.post('/classify/vw/',
                             train_set = 'train',
                             test_set = 'test',
