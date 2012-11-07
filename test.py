@@ -251,7 +251,8 @@ def test_vw_classify():
     PROJECT.wait_for(job_id)
 
     # upload the test docs but don't vectorize
-    PROJECT.upload('docs', test_docs, stage = True)
+    upload_job = PROJECT.upload('docs', test_docs, stage = True)
+    PROJECT.wait_for(upload_job)
     # this seems to be the only way to get the IDs, because 'test' apparently
     #   is not yet a subset, it's only a query.
     # (they're not actually in __all__ yet either, but this works anyway.)
