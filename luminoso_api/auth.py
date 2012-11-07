@@ -53,6 +53,16 @@ class LuminosoAuth(object):
         # Fetch session credentials
         self.login(username, password)
 
+    def no_retry_copy(self):
+        """
+        Return a duplicate LuminosoAuth object that will not retry a connection
+        """
+        return LuminosoAuth(self.username, self.password,
+                            url=self.url,
+                            validity_ms=self._validity_ms,
+                            auto_login=False,
+                            proxies=self._session.proxies)
+
     def login(self, username, password):
         """Fetch a session key to use in this authentication context"""
         params = {'username': username, 'password': password}
@@ -75,7 +85,28 @@ class LuminosoAuth(object):
         """Handle auto-login and update session cookies"""
         if resp.status_code == 401:
             if self._auto_login:
-                raise NotImplementedError
+                logger.info('request failed with 401; retrying with fresh login')
+                # Do not enter an infinite retry loop
+                retry_auth = self.no_retry_copy()
+
+                # Re-issue the request
+                resp.request.auth = retry_auth
+                resp.request.send(anyway=True)
+
+                # Save the new credentials if successful
+                new_result = resp.request.response.status_code
+                if 200 <= new_result < 300:
+                    # Save the new credentials
+                    logger.info('retry successful')
+                    self._key_id = retry_auth._key_id
+                    self._secret = retry_auth._secret
+                    self._session_cookie = retry_auth._session_cookie
+
+                    # Return the new result
+                    return resp.request.response
+                else:
+                    logger.error('retry failed')
+                    return resp
 
         self._session_cookie = dict_from_cookiejar(resp.cookies)['session']
         logger.info('Cookie: %r', self._session_cookie)
