@@ -236,12 +236,6 @@ def test_subset_removal():
 def test_vw_classify():
     """Make sure vw classify gives reasonable responses.
     (The tests for whether it actually classifies are in lumi_pipeline.)"""
-
-    #----
-    if True:
-        return True
-    #---
-
     # put some documents (copied from the lumi_pipeline tests)
     train_docs = [
         {'title': 'pos_train_1',
