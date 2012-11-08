@@ -333,8 +333,10 @@ def test_pipeline_crushing():
          'poison_pill': 'stage_two'},
     ]
     job_id = PROJECT.upload('docs', docs)
-    job_result = PROJECT.wait_for(job_id)
+    job_id_2 = PROJECT.post('docs/calculate')
+    job_result = PROJECT.wait_for(job_id_2)
     assert job_result['success'] is False
+    assert PROJECT.get('jobs/id/%d' % job_id)['success'] is False
 
     # Giving a spurious background-space name will cause a failure on startup.
     job_id = PROJECT.post_data('docs', json.dumps(docs), 'application/json',
