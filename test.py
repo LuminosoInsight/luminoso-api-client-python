@@ -334,7 +334,7 @@ def test_vw_classify():
 def test_pipeline_crushing():
     """Test pipeline-crushing endpoint and results of crushing."""
     job_id = PROJECT.upload('docs', TEST_DOCS*1000)
-    PROJECT.delete('job/id/%d' % job_id)
+    PROJECT.delete('jobs/id/%d' % job_id)
     job_result = PROJECT.wait_for(job_id)
     assert job_result['success'] is False
     assert job_result['reason'].startswith('Manual')
