@@ -24,5 +24,6 @@ setup(
                      ],
     entry_points={
         'console_scripts': [
-            ]},
+            'lumi-upload = luminoso_api.upload:main'
+        ]},
 )
