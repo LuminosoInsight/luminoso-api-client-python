@@ -18,6 +18,18 @@ USERNAME = None
 PROJECT_NAME = os.environ.get('USER', 'jenkins') + '-test'
 ROOT_URL = 'http://localhost:5000/v3'
 
+TEST_DOCS = [
+    {'text': 'This is an example',
+     'title': 'example-1',
+     'date': 0},
+    {'text': 'Examples are a great source of inspiration',
+     'title': 'example-2',
+     'date': 5},
+    {'text': 'Great things come in threes',
+     'title': 'example-3',
+     'date': 20},
+]
+
 
 def fileno_monkeypatch(self):
     return sys.__stdout__.fileno()
@@ -93,18 +105,7 @@ def test_upload():
 
     Check afterward to ensure that the terms are no longer empty.
     """
-    docs = [
-        {'text': 'This is an example',
-         'title': 'example-1',
-         'date': 0},
-        {'text': 'Examples are a great source of inspiration',
-         'title': 'example-2',
-         'date': 5},
-        {'text': 'Great things come in threes',
-         'title': 'example-3',
-         'date': 20},
-    ]
-    job_id = PROJECT.upload('docs', docs)
+    job_id = PROJECT.upload('docs', TEST_DOCS)
     job_id_2 = PROJECT.post('docs/calculate')
     assert job_id_2 > job_id
     job_result = PROJECT.wait_for(job_id_2)
@@ -331,33 +332,12 @@ def test_vw_classify():
 
 
 def test_pipeline_crushing():
-    """Overlord should kill pipelines on crash"""
-    # The presence of "poison_pill" set to "stage_two" will cause stage-two to
-    # assert False mid-run.
-    docs = [
-        {'text': 'This is an example',
-         'title': 'example-1',
-         'date': 0},
-        {'text': 'Examples are a great source of inspiration',
-         'title': 'example-2',
-         'date': 5},
-        {'text': 'Great things come in threes',
-         'title': 'example-3',
-         'date': 20,
-         'poison_pill': 'stage_two'},
-    ]
-    job_id = PROJECT.upload('docs', docs)
-    job_id_2 = PROJECT.post('docs/calculate')
-    job_result = PROJECT.wait_for(job_id_2)
-    assert job_result['success'] is False
-    assert PROJECT.get('jobs/id/%d' % job_id)['success'] is False
-
-    # Giving a spurious background-space name will cause a failure on startup.
-    job_id = PROJECT.post_data('docs', json.dumps(docs), 'application/json',
-                               background_name='spuriousname')
+    """Test pipeline-crushing endpoint and results of crushing."""
+    job_id = PROJECT.upload('docs', TEST_DOCS*1000)
+    PROJECT.delete('job/id/%d' % job_id)
     job_result = PROJECT.wait_for(job_id)
-    assert job_result['stop_time'] is not None
     assert job_result['success'] is False
+    assert job_result['reason'].startswith('Manual')
 
 
 def teardown():
