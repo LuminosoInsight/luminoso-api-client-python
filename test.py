@@ -109,11 +109,6 @@ def test_upload():
     job_id_2 = PROJECT.post('docs/calculate')
     assert job_id_2 > job_id
     job_result = PROJECT.wait_for(job_id_2)
-    if job_result['success'] is not True:
-        for job_number in range(1, job_id_2+1):
-            info = PROJECT.get('jobs/id/' + str(job_number))
-            if info.get('success') is not True:
-                logger.warn('Job %s: %r' % (job_id, info))
     assert job_result['success'] is True
     assert PROJECT.get('terms')
 
@@ -239,7 +234,12 @@ def test_subset_removal():
     assert docids['example-3'] in sample_ids
 
 
-def test_vw_classify():
+# The following tends to take long enough that the test's authorization
+# expires as a result.  In truth, it doesn't really belong here; it should
+# be part of pipeline testing, and once the pipeline tests are ready to be
+# written, it'll get moved there.  (Or API tests, possibly.)
+
+def DONOTtest_vw_classify():
     """Make sure vw classify gives reasonable responses.
     (The tests for whether it actually classifies are in lumi_pipeline.)"""
     # put some documents (copied from the lumi_pipeline tests)
