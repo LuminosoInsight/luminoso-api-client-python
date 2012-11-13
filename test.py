@@ -109,6 +109,11 @@ def test_upload():
     job_id_2 = PROJECT.post('docs/calculate')
     assert job_id_2 > job_id
     job_result = PROJECT.wait_for(job_id_2)
+    if job_result['success'] is not True:
+        for job_number in range(1, job_result+1):
+            info = PROJECT.get('jobs/id/' + str(job_number))
+            if info.get('success') is not True:
+                logger.warn('Job %s: %r' % (job_id, info))
     assert job_result['success'] is True
     assert PROJECT.get('terms')
 
