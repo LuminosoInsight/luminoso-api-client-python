@@ -105,7 +105,7 @@ class LuminosoClient(object):
             error = result.text
             if result.status_code == 401:
                 error_class = LuminosoAuthError
-            if result.status_code in (404, 405):
+            elif result.status_code in (404, 405):
                 error_class = LuminosoClientError
             elif result.status_code >= 500:
                 error_class = LuminosoServerError
@@ -324,14 +324,14 @@ class LuminosoClient(object):
         newclient = LuminosoClient(self._auth, self.root_url, self.root_url)
         return newclient.post('ping')
 
-    def upload(self, path, docs):
+    def upload(self, path, docs, **params):
         """
         A convenience method for uploading a set of dictionaries representing
         documents. You still need to specify the URL to upload to, which will
         look like ROOT_URL/myname/projects/projectname/docs.
         """
         json_data = json.dumps(docs)
-        return self.post_data(path, json_data, 'application/json')
+        return self.post_data(path, json_data, 'application/json', **params)
 
     def wait_for(self, job_id, base_path=None, interval=5):
         """
