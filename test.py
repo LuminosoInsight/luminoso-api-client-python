@@ -110,8 +110,7 @@ def test_upload():
     assert job_id_2 > job_id
     job_result = PROJECT.wait_for(job_id_2)
     if job_result['success'] is not True:
-        job_result = int(job_result)
-        for job_number in range(1, job_result+1):
+        for job_number in range(1, job_id_2+1):
             info = PROJECT.get('jobs/id/' + str(job_number))
             if info.get('success') is not True:
                 logger.warn('Job %s: %r' % (job_id, info))
