@@ -22,11 +22,11 @@ def upload(filename, username, projname):
     for batch in batches(data, 50):
         counter += 1
         documents = list(batch)
-        job_id = project.upload('docs', documents)
+        job_id = project.upload('docs', documents, width=4)
         print 'Uploaded batch #%d into job %s' % (counter, job_id)
 
     print 'Committing.'
-    final_job_id = project.post('docs/calculate')
+    final_job_id = project.post('docs/calculate', width=4)
     project.wait_for(final_job_id)
 
 def main():
