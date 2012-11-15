@@ -8,7 +8,7 @@ In this code, instead of having to authenticate each request separately,
 you make a "session" object that keeps track of your login information,
 and call methods on it that will be properly authenticated.
 
-Getting started
+Installation
 ---------------
 This client API is designed to be used with Python 2.6 or 2.7.
 
@@ -44,7 +44,7 @@ Password for my_username: [here you enter your password]
 {u'result': [lots of terms and vectors here]}
 ```
 
-The URLs you can communicate with are documented at https://api.lumino.so/v2.
+The URLs you can communicate with are documented at https://api.lumino.so/v3.
 That documentation is the authoritative source for what you can do with the
 API, and this Python code is just here to help you do it.
 
