@@ -88,6 +88,7 @@ class LuminosoAuth(object):
                 logger.info('request failed with 401; retrying with fresh login')
                 # Do not enter an infinite retry loop
                 retry_auth = self.no_retry_copy()
+                resp.request.deregister_hook('response', self.__on_response)
 
                 # Re-issue the request
                 resp.request.auth = retry_auth
@@ -152,6 +153,11 @@ class LuminosoAuth(object):
 
         # Set the key id
         req.params['key_id'] = self._key_id
+
+        # Remove auth fields
+        for field in ('expires', 'sig'):
+            if field in req.params:
+                req.params.pop(field)
 
         # Determine if this is an upload
         if isinstance(req.data, dict):
