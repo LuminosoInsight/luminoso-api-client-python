@@ -1,5 +1,6 @@
 import requests
-from requests.utils import dict_from_cookiejar
+from requests.utils import dict_from_cookiejar, cookiejar_from_dict
+from requests.cookies import get_cookie_header
 
 from hmac import HMAC
 from hashlib import sha1
@@ -184,6 +185,9 @@ class LuminosoAuth(object):
         req.params['sig'] = sig
 
         # Load the session cookie into the request
-        req.cookies['session'] = self._session_cookie
+        req.cookies = cookiejar_from_dict({'session': self._session_cookie})
+        if 'Cookie' in req.headers:
+            req.headers.pop('Cookie')
+            req.headers._lower_keys = None
 
         return req
