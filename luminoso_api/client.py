@@ -64,7 +64,7 @@ class LuminosoClient(object):
 
     @staticmethod
     def connect(url='/', username=None, password=None, root_url=None,
-                proxies=None):
+                proxies=None, auto_login=False):
         """
         Returns an object that makes requests to the API, authenticated
         with the provided username/password, at URLs beginning with `url`.
@@ -88,7 +88,8 @@ class LuminosoClient(object):
             password = getpass('Password for %s: ' % username)
 
         logger.info('creating LuminosoAuth object')
-        auth = LuminosoAuth(username, password, url=root_url, proxies=proxies)
+        auth = LuminosoAuth(username, password, url=root_url, proxies=proxies,
+                            auto_login=auto_login)
         return LuminosoClient(auth, url)
 
     def _request(self, req_type, url, **kwargs):

@@ -1,5 +1,6 @@
 import requests
-from requests.utils import dict_from_cookiejar
+from requests.utils import dict_from_cookiejar, cookiejar_from_dict
+from requests.cookies import get_cookie_header
 
 from hmac import HMAC
 from hashlib import sha1
@@ -53,6 +54,16 @@ class LuminosoAuth(object):
         # Fetch session credentials
         self.login(username, password)
 
+    def no_retry_copy(self):
+        """
+        Return a duplicate LuminosoAuth object that will not retry a connection
+        """
+        return LuminosoAuth(self.username, self.password,
+                            url=self.url,
+                            validity_ms=self._validity_ms,
+                            auto_login=False,
+                            proxies=self._session.proxies)
+
     def login(self, username, password):
         """Fetch a session key to use in this authentication context"""
         params = {'username': username, 'password': password}
@@ -65,7 +76,6 @@ class LuminosoAuth(object):
 
         # Save the session cookie
         self._session_cookie = resp.cookies['session']
-        logger.info('Cookie: %r', self._session_cookie)
 
         # Save the key_id
         self._key_id = resp.json['result']['key_id']
@@ -75,10 +85,32 @@ class LuminosoAuth(object):
         """Handle auto-login and update session cookies"""
         if resp.status_code == 401:
             if self._auto_login:
-                raise NotImplementedError
+                logger.info('request failed with 401; retrying with fresh login')
+                # Do not enter an infinite retry loop
+                retry_auth = self.no_retry_copy()
+                resp.request.deregister_hook('response', self.__on_response)
+
+                # Re-issue the request
+                resp.request.auth = retry_auth
+                resp.request.send(anyway=True)
+
+                # Save the new credentials if successful
+                new_result = resp.request.response.status_code
+                if 200 <= new_result < 300:
+                    # Save the new credentials
+                    logger.info('retry successful')
+                    self._key_id = retry_auth._key_id
+                    self._secret = retry_auth._secret
+                    self._session_cookie = retry_auth._session_cookie
+
+                    # Return the new result
+                    return resp.request.response
+                else:
+                    logger.error('retry failed')
+                    return resp
 
         self._session_cookie = dict_from_cookiejar(resp.cookies)['session']
-        logger.info('Cookie: %r', self._session_cookie)
+        logger.debug('Cookie: %r', self._session_cookie)
 
         return resp
 
@@ -115,12 +147,18 @@ class LuminosoAuth(object):
     def __call__(self, req):
         # Register the on_response hook
         req.register_hook('response', self.__on_response)
+        logger.debug('auto_login is %s', 'on' if self._auto_login else 'off')
 
         # Determine the expiry
         expiry = epoch() + self._validity_ms
 
         # Set the key id
         req.params['key_id'] = self._key_id
+
+        # Remove auth fields
+        for field in ('expires', 'sig'):
+            if field in req.params:
+                req.params.pop(field)
 
         # Determine if this is an upload
         if isinstance(req.data, dict):
@@ -146,6 +184,9 @@ class LuminosoAuth(object):
         req.params['sig'] = sig
 
         # Load the session cookie into the request
-        req.cookies['session'] = self._session_cookie
+        req.cookies = cookiejar_from_dict({'session': self._session_cookie})
+        if 'Cookie' in req.headers:
+            req.headers.pop('Cookie')
+            req.headers._lower_keys = None
 
         return req
