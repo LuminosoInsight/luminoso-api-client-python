@@ -76,7 +76,6 @@ class LuminosoAuth(object):
 
         # Save the session cookie
         self._session_cookie = resp.cookies['session']
-        logger.info('Cookie: %r', self._session_cookie)
 
         # Save the key_id
         self._key_id = resp.json['result']['key_id']
@@ -111,7 +110,7 @@ class LuminosoAuth(object):
                     return resp
 
         self._session_cookie = dict_from_cookiejar(resp.cookies)['session']
-        logger.info('Cookie: %r', self._session_cookie)
+        logger.debug('Cookie: %r', self._session_cookie)
 
         return resp
 
