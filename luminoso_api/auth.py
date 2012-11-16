@@ -147,6 +147,7 @@ class LuminosoAuth(object):
     def __call__(self, req):
         # Register the on_response hook
         req.register_hook('response', self.__on_response)
+        logger.debug('auto_login is %s', 'on' if self._auto_login else 'off')
 
         # Determine the expiry
         expiry = epoch() + self._validity_ms
