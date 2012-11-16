@@ -12,6 +12,7 @@ from luminoso_api import LuminosoClient
 from luminoso_api.errors import LuminosoAPIError, LuminosoError
 
 ROOT_CLIENT = None
+RELOGIN_CLIENT = None
 PROJECT = None
 USERNAME = None
 
@@ -42,7 +43,7 @@ def setup():
     Make sure we're working with a fresh database. Build a client for
     interacting with that database and save it as a global.
     """
-    global ROOT_CLIENT, PROJECT, USERNAME
+    global ROOT_CLIENT, PROJECT, USERNAME, RELOGIN_CLIENT
     user_info_str = subprocess.check_output('tellme lumi-test', shell=True)
     user_info = eval(user_info_str)
     USERNAME = user_info['username']
@@ -50,6 +51,10 @@ def setup():
     ROOT_CLIENT = LuminosoClient.connect(ROOT_URL,
                                          username=USERNAME,
                                          password=user_info['password'])
+    RELOGIN_CLIENT = LuminosoClient.connect(ROOT_URL,
+                                            username=USERNAME,
+                                            password=user_info['password'],
+                                            auto_login=True)
 
     # check to see if the project exists; also create the client we'll use
     projects = ROOT_CLIENT.get(USERNAME + '/projects')
@@ -348,6 +353,11 @@ def test_pipeline_crushing():
     job_result = PROJECT.wait_for(job_id)
     assert job_result['success'] is False
     assert job_result['reason'].startswith('Manual')
+
+def test_auto_login():
+    """Test auto-login after 401 responses."""
+    RELOGIN_CLIENT._session.auth._key_id=''
+    assert RELOGIN_CLIENT.get('ping') == 'pong'
 
 def teardown():
     """
