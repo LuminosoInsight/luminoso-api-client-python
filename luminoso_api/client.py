@@ -64,7 +64,7 @@ class LuminosoClient(object):
 
     @staticmethod
     def connect(url='/', username=None, password=None, root_url=None,
-                proxies=None, auto_login=False):
+                proxies=None, auto_login=True):
         """
         Returns an object that makes requests to the API, authenticated
         with the provided username/password, at URLs beginning with `url`.
@@ -75,6 +75,11 @@ class LuminosoClient(object):
 
         `proxies` is a dictionary from URL schemes (like 'http') to proxy
         servers, in the same form used by the `requests` module.
+
+        By default, this object will automatically re-login if its
+        authentication times out, which happens after ten minutes of inactivity
+        or one hour, whichever comes first. If for security reasons you do not
+        want this to happen, set `auto_login` to False.
         """
         if url.startswith('/'):
             url = URL_BASE + url
