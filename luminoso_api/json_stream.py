@@ -1,28 +1,56 @@
-from itertools import islice, chain
-from luminoso_api import LuminosoClient
+"""
+This file helps to build a JSON stream from arbitrary kinds of input,
+including messy Excel CSV files.
+
+The output this produces -- either in a real file, or in a temporarily
+file that it returns a reference to -- is a JSON stream (.jsons), a file
+with one JSON object per line.
+
+Its input can be:
+
+- A CSV in the "excel" dialect, with a header row
+  - Preferably, this file is UTF-8 encoded.
+  - However, this can read files in many other encodings, including MacRoman,
+    which Excel sometimes produces and which trips up chardet.
+- A single JSON list of the documents
+- Or a JSON stream, which will effectively be validated before uploading.
+
+The dictionary keys in JSON, or the column labels in CSV, should be the
+document properties defined in the documentation at http://api.lumino.so/v3.
+"""
+
 import json
 import codecs
 import csv
 import chardet
 import logging
 import unicodedata
+import sys
 import os
+from ftfy import ftfy
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-def transcode(input_filename, output_filename):
+
+def transcode(input_filename, output_filename=None):
     """
     Convert a JSON or CSV file of input to a JSON stream (.jsons). This
     kind of file can be easily uploaded using `luminoso_api.upload`.
     """
-    if output_filename.endswith('.json'):
-        LOG.warn("Changing .json to .jsons, because this program outputs a "
-                 "JSON stream format that is not technically JSON itself.")
-        output_filename += 's'
-    output = codecs.open(output_filename, 'w', encoding='utf-8')
+    if output_filename is None:
+        # transcode to standard output
+        output = sys.stdout
+    else:
+        if output_filename.endswith('.json'):
+            LOG.warn("Changing .json to .jsons, because this program outputs a "
+                     "JSON stream format that is not technically JSON itself.")
+            output_filename += 's'
+        output = codecs.open(output_filename, 'w', encoding='utf-8')
+
     for entry in open_json_or_csv_somehow(input_filename):
         print >> output, json.dumps(entry, ensure_ascii=False)
     output.close()
+
 
 def transcode_to_stream(input_filename):
     """
@@ -35,12 +63,26 @@ def transcode_to_stream(input_filename):
     tmp.seek(0)
     return tmp
 
+
 def open_json_or_csv_somehow(filename):
-    format = None
+    """
+    Deduce the format of a file, within reason.
+
+    - If the filename ends with .csv, it's csv.
+    - If the filename ends with .jsons, it's a JSON stream (conveniently the
+      format we want to output).
+    - If the filename ends with .json, it could be a legitimate JSON file, or
+      it could be a JSON stream, following a nonstandard convention that many
+      people including us are guilty of. In that case:
+      - If the first line is a complete JSON document, and there is more in the
+        file besides the first line, then it is a JSON stream.
+      - Otherwise, it is probably really JSON.
+    """
+    fileformat = None
     if filename.endswith('.csv'):
-        format = 'csv'
+        fileformat = 'csv'
     elif filename.endswith('.jsons'):
-        format = 'jsons'
+        fileformat = 'jsons'
     else:
         opened = open(filename)
         line = opened.readline()
@@ -53,22 +95,35 @@ def open_json_or_csv_somehow(filename):
             while char.isspace():
                 char = opened.read()
                 if char == '':
-                    format = 'json'
+                    fileformat = 'json'
                     break
-            if format is None:
-                format = 'jsons'
+            if fileformat is None:
+                fileformat = 'jsons'
         else:
-            format = 'json'
+            fileformat = 'json'
         opened.close()
 
-    if format == 'json':
+    if fileformat == 'json':
         return json.load(open(filename), encoding='utf-8')
-    elif format == 'csv':
+    elif fileformat == 'csv':
         return open_csv_somehow(filename)
     else:
         return stream_json_lines(filename)
 
+
 def detect_file_encoding(filename):
+    """
+    Use chardet to detect the encoding of a file, based on a sample of its
+    first 64K.
+
+    If chardet tells us it's ISO-8859-2, pretend it said 'macroman' instead.
+    CSV files in MacRoman are something that Excel for Mac tends to produce,
+    and chardet detects them erroneously as ISO-8859-2.
+
+    If your file actually does consist of Eastern European text, please save
+    it in UTF-8. Actually, let me broaden that recommendation: no matter what
+    your file contains, please save it in UTF-8.
+    """
     opened = open(filename)
     sample = opened.read(2 ** 16)
 
@@ -95,25 +150,42 @@ def detect_file_encoding(filename):
     opened.close()
     return encoding
 
+
 def stream_json_lines(filename):
+    """
+    Load a JSON stream and return a generator, yielding one object at a time.
+    """
     for line in open(filename):
         line = line.strip()
         if line:
             yield json.loads(line, encoding='utf-8')
 
+
 def open_csv_somehow(filename):
+    """
+    Given a filename that we're told is a CSV file, detect its encoding,
+    parse its header, and return a generator yielding its rows as dictionaries.
+
+    Use the `ftfy` module internally to fix Unicode problems at the level that
+    chardet can't deal with.
+    """
     encoding = detect_file_encoding(filename)
     csvfile = open(filename, 'rU')
     reader = csv.reader(csvfile, dialect='excel')
     header = reader.next()
-    header = [cell.decode(encoding).lower() for cell in header]
-    return read_csv(reader, header, encoding)
+    header = [ftfy(cell.decode(encoding).lower()) for cell in header]
+    return _read_csv(reader, header, encoding)
 
-def read_csv(reader, header, encoding):
+
+def _read_csv(reader, header, encoding):
+    """
+    Given a constructed CSV reader object, a header row that we've read, and
+    a detected encoding, yield its rows as dictionaries.
+    """
     for row in reader:
         if len(row) == 0:
             continue
-        row = [cell.decode(encoding) for cell in row]
+        row = [ftfy(cell.decode(encoding)) for cell in row]
         row_list = zip(header, row)
         row_dict = dict(row_list)
         if len(row_dict['text']) == 0:
@@ -133,13 +205,25 @@ def read_csv(reader, header, encoding):
                 del row_dict['subset']
         yield row_dict
 
+
 def main():
+    """
+    Handle command line arguments to convert a file to a JSON stream as a
+    script.
+    """
     import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('input')
-    parser.add_argument('output')
+    parser = argparse.ArgumentParser(
+        description="Translate CSV or JSON input to a JSON stream, or verify "
+                    "something that is already a JSON stream."
+    )
+    parser.add_argument('input',
+        help='A CSV, JSON, or JSON stream file to read.')
+    parser.add_argument('output', nargs='?', default=None,
+        help="The filename to output to. Recommended extension is .jsons. "
+             "If omitted, use standard output.")
     args = parser.parse_args()
     transcode(args.input, args.output)
+
 
 if __name__ == '__main__':
     main()

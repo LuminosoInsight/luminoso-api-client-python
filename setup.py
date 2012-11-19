@@ -1,29 +1,30 @@
 #!/usr/bin/env python
-VERSION = "0.3.2"
+VERSION = "0.3.3"
 
 from setuptools import setup, find_packages
 
-classifiers=[
+classifiers = [
     'Intended Audience :: Developers',
     'Intended Audience :: Science/Research',
     'Natural Language :: English',
     'Topic :: Scientific/Engineering',
-    'Topic :: Text Processing :: Linguistic']
+    'Topic :: Text Processing :: Linguistic'
+]
 
 setup(
     name="luminoso-api",
-    version = VERSION,
+    version=VERSION,
     maintainer='Luminoso, LLC',
     maintainer_email='team@lumino.so',
-    url = 'http://github.com/LuminosoInsight/luminoso-api-client-python',
-    platforms = ["any"],
-    description = "Python client library for communicating with the Luminoso REST API",
-    classifiers = classifiers,
+    url='http://github.com/LuminosoInsight/luminoso-api-client-python',
+    platforms=["any"],
+    description="Python client library for communicating with the Luminoso REST API",
+    classifiers=classifiers,
     packages=find_packages(),
-    install_requires=['requests>=0.13.5',
-                     ],
+    install_requires=['requests>=0.13.5', 'chardet'],
     entry_points={
         'console_scripts': [
-            'lumi-upload = luminoso_api.upload:main'
+            'lumi-upload = luminoso_api.upload:main',
+            'lumi-json-stream = luminoso_api.json_stream:main',
         ]},
 )
