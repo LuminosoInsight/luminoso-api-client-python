@@ -1,5 +1,6 @@
 from itertools import islice, chain
 from luminoso_api import LuminosoClient
+from luminoso_api.json_stream import transcode_to_stream
 import json
 import codecs
 
@@ -12,9 +13,9 @@ def batches(iterable, size):
         batchiter = islice(sourceiter, size)
         yield chain([batchiter.next()], batchiter)
 
-def stream_json_lines(filename):
-    for line in codecs.open(filename, encoding='utf-8', errors='replace'):
-        line = line.strip()
+def stream_json_lines(filestream):
+    for line in filestream:
+        line = line.strip().decode('utf-8', errors='replace')
         if line:
             yield json.loads(line)
 
@@ -34,6 +35,10 @@ def upload_stream(stream, account, projname):
     final_job_id = project.post('docs/calculate', width=4)
     project.wait_for(final_job_id)
 
+def upload_file(filename, account, projname):
+    stream = transcode_to_stream(filename)
+    upload_stream(stream_json_lines(stream), account, projname)
+
 def main():
     import argparse
     parser = argparse.ArgumentParser()
@@ -41,8 +46,7 @@ def main():
     parser.add_argument('account')
     parser.add_argument('project_name')
     args = parser.parse_args()
-    upload_stream(stream_json_lines(args.filename),
-        args.account, args.project_name)
+    upload_file(args.filename, args.account, args.project_name)
 
 if __name__ == '__main__':
     main()

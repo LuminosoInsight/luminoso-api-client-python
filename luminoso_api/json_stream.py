@@ -6,10 +6,15 @@ import csv
 import chardet
 import logging
 import unicodedata
+import os
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 def transcode(input_filename, output_filename):
+    """
+    Convert a JSON or CSV file of input to a JSON stream (.jsons). This
+    kind of file can be easily uploaded using `luminoso_api.upload`.
+    """
     if output_filename.endswith('.json'):
         LOG.warn("Changing .json to .jsons, because this program outputs a "
                  "JSON stream format that is not technically JSON itself.")
@@ -18,6 +23,17 @@ def transcode(input_filename, output_filename):
     for entry in open_json_or_csv_somehow(input_filename):
         print >> output, json.dumps(entry, ensure_ascii=False)
     output.close()
+
+def transcode_to_stream(input_filename):
+    """
+    Read a JSON or CSV file and convert it into a JSON stream, which will
+    be saved in an anonymous temp file.
+    """
+    tmp = os.tmpfile()
+    for entry in open_json_or_csv_somehow(input_filename):
+        print >> tmp, json.dumps(entry, ensure_ascii=False).encode('utf-8')
+    tmp.seek(0)
+    return tmp
 
 def open_json_or_csv_somehow(filename):
     format = None
@@ -60,12 +76,8 @@ def detect_file_encoding(filename):
     if encoding is None:
         encoding = 'utf-8'
     elif encoding == 'ISO-8859-2':
-        LOG.warn("This file could be either in ISO-8859-2 or MacRoman encoding.")
-        LOG.warn("ISO-8859-2 (Latin-2) is an old standard for ASCII-like text "
-                 "that particularly supports characters found in Eastern "
-                 "European languages.")
-        LOG.warn("MacRoman is how Mac OS 9 and earlier saved text, and "
-                 "Microsoft Office still uses it sometimes.")
+        LOG.warn("This file could be either in ISO-8859-2 "
+                 "(Eastern European Latin-2) or MacRoman encoding.")
         LOG.warn("We're going to guess it's MacRoman, but we might be wrong.")
         LOG.warn("You might want to remedy this by saving the file in UTF-8.")
         encoding = 'macroman'
@@ -73,6 +85,9 @@ def detect_file_encoding(filename):
     try:
         codecs.lookup(encoding)
     except LookupError:
+        # You might find this case unlikely, of Python detecting a codec it
+        # can't read, but it happened when Luminoso-the-Media-Lab-project
+        # got a file from the Taiwanese version of Excel.
         LOG.warn("This file might be encoded as %r, but Python doesn't "
                  "know how to read that. Falling back on ISO-8859-1, "
                  "but it's likely to be wrong." % encoding)
