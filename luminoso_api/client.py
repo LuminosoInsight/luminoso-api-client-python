@@ -370,7 +370,6 @@ class LuminosoClient(object):
             if count % 10 == 0:
                 self.keepalive()
             response = self.get(path)
-            logger.info(response)
             if response['stop_time']:
                 return response
             time.sleep(interval)
@@ -413,4 +412,3 @@ def jsonify_parameters(params):
         else:
             result[param] = json.dumps(value)
     return result
-
