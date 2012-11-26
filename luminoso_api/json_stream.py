@@ -45,10 +45,10 @@ def transcode(input_filename, output_filename=None):
             LOG.warn("Changing .json to .jsons, because this program outputs a "
                      "JSON stream format that is not technically JSON itself.")
             output_filename += 's'
-        output = codecs.open(output_filename, 'w', encoding='utf-8')
+        output = open(output_filename, 'w')
 
     for entry in open_json_or_csv_somehow(input_filename):
-        print >> output, json.dumps(entry, ensure_ascii=False)
+        print >> output, json.dumps(entry, ensure_ascii=False).encode('utf-8')
     output.close()
 
 
@@ -151,11 +151,13 @@ def detect_file_encoding(filename):
     return encoding
 
 
-def stream_json_lines(filename):
+def stream_json_lines(file):
     """
     Load a JSON stream and return a generator, yielding one object at a time.
     """
-    for line in open(filename):
+    if isinstance(file, basestring):
+        file = open(file)
+    for line in file:
         line = line.strip()
         if line:
             yield json.loads(line, encoding='utf-8')
