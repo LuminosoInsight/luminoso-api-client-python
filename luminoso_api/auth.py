@@ -1,6 +1,5 @@
 import requests
 from requests.utils import dict_from_cookiejar, cookiejar_from_dict
-from requests.cookies import get_cookie_header
 
 from hmac import HMAC
 from hashlib import sha1
@@ -72,7 +71,7 @@ class LuminosoAuth(object):
         # Make sure the session is valid
         if resp.status_code == 401:
             logger.error('%s gave response %r' % (resp.url, resp.text))
-            raise LuminosoLoginError
+            raise LuminosoLoginError(resp.text)
 
         # Save the session cookie
         self._session_cookie = resp.cookies['session']
