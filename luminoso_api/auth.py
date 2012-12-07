@@ -12,8 +12,7 @@ from .jstime import epoch
 import logging
 logger = logging.getLogger(__name__)
 
-from urllib import quote
-from urllib2 import urlparse
+from urllib2 import urlparse, quote, unquote
 
 
 def js_compatible_quote(string):
@@ -126,6 +125,7 @@ class LuminosoAuth(object):
         pathstring = req.path_url.split('?')[0]
         if not pathstring.endswith('/'):
             pathstring += '/'
+        pathstring = unquote(pathstring)
         # Build the list
         signing_list = [req.method,
                         self._host,
