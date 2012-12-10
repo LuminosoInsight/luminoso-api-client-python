@@ -127,15 +127,22 @@ def detect_file_encoding(filename):
     opened = open(filename)
     sample = opened.read(2 ** 16)
 
-    encoding = chardet.detect(sample)['encoding']
+    detected = chardet.detect(sample)
+    encoding = detected['encoding']
+    confidence = detected['confidence']
     if encoding is None:
         encoding = 'utf-8'
-    elif encoding == 'ISO-8859-2':
-        LOG.warn("This file could be either in ISO-8859-2 "
-                 "(Eastern European Latin-2) or MacRoman encoding.")
-        LOG.warn("We're going to guess it's MacRoman, but we might be wrong.")
-        LOG.warn("You might want to remedy this by saving the file in UTF-8.")
-        encoding = 'macroman'
+    elif encoding.startswith('ISO'):
+        if '\r' in sample and '\n' not in sample:
+            encoding = 'macroman'
+        else:
+            if confidence < .95:
+                LOG.warn("This file is in some ISO-like encoding, but we "
+                         "aren't confident about what it is. Guessing it's "
+                         "Windows-1252.")
+                LOG.warn("If this is wrong, please re-encode "
+                         "your file as UTF-8.")
+                encoding = 'windows-1252'
 
     try:
         codecs.lookup(encoding)
@@ -144,9 +151,9 @@ def detect_file_encoding(filename):
         # can't read, but it happened when Luminoso-the-Media-Lab-project
         # got a file from the Taiwanese version of Excel.
         LOG.warn("This file might be encoded as %r, but Python doesn't "
-                 "know how to read that. Falling back on ISO-8859-1, "
+                 "know how to read that. Falling back on Windows-1252, "
                  "but it's likely to be wrong." % encoding)
-        encoding = 'iso-8859-1'
+        encoding = 'windows-1252'
     opened.close()
     return encoding
 
@@ -187,7 +194,10 @@ def _read_csv(reader, header, encoding):
     for row in reader:
         if len(row) == 0:
             continue
+        print row
         row = [ftfy(cell.decode(encoding)) for cell in row]
+        print encoding, row
+        print
         row_list = zip(header, row)
         row_dict = dict(row_list)
         if len(row_dict['text']) == 0:

@@ -336,7 +336,7 @@ class LuminosoClient(object):
         documents. You still need to specify the URL to upload to, which will
         look like ROOT_URL/myname/projects/projectname/docs.
         """
-        json_data = json.dumps(docs)
+        json_data = json.dumps(list(docs))
         return self.post_data(path, json_data, 'application/json', **params)
 
     def wait_for(self, job_id, base_path=None, interval=5):

@@ -9,6 +9,7 @@ logging.basicConfig(level=logging.INFO)
 
 from luminoso_api import LuminosoClient
 from luminoso_api.errors import LuminosoAPIError, LuminosoError
+from luminoso_api.json_stream import open_json_or_csv_somehow
 
 ROOT_CLIENT = None
 RELOGIN_CLIENT = None
@@ -17,19 +18,9 @@ USERNAME = None
 
 PROJECT_NAME = os.environ.get('USER', 'jenkins') + '-test'
 SPACE_NAME = os.environ.get('USER', 'jenkins') + ' - test'
-ROOT_URL = 'http://localhost:5000/v3'
+EXAMPLE_DIR = os.path.dirname(__file__) + '/examples'
 
-TEST_DOCS = [
-    {'text': 'This is an example',
-     'title': 'example-1',
-     'date': 0},
-    {'text': 'Examples are a great source of inspiration',
-     'title': 'example-2',
-     'date': 5},
-    {'text': 'Great things come in threes',
-     'title': 'example-3',
-     'date': 20},
-]
+ROOT_URL = 'http://localhost:5000/v3'
 
 def fileno_monkeypatch(self):
     return sys.__stdout__.fileno()
@@ -107,7 +98,8 @@ def test_upload_and_wait_for():
     """
     Upload three documents and wait for the result.
     """
-    job_id = PROJECT.upload('docs', TEST_DOCS)
+    docs = open_json_or_csv_somehow(EXAMPLE_DIR + '/example1.stream.json')
+    job_id = PROJECT.upload('docs', docs)
     job_result = PROJECT.wait_for(job_id)
     assert job_result['success'] is True
 
@@ -140,7 +132,7 @@ def test_post_with_parameters():
 
 def test_auto_login():
     """Test auto-login after 401 responses."""
-    RELOGIN_CLIENT._session.auth._key_id=''
+    RELOGIN_CLIENT._session.auth._key_id = ''
     assert RELOGIN_CLIENT.get('ping') == 'pong'
 
 

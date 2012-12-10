@@ -3,6 +3,7 @@ from luminoso_api import LuminosoClient
 from luminoso_api.json_stream import transcode_to_stream, stream_json_lines
 
 ROOT_URL = 'https://api.lumino.so/v3'
+LOCAL_URL = 'http://localhost:5000/v3'
 
 #http://code.activestate.com/recipes/303279-getting-items-in-batches/
 def batches(iterable, size):
@@ -14,12 +15,12 @@ def batches(iterable, size):
         batchiter = islice(sourceiter, size)
         yield chain([batchiter.next()], batchiter)
 
-def upload_stream(stream, account, projname):
+def upload_stream(stream, server, account, projname):
     """
     Given a file-like object containing a JSON stream, upload it to
     Luminoso with the given account name and project name.
     """
-    client = LuminosoClient.connect(ROOT_URL)
+    client = LuminosoClient.connect(server)
     client.post(account + '/projects/', project=projname)
     project = client.change_path(account + '/projects/' + projname)
 
@@ -34,7 +35,7 @@ def upload_stream(stream, account, projname):
     final_job_id = project.post('docs/calculate', width=4)
     project.wait_for(final_job_id)
 
-def upload_file(filename, account, projname):
+def upload_file(filename, server, account, projname):
     """
     Upload a file to Luminoso with the given account and project name.
 
@@ -43,7 +44,7 @@ def upload_file(filename, account, projname):
     JSON stream.
     """
     stream = transcode_to_stream(filename)
-    upload_stream(stream_json_lines(stream), account, projname)
+    upload_stream(stream_json_lines(stream), server, account, projname)
 
 def main():
     """
@@ -55,8 +56,18 @@ def main():
     parser.add_argument('filename')
     parser.add_argument('account')
     parser.add_argument('project_name')
+    parser.add_argument('-a', '--api-url',
+        help="Specify an alternate API url",
+        default=ROOT_URL)
+    parser.add_argument('-l', '--local',
+        help="Run on localhost:5000 instead of the default API server "
+             "(overrides -a)",
+        action="store_true")
     args = parser.parse_args()
-    upload_file(args.filename, args.account, args.project_name)
+    url = args.api_url
+    if args.local:
+        url = LOCAL_URL
+    upload_file(args.filename, url, args.account, args.project_name)
 
 if __name__ == '__main__':
     main()
