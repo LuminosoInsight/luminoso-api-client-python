@@ -158,7 +158,7 @@ that module made some incompatible changes when it released version 1.0 in mid-D
 As our API code is a fairly thin wrapper around `requests`, changing it to
 support requests 1.0 would be a major change. We'll do that in version 0.4.
 
-This version now requires a pre-1.0 version of `requests`. If have a later version, you
+This version now requires a pre-1.0 version of `requests`. If you have a later version, you
 may see an error such as this:
 
     TypeError: session() takes no arguments (1 given)
