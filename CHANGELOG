@@ -1,3 +1,28 @@
+Version 0.3.4 (2013-01-02)
+
+  * Client changes
+  
+    - The 'requests' library has made incompatible changes in version 1.0.
+      As our API code is a fairly thin wrapper around requests, changing it to
+      support requests 1.0 would be a major change. We'll do that in
+      version 0.4.
+
+      This version now requires requests < 1.0. If you have a later version,
+      you can downgrade by typing:
+
+        easy_install -U "requests<1.0"
+
+    - The upload script now gets installed as a command called 'lumi-upload',
+      which uploads properly-formatted CSV or JSON data to a project.
+      Type 'lumi-upload --help' for usage information.
+
+Version 0.3.3 (2012-11-19)
+
+  * Client changes
+    
+    - Initial version of upload.py, a script that runs JSON or CSV data
+      through the entire upload process.
+
 Version 0.3.2 (2012-10-15)
 
   * Server changes
