@@ -47,7 +47,9 @@ class LuminosoAuth(object):
         self._validity_ms = validity_ms
 
         # Initialize the requests session
-        self._session = requests.session(proxies=proxies)
+        self._session = requests.session()
+        if proxies is not None:
+            self._session.proxies = proxies
 
         # Fetch session credentials
         self.login(username, password)

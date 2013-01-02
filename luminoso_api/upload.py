@@ -1,6 +1,8 @@
 from itertools import islice, chain
 from luminoso_api import LuminosoClient
+from luminoso_api.errors import LuminosoAPIError
 from luminoso_api.json_stream import transcode_to_stream, stream_json_lines
+import json
 
 ROOT_URL = 'https://api.lumino.so/v3'
 LOCAL_URL = 'http://localhost:5000/v3'
@@ -15,27 +17,30 @@ def batches(iterable, size):
         batchiter = islice(sourceiter, size)
         yield chain([batchiter.next()], batchiter)
 
-def upload_stream(stream, server, account, projname):
+def upload_stream(stream, server, account, projname, reader_dict):
     """
     Given a file-like object containing a JSON stream, upload it to
     Luminoso with the given account name and project name.
     """
     client = LuminosoClient.connect(server)
-    client.post(account + '/projects/', project=projname)
+    try:
+        client.post(account + '/projects/', project=projname)
+    except LuminosoAPIError as e:
+        pass
     project = client.change_path(account + '/projects/' + projname)
 
     counter = 0
     for batch in batches(stream, 100):
         counter += 1
         documents = list(batch)
-        job_id = project.upload('docs', documents, width=4)
+        job_id = project.upload('docs', documents, width=4, readers=reader_dict)
         print 'Uploaded batch #%d into job %s' % (counter, job_id)
 
     print 'Committing.'
     final_job_id = project.post('docs/calculate', width=4)
     project.wait_for(final_job_id)
 
-def upload_file(filename, server, account, projname):
+def upload_file(filename, server, account, projname, reader_dict):
     """
     Upload a file to Luminoso with the given account and project name.
 
@@ -44,7 +49,8 @@ def upload_file(filename, server, account, projname):
     JSON stream.
     """
     stream = transcode_to_stream(filename)
-    upload_stream(stream_json_lines(stream), server, account, projname)
+    upload_stream(stream_json_lines(stream),
+        server, account, projname, reader_dict)
 
 def main():
     """
@@ -63,11 +69,21 @@ def main():
         help="Run on localhost:5000 instead of the default API server "
              "(overrides -a)",
         action="store_true")
+    parser.add_argument('-r', '--readers', metavar='LANG=READER',
+        help="Custom reader to use, in a form such as 'ja=metanl.ja,en=freeling.en'")
     args = parser.parse_args()
     url = args.api_url
     if args.local:
         url = LOCAL_URL
-    upload_file(args.filename, url, args.account, args.project_name)
+    reader_dict = {}
+    if args.readers:
+        for item in args.readers.split(','):
+            if '=' not in item:
+                raise ValueError("You entered %r as a reader, but it should "\
+                                 "have the form 'lang=reader.name'")
+            lang, reader_name = item.split('=', 1)
+            reader_dict[lang] = reader_name
+    upload_file(args.filename, url, args.account, args.project_name, reader_dict)
 
 if __name__ == '__main__':
     main()
