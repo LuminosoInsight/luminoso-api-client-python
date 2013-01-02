@@ -55,7 +55,8 @@ class LuminosoClient(object):
         the authentication for you.
         """
         self._auth = auth
-        self._session = requests.session(auth=auth)
+        self._session = requests.session()
+        self._session.auth = auth
         if proxies is not None:
             self._session.proxies = proxies
         self.url = ensure_trailing_slash(url)
