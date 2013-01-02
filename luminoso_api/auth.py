@@ -23,6 +23,16 @@ def js_compatible_quote(string):
     return quote(string, safe='~@#$&()*!+=:;,.?/\'')
 
 
+def get_json(resp):
+    """
+    Deal with a breaking change in requests 1.0. We don't know if we will need
+    to ask for resp.json or resp.json() unless we do this.
+    """
+    if callable(resp.json):
+        return resp.json()
+    else:
+        return resp.json
+
 class LuminosoAuth(object):
     """Wraps REST requests with Luminoso's required authentication parameters"""
     def __init__(self, username, password, url=URL_BASE,
@@ -78,8 +88,8 @@ class LuminosoAuth(object):
         self._session_cookie = resp.cookies['session']
 
         # Save the key_id
-        self._key_id = resp.json['result']['key_id']
-        self._secret = resp.json['result']['secret']
+        self._key_id = get_json(resp)['result']['key_id']
+        self._secret = get_json(resp)['result']['secret']
 
     def __on_response(self, resp):
         """Handle auto-login and update session cookies"""
