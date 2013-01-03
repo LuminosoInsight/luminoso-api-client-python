@@ -1,5 +1,5 @@
-import requests
-from requests.utils import dict_from_cookiejar, cookiejar_from_dict
+import requests0 as requests
+from requests0.utils import dict_from_cookiejar, cookiejar_from_dict
 
 from hmac import HMAC
 from hashlib import sha1

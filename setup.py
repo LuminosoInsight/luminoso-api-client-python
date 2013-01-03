@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-VERSION = "0.3.4"
+VERSION = "0.3.5"
 
 from setuptools import setup, find_packages
 
@@ -21,7 +21,7 @@ setup(
     description="Python client library for communicating with the Luminoso REST API",
     classifiers=classifiers,
     packages=find_packages(),
-    install_requires=['requests < 1.0', 'chardet'],
+    install_requires=['requests-transition', 'chardet'],
     entry_points={
         'console_scripts': [
             'lumi-upload = luminoso_api.upload:main',

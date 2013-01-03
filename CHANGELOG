@@ -1,3 +1,14 @@
+Version 0.3.5 (2013-01-03)
+
+  * Client changes
+
+    - As a principled way of dealing with multiple incompatible versions of
+      requests, we now depend on the 'requests-transition' distribution that
+      we have put on GitHub.
+      
+      This lets us explicitly install and import version 0.x without
+      conflicting with other code.
+
 Version 0.3.4 (2013-01-02)
 
   * Client changes
@@ -6,11 +17,6 @@ Version 0.3.4 (2013-01-02)
       As our API code is a fairly thin wrapper around requests, changing it to
       support requests 1.0 would be a major change. We'll do that in
       version 0.4.
-
-      This version now requires requests < 1.0. If you have a later version,
-      you can downgrade by typing:
-
-        easy_install -U "requests<1.0"
 
     - The upload script now gets installed as a command called 'lumi-upload',
       which uploads properly-formatted CSV or JSON data to a project.
