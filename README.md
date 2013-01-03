@@ -120,3 +120,64 @@ will turn these into NumPy vectors, so it requires NumPy.
     >>> unpack64('WAB6AJG6kL_6D_6y')
     array([ 0.00046539,  0.00222015, -0.08491898, -0.0014534 , -0.00127411], dtype=float32)
 ```
+
+Uploading from the command line
+-------------------------------
+Instead of sending your documents as a list of Python dictionaries, you can upload a file
+containing documents in JSON format.
+
+The file should contain one JSON object per line (we suggest using the extension `.jsons`
+to indicate that the entire file is not a single JSON object). It will look like this:
+
+```json
+{"title": "First example", "text": "This is an example document."},
+{"title": "Second example", "text": "Examples are a great source of inspiration."}
+{"title": "Third example", "text": "Great things come in threes."}
+```
+
+It can also be a CSV file (which can be created by Excel, for example) with columns named
+`title` and `text`:
+
+```
+title   text
+First example   This is an example document.
+Second example  Examples are a great source of inspiration.
+Third example   Great things come in threes.
+```
+
+This library installs a script called `lumi-upload` for uploading files in one of these formats.
+For example, you would type at the command line:
+
+    lumi_upload example.jsons ACCOUNT_NAME example_project
+
+Getting the correct version of `requests`
+-----------------------------------------
+This API client is a simple wrapper around a Python module called `requests`. Unfortunately,
+that module made some incompatible changes when it released version 1.0 in mid-December.
+
+As our API code is a fairly thin wrapper around `requests`, changing it to
+support requests 1.0 would be a major change. We'll do that in version 0.4.
+
+This version now requires a pre-1.0 version of `requests`. If you have a later version, you
+may see an error such as this:
+
+    TypeError: session() takes no arguments (1 given)
+
+To fix this, you can downgrade by typing:
+
+    easy_install -U "requests<1.0"
+
+Or if you prefer to use pip:
+
+    pip uninstall requests
+    pip install "requests<1.0"
+
+If this doesn't work, you may have a version of requests 1.0 that Python doesn't know how to
+replace. To find out where it is, run `python` and try this:
+
+    >>> import requests
+    >>> print requests
+    <module 'requests' from '/home/rspeer/.virtualenvs/lum/local/lib/python2.7/site-packages/requests-0.14.2-py2.7.egg/requests/__init__.pyc'>
+
+Then remove the first directory named `requests`, which in this example is `/home/rspeer/.virtualenvs/lum/local/lib/python2.7/site-packages/requests-0.14.2-py2.7.egg/`,
+and finally run `easy_install -U "requests<1.0"` again.
