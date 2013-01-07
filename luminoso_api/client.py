@@ -66,11 +66,14 @@ class LuminosoClient(object):
         return '<LuminosoClient for %s>' % self.url
 
     @staticmethod
-    def connect(url='/', username=None, password=None, root_url=None,
+    def connect(url='/auto', username=None, password=None, root_url=None,
                 proxies=None, auto_login=True):
         """
         Returns an object that makes requests to the API, authenticated
         with the provided username/password, at URLs beginning with `url`.
+
+        You can leave out the URL and get one that is appropriate to
+        your account.
 
         If the URL is simply a path, omitting the scheme and domain, then
         it will default to https://api.lumino.so, which is probably what
@@ -84,6 +87,10 @@ class LuminosoClient(object):
         or one hour, whichever comes first. If for security reasons you do not
         want this to happen, set `auto_login` to False.
         """
+        auto_account = False
+        if url == '/auto':
+            auto_account = True
+
         if url.startswith('/'):
             url = URL_BASE + url
 
@@ -98,7 +105,11 @@ class LuminosoClient(object):
         logger.info('creating LuminosoAuth object')
         auth = LuminosoAuth(username, password, url=root_url, proxies=proxies,
                             auto_login=auto_login)
-        return LuminosoClient(auth, url)
+
+        client = LuminosoClient(auth, url)
+        if auto_account:
+            client = client.change_path('/' + client.get_default_account())
+        return client
 
     def _request(self, req_type, url, **kwargs):
         """
@@ -318,6 +329,24 @@ class LuminosoClient(object):
         else:
             url = self.url + path
         return LuminosoClient(self._auth, url, self.root_url)
+
+    def get_default_account(self):
+        newclient = LuminosoClient(self._auth, self.root_url, self.root_url)
+        account_info = newclient.get_raw('/.accounts')
+        account_data = json.loads(account_info)
+        if 'result' in account_data:
+            account_names = account_data['result']['accounts']
+        else:
+            account_names = account_data['accounts']
+
+        valid_accounts = [a for a in account_names if a != 'public']
+        if 'lumi-test' in valid_accounts:
+            return 'lumi-test'
+        if len(valid_accounts) == 0:
+            raise ValueError("Can't determine your default URL. "
+                             "Please request a specific URL or ask "
+                             "Luminoso for support.")
+        return valid_accounts[0]
 
     def documentation(self):
         """
