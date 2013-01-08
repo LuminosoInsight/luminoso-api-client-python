@@ -72,12 +72,22 @@ class LuminosoClient(object):
         Returns an object that makes requests to the API, authenticated
         with the provided username/password, at URLs beginning with `url`.
 
-        You can leave out the URL and get one that is appropriate to
-        your account.
+        You can leave out the URL and get your 'default URL', a base path
+        that is probably appropriate for creating projects on your
+        account:
+
+            client = LuminosoClient.connect(username=username)
 
         If the URL is simply a path, omitting the scheme and domain, then
         it will default to https://api.lumino.so, which is probably what
-        you want.
+        you want:
+
+            client = LuminosoClient.connect('/public/projects', username=username)
+
+        If you leave out the username, it will use your system username,
+        which is convenient if it matches your Luminoso username:
+
+            client = LuminosoClient.connect()
 
         `proxies` is a dictionary from URL schemes (like 'http') to proxy
         servers, in the same form used by the `requests` module.
@@ -108,7 +118,8 @@ class LuminosoClient(object):
 
         client = LuminosoClient(auth, url)
         if auto_account:
-            client = client.change_path('/' + client.get_default_account())
+            client = client.change_path('/%s/projects' %
+                client._get_default_account())
         return client
 
     def _request(self, req_type, url, **kwargs):
@@ -330,7 +341,10 @@ class LuminosoClient(object):
             url = self.url + path
         return LuminosoClient(self._auth, url, self.root_url)
 
-    def get_default_account(self):
+    def _get_default_account(self):
+        """
+        Get the ID of an account you can use to create projects.
+        """
         newclient = LuminosoClient(self._auth, self.root_url, self.root_url)
         account_info = newclient.get_raw('/.accounts')
         account_data = json.loads(account_info)

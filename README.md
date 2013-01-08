@@ -24,7 +24,6 @@ Or you can download this repository and install it the usual way:
 
     python setup.py install
 
-
 If you are installing into the main Python environment on a Mac or Unix
 system, you will probably need to prefix those commands with `sudo` and
 enter your password, as in `sudo python setup.py install`.
@@ -37,12 +36,25 @@ authentication information.
 
 ```
 >>> from luminoso_api import LuminosoClient
->>> proj = LuminosoClient.connect('/my_username/projects/my_project',
+>>> proj = LuminosoClient.connect('/account_id/projects/my_project',
                                   username='my_username')
 Password for my_username: [here you enter your password]
 >>> proj.get('terms')
 {u'result': [lots of terms and vectors here]}
 ```
+
+When the first thing you want to do is create a new project, we've provided
+a useful default URL that uses a reasonable account_id where you can create
+projects:
+
+>>> from luminoso_api import LuminosoClient
+>>> projects = LuminosoClient.connect(username='testuser')
+Password: ...
+>>> print projects
+<LuminosoClient for https://api.lumino.so/v3/lumi-test/projects/>
+
+HTTP methods
+------------
 
 The URLs you can communicate with are documented at https://api.lumino.so/v3.
 That documentation is the authoritative source for what you can do with the
@@ -63,7 +75,8 @@ project (also known as a database), but one case where you don't is to get a lis
 ```python
 from luminoso_api import LuminosoClient
 client = LuminosoClient.connect(username='jane', password=MY_SECRET_PASSWORD)
-project_names = client.get('projects')
+# this points to the 'projects' endpoint by default
+project_names = client.get()
 print project_names
 ```
 
@@ -74,7 +87,7 @@ that we provide to make it convenient to upload documents in the right format:
 ```python
 from luminoso_api import LuminosoClient
 
-account = LuminosoClient.connect('/jane', username='jane')
+account = LuminosoClient.connect('/janeaccount', username='jane')
 
 # Create a new project by POSTing its name
 account.post('projects', project='testproject')
@@ -152,32 +165,18 @@ For example, you would type at the command line:
 
 Getting the correct version of `requests`
 -----------------------------------------
-This API client is a simple wrapper around a Python module called `requests`. Unfortunately,
-that module made some incompatible changes when it released version 1.0 in mid-December.
+This API client is a simple wrapper around a Python module called `requests`.
+Unfortunately, that module made some incompatible changes when it released version 1.0 in mid-December.
 
-As our API code is a fairly thin wrapper around `requests`, changing it to
-support requests 1.0 would be a major change. We'll do that in version 0.4.
+In case your Python environment has the new version, our setup script installs
+the old version that the client is compatible with as a package called
+`requests0`. This is part of the `requests-transition` package:
 
-This version now requires a pre-1.0 version of `requests`. If you have a later version, you
-may see an error such as this:
+    https://github.com/LuminosoInsight/python-requests-transition
 
-    TypeError: session() takes no arguments (1 given)
+If you cannot import `requests0`, please re-run the setup script to get this
+package:
 
-To fix this, you can downgrade by typing:
+    python setup.py install
 
-    easy_install -U "requests<1.0"
-
-Or if you prefer to use pip:
-
-    pip uninstall requests
-    pip install "requests<1.0"
-
-If this doesn't work, you may have a version of requests 1.0 that Python doesn't know how to
-replace. To find out where it is, run `python` and try this:
-
-    >>> import requests
-    >>> print requests
-    <module 'requests' from '/home/rspeer/.virtualenvs/lum/local/lib/python2.7/site-packages/requests-0.14.2-py2.7.egg/requests/__init__.pyc'>
-
-Then remove the first directory named `requests`, which in this example is `/home/rspeer/.virtualenvs/lum/local/lib/python2.7/site-packages/requests-0.14.2-py2.7.egg/`,
-and finally run `easy_install -U "requests<1.0"` again.
+Our next API version will include a client that supports Requests 1.0.
