@@ -1,3 +1,18 @@
+Version 0.3.6 (2013-01-08)
+
+  * Client changes
+
+    - Easier way to create projects. If you don't specify a URL for the client,
+      or specify the URL '/auto', it will point to the endpoint
+      '/account_id/projects' for some reasonable value of 'account_id'.
+      Now you just need to enter your username (and answer the password
+      prompt).
+
+  * Server changes
+
+    - The GET /.accounts endpoint now returns a response following the standard
+      format, which will give you a list of all accounts you may access.
+
 Version 0.3.5 (2013-01-03)
 
   * Client changes
