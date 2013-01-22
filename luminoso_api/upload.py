@@ -15,13 +15,15 @@ def batches(iterable, size):
         batchiter = islice(sourceiter, size)
         yield chain([batchiter.next()], batchiter)
 
-def upload_stream(stream, server, account, projname):
+def upload_stream(stream, server, account, projname, append=False, stage=False):
     """
     Given a file-like object containing a JSON stream, upload it to
     Luminoso with the given account name and project name.
     """
     client = LuminosoClient.connect(server)
-    client.post(account + '/projects/', project=projname)
+    if not append:
+        # If we're not appending to an existing project, create new project.
+        client.post(account + '/projects/', project=projname)
     project = client.change_path(account + '/projects/' + projname)
 
     counter = 0
@@ -31,11 +33,13 @@ def upload_stream(stream, server, account, projname):
         job_id = project.upload('docs', documents, width=4)
         print 'Uploaded batch #%d into job %s' % (counter, job_id)
 
-    print 'Committing.'
-    final_job_id = project.post('docs/calculate', width=4)
-    project.wait_for(final_job_id)
+    if not stage:
+        # Calculate the docs into the assoc space.
+        print 'Committing.'
+        final_job_id = project.post('docs/calculate', width=4)
+        project.wait_for(final_job_id)
 
-def upload_file(filename, server, account, projname):
+def upload_file(filename, server, account, projname, append=False, stage=False):
     """
     Upload a file to Luminoso with the given account and project name.
 
@@ -44,7 +48,8 @@ def upload_file(filename, server, account, projname):
     JSON stream.
     """
     stream = transcode_to_stream(filename)
-    upload_stream(stream_json_lines(stream), server, account, projname)
+    upload_stream(stream_json_lines(stream), server, account, projname,
+                  append=append, stage=stage)
 
 def main():
     """
@@ -56,6 +61,13 @@ def main():
     parser.add_argument('filename')
     parser.add_argument('account')
     parser.add_argument('project_name')
+    parser.add_argument('-a', '--append',
+        help=("If append flag is used, upload documents to existing project,"
+              "rather than creating a new project."),
+        action="store_true")
+    parser.add_argument('-s', '--stage',
+        help=("If stage flag is used, just upload docs, don't commit."),
+        action="store_true")
     parser.add_argument('-a', '--api-url',
         help="Specify an alternate API url",
         default=ROOT_URL)
@@ -67,7 +79,8 @@ def main():
     url = args.api_url
     if args.local:
         url = LOCAL_URL
-    upload_file(args.filename, url, args.account, args.project_name)
+    upload_file(args.filename, url, args.account, args.project_name,
+                append=args.append, stage=args.stage)
 
 if __name__ == '__main__':
     main()
