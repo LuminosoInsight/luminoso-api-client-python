@@ -9,7 +9,7 @@ from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
     LuminosoServerError, LuminosoAPIError)
 from getpass import getpass
 import os
-import requests
+import requests0 as requests
 import logging
 import json
 import time
@@ -55,7 +55,10 @@ class LuminosoClient(object):
         the authentication for you.
         """
         self._auth = auth
-        self._session = requests.session(auth=auth, proxies=proxies)
+        self._session = requests.session()
+        self._session.auth = auth
+        if proxies is not None:
+            self._session.proxies = proxies
         self.url = ensure_trailing_slash(url)
         self.root_url = root_url or get_root_url(url)
 
@@ -63,15 +66,28 @@ class LuminosoClient(object):
         return '<LuminosoClient for %s>' % self.url
 
     @staticmethod
-    def connect(url='/', username=None, password=None, root_url=None,
+    def connect(url='/auto', username=None, password=None, root_url=None,
                 proxies=None, auto_login=True):
         """
         Returns an object that makes requests to the API, authenticated
         with the provided username/password, at URLs beginning with `url`.
 
+        You can leave out the URL and get your 'default URL', a base path
+        that is probably appropriate for creating projects on your
+        account:
+
+            client = LuminosoClient.connect(username=username)
+
         If the URL is simply a path, omitting the scheme and domain, then
         it will default to https://api.lumino.so, which is probably what
-        you want.
+        you want:
+
+            client = LuminosoClient.connect('/public/projects', username=username)
+
+        If you leave out the username, it will use your system username,
+        which is convenient if it matches your Luminoso username:
+
+            client = LuminosoClient.connect()
 
         `proxies` is a dictionary from URL schemes (like 'http') to proxy
         servers, in the same form used by the `requests` module.
@@ -81,6 +97,10 @@ class LuminosoClient(object):
         or one hour, whichever comes first. If for security reasons you do not
         want this to happen, set `auto_login` to False.
         """
+        auto_account = False
+        if url == '/auto':
+            auto_account = True
+
         if url.startswith('/'):
             url = URL_BASE + url
 
@@ -95,7 +115,12 @@ class LuminosoClient(object):
         logger.info('creating LuminosoAuth object')
         auth = LuminosoAuth(username, password, url=root_url, proxies=proxies,
                             auto_login=auto_login)
-        return LuminosoClient(auth, url)
+
+        client = LuminosoClient(auth, url)
+        if auto_account:
+            client = client.change_path('/%s/projects' %
+                client._get_default_account())
+        return client
 
     def _request(self, req_type, url, **kwargs):
         """
@@ -315,6 +340,27 @@ class LuminosoClient(object):
         else:
             url = self.url + path
         return LuminosoClient(self._auth, url, self.root_url)
+
+    def _get_default_account(self):
+        """
+        Get the ID of an account you can use to create projects.
+        """
+        newclient = LuminosoClient(self._auth, self.root_url, self.root_url)
+        account_info = newclient.get_raw('/.accounts')
+        account_data = json.loads(account_info)
+        if 'result' in account_data:
+            account_names = account_data['result']['accounts']
+        else:
+            account_names = account_data['accounts']
+
+        valid_accounts = [a for a in account_names if a != 'public']
+        if 'lumi-test' in valid_accounts:
+            return 'lumi-test'
+        if len(valid_accounts) == 0:
+            raise ValueError("Can't determine your default URL. "
+                             "Please request a specific URL or ask "
+                             "Luminoso for support.")
+        return valid_accounts[0]
 
     def documentation(self):
         """

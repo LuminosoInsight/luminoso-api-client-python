@@ -1,3 +1,49 @@
+Version 0.3.6 (2013-01-08)
+
+  * Client changes
+
+    - Easier way to create projects. If you don't specify a URL for the client,
+      or specify the URL '/auto', it will point to the endpoint
+      '/account_id/projects' for some reasonable value of 'account_id'.
+      Now you just need to enter your username (and answer the password
+      prompt).
+
+  * Server changes
+
+    - The GET /.accounts endpoint now returns a response following the standard
+      format, which will give you a list of all accounts you may access.
+
+Version 0.3.5 (2013-01-03)
+
+  * Client changes
+
+    - As a principled way of dealing with multiple incompatible versions of
+      requests, we now depend on the 'requests-transition' distribution that
+      we have put on GitHub.
+      
+      This lets us explicitly install and import version 0.x without
+      conflicting with other code.
+
+Version 0.3.4 (2013-01-02)
+
+  * Client changes
+  
+    - The 'requests' library has made incompatible changes in version 1.0.
+      As our API code is a fairly thin wrapper around requests, changing it to
+      support requests 1.0 would be a major change. We'll do that in
+      version 0.4.
+
+    - The upload script now gets installed as a command called 'lumi-upload',
+      which uploads properly-formatted CSV or JSON data to a project.
+      Type 'lumi-upload --help' for usage information.
+
+Version 0.3.3 (2012-11-19)
+
+  * Client changes
+    
+    - Initial version of upload.py, a script that runs JSON or CSV data
+      through the entire upload process.
+
 Version 0.3.2 (2012-10-15)
 
   * Server changes

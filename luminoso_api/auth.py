@@ -1,5 +1,5 @@
-import requests
-from requests.utils import dict_from_cookiejar, cookiejar_from_dict
+import requests0 as requests
+from requests0.utils import dict_from_cookiejar, cookiejar_from_dict
 
 from hmac import HMAC
 from hashlib import sha1
@@ -22,6 +22,16 @@ def js_compatible_quote(string):
         string = string.encode('utf-8')
     return quote(string, safe='~@#$&()*!+=:;,.?/\'')
 
+
+def get_json(resp):
+    """
+    Deal with a breaking change in requests 1.0. We don't know if we will need
+    to ask for resp.json or resp.json() unless we do this.
+    """
+    if callable(resp.json):
+        return resp.json()
+    else:
+        return resp.json
 
 class LuminosoAuth(object):
     """Wraps REST requests with Luminoso's required authentication parameters"""
@@ -47,7 +57,9 @@ class LuminosoAuth(object):
         self._validity_ms = validity_ms
 
         # Initialize the requests session
-        self._session = requests.session(proxies=proxies)
+        self._session = requests.session()
+        if proxies is not None:
+            self._session.proxies = proxies
 
         # Fetch session credentials
         self.login(username, password)
@@ -76,8 +88,8 @@ class LuminosoAuth(object):
         self._session_cookie = resp.cookies['session']
 
         # Save the key_id
-        self._key_id = resp.json['result']['key_id']
-        self._secret = resp.json['result']['secret']
+        self._key_id = get_json(resp)['result']['key_id']
+        self._secret = get_json(resp)['result']['secret']
 
     def __on_response(self, resp):
         """Handle auto-login and update session cookies"""
