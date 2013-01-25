@@ -67,7 +67,7 @@ def main():
     parser.add_argument('filename')
     parser.add_argument('account')
     parser.add_argument('project_name')
-    parser.add_argument('-a', '--append',
+    parser.add_argument('--append',
         help=("If append flag is used, upload documents to existing project,"
               "rather than creating a new project."),
         action="store_true")
