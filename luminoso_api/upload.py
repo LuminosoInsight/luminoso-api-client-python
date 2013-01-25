@@ -2,7 +2,6 @@ from itertools import islice, chain
 from luminoso_api import LuminosoClient
 from luminoso_api.errors import LuminosoAPIError
 from luminoso_api.json_stream import transcode_to_stream, stream_json_lines
-import json
 
 ROOT_URL = 'https://api.lumino.so/v3'
 LOCAL_URL = 'http://localhost:5000/v3'
@@ -17,16 +16,19 @@ def batches(iterable, size):
         batchiter = islice(sourceiter, size)
         yield chain([batchiter.next()], batchiter)
 
-def upload_stream(stream, server, account, projname, reader_dict):
+def upload_stream(stream, server, account, projname, reader_dict,
+                  append=False, stage=False):
     """
     Given a file-like object containing a JSON stream, upload it to
     Luminoso with the given account name and project name.
     """
     client = LuminosoClient.connect(server)
-    try:
-        client.post(account + '/projects/', project=projname)
-    except LuminosoAPIError as e:
-        pass
+    if not append:
+        # If we're not appending to an existing project, create new project.
+        try:
+            client.post(account + '/projects/', project=projname)
+        except LuminosoAPIError:
+            pass
     project = client.change_path(account + '/projects/' + projname)
 
     counter = 0
@@ -36,11 +38,14 @@ def upload_stream(stream, server, account, projname, reader_dict):
         job_id = project.upload('docs', documents, width=4, readers=reader_dict)
         print 'Uploaded batch #%d into job %s' % (counter, job_id)
 
-    print 'Committing.'
-    final_job_id = project.post('docs/calculate', width=4)
-    project.wait_for(final_job_id)
+    if not stage:
+        # Calculate the docs into the assoc space.
+        print 'Committing.'
+        final_job_id = project.post('docs/calculate', width=4)
+        project.wait_for(final_job_id)
 
-def upload_file(filename, server, account, projname, reader_dict):
+def upload_file(filename, server, account, projname, reader_dict,
+                append=False, stage=False):
     """
     Upload a file to Luminoso with the given account and project name.
 
@@ -49,8 +54,8 @@ def upload_file(filename, server, account, projname, reader_dict):
     JSON stream.
     """
     stream = transcode_to_stream(filename)
-    upload_stream(stream_json_lines(stream),
-        server, account, projname, reader_dict)
+    upload_stream(stream_json_lines(stream), server, account, projname,
+                  reader_dict, append=append, stage=stage)
 
 def main():
     """
@@ -62,6 +67,13 @@ def main():
     parser.add_argument('filename')
     parser.add_argument('account')
     parser.add_argument('project_name')
+    parser.add_argument('-a', '--append',
+        help=("If append flag is used, upload documents to existing project,"
+              "rather than creating a new project."),
+        action="store_true")
+    parser.add_argument('-s', '--stage',
+        help=("If stage flag is used, just upload docs, don't commit."),
+        action="store_true")
     parser.add_argument('-a', '--api-url',
         help="Specify an alternate API url",
         default=ROOT_URL)
@@ -75,6 +87,7 @@ def main():
     url = args.api_url
     if args.local:
         url = LOCAL_URL
+
     reader_dict = {}
     if args.readers:
         for item in args.readers.split(','):
@@ -83,7 +96,9 @@ def main():
                                  "have the form 'lang=reader.name'")
             lang, reader_name = item.split('=', 1)
             reader_dict[lang] = reader_name
-    upload_file(args.filename, url, args.account, args.project_name, reader_dict)
+
+    upload_file(args.filename, url, args.account, args.project_name,
+                reader_dict, append=args.append, stage=args.stage)
 
 if __name__ == '__main__':
     main()
