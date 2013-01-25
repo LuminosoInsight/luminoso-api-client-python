@@ -21,7 +21,7 @@ setup(
     description="Python client library for communicating with the Luminoso REST API",
     classifiers=classifiers,
     packages=find_packages(),
-    install_requires=['requests-transition', 'chardet'],
+    install_requires=['requests-transition', 'chardet', 'ftfy'],
     entry_points={
         'console_scripts': [
             'lumi-upload = luminoso_api.upload:main',
