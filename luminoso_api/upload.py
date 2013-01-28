@@ -32,7 +32,7 @@ def upload_stream(stream, server, account, projname, reader_dict,
     project = client.change_path(account + '/projects/' + projname)
 
     counter = 0
-    for batch in batches(stream, 100):
+    for batch in batches(stream, 1000):
         counter += 1
         documents = list(batch)
         job_id = project.upload('docs', documents, width=4, readers=reader_dict)
