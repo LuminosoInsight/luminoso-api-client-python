@@ -47,11 +47,13 @@ When the first thing you want to do is create a new project, we've provided
 a useful default URL that uses a reasonable account_id where you can create
 projects:
 
+```
 >>> from luminoso_api import LuminosoClient
 >>> projects = LuminosoClient.connect(username='testuser')
 Password: ...
 >>> print projects
 <LuminosoClient for https://api.lumino.so/v3/lumi-test/projects/>
+```
 
 HTTP methods
 ------------
