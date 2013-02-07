@@ -49,7 +49,7 @@ def upload_stream(stream, server, account, projname, reader_dict,
         project.wait_for(final_job_id)
 
 def upload_file(filename, server, account, projname, reader_dict,
-                append=False, stage=False):
+                append=False, stage=False, vectorize_only=False):
     """
     Upload a file to Luminoso with the given account and project name.
 
@@ -59,7 +59,8 @@ def upload_file(filename, server, account, projname, reader_dict,
     """
     stream = transcode_to_stream(filename)
     upload_stream(stream_json_lines(stream), server, account, projname,
-                  reader_dict, append=append, stage=stage)
+                  reader_dict, append=append, stage=stage,
+                  vectorize_only=vectorize_only)
 
 def main():
     """
