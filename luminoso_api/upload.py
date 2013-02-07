@@ -17,7 +17,7 @@ def batches(iterable, size):
         yield chain([batchiter.next()], batchiter)
 
 def upload_stream(stream, server, account, projname, reader_dict,
-                  append=False, stage=False):
+                  append=False, stage=False, vectorize_only=False):
     """
     Given a file-like object containing a JSON stream, upload it to
     Luminoso with the given account name and project name.
@@ -35,7 +35,11 @@ def upload_stream(stream, server, account, projname, reader_dict,
     for batch in batches(stream, 1000):
         counter += 1
         documents = list(batch)
-        job_id = project.upload('docs', documents, width=4, readers=reader_dict)
+        if vectorize_only:
+            job_id = project.upload('docs/admin', documents, width=8, do_not_build_assocspace=True,
+                do_not_save_ngrams=True, do_not_save_termstats=True, do_not_correlate_topics=True)
+        else:
+            job_id = project.upload('docs', documents, width=4, readers=reader_dict)
         print 'Uploaded batch #%d into job %s' % (counter, job_id)
 
     if not stage:
@@ -71,6 +75,9 @@ def main():
         help=("If append flag is used, upload documents to existing project,"
               "rather than creating a new project."),
         action="store_true")
+    parser.add_argument('--vectorize',
+        help=("Vectorize these documents in an existing project. Implies -a and -s."),
+        action="store_true")
     parser.add_argument('-s', '--stage',
         help=("If stage flag is used, just upload docs, don't commit."),
         action="store_true")
@@ -97,8 +104,13 @@ def main():
             lang, reader_name = item.split('=', 1)
             reader_dict[lang] = reader_name
 
+    if args.vectorize:
+        args.append = True
+        args.stage = True
+
     upload_file(args.filename, url, args.account, args.project_name,
-                reader_dict, append=args.append, stage=args.stage)
+                reader_dict, append=args.append, stage=args.stage,
+                vectorize_only=args.vectorize)
 
 if __name__ == '__main__':
     main()
