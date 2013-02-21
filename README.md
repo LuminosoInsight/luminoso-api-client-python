@@ -36,7 +36,7 @@ authentication information.
 
 ```
 >>> from luminoso_api import LuminosoClient
->>> proj = LuminosoClient.connect('/account_id/projects/my_project',
+>>> proj = LuminosoClient.connect('/account_id/projects/my_project_id',
                                   username='my_username')
 Password for my_username: [here you enter your password]
 >>> proj.get('terms')
@@ -52,13 +52,13 @@ projects:
 >>> projects = LuminosoClient.connect(username='testuser')
 Password: ...
 >>> print projects
-<LuminosoClient for https://api.lumino.so/v3/lumi-test/projects/>
+<LuminosoClient for http://api.staging.lumi/v4/lumi-test/projects/>
 ```
 
 HTTP methods
 ------------
 
-The URLs you can communicate with are documented at https://api.lumino.so/v3.
+The URLs you can communicate with are documented at http://api.staging.lumi/v4.
 That documentation is the authoritative source for what you can do with the
 API, and this Python code is just here to help you do it.
 
@@ -92,10 +92,10 @@ from luminoso_api import LuminosoClient
 account = LuminosoClient.connect('/janeaccount', username='jane')
 
 # Create a new project by POSTing its name
-account.post('projects', project='testproject')
+project_id = account.post('projects', name='testproject')['project_id']
 
 # use that project from here on
-project = account.change_path('projects/testproject')
+project = account.change_path('projects/' + project_id)
 
 docs = [{'title': 'First example', 'text': 'This is an example document.'},
         {'title': 'Second example', 'text': 'Examples are a great source of inspiration.'}
@@ -163,7 +163,7 @@ Third example   Great things come in threes.
 This library installs a script called `lumi-upload` for uploading files in one of these formats.
 For example, you would type at the command line:
 
-    lumi_upload example.jsons ACCOUNT_NAME example_project
+    lumi_upload example.jsons ACCOUNT_NAME example_project_id
 
 Getting the correct version of `requests`
 -----------------------------------------

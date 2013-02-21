@@ -3,8 +3,8 @@ from luminoso_api import LuminosoClient
 from luminoso_api.errors import LuminosoAPIError
 from luminoso_api.json_stream import transcode_to_stream, stream_json_lines
 
-ROOT_URL = 'https://api.lumino.so/v3'
-LOCAL_URL = 'http://localhost:5000/v3'
+ROOT_URL = 'http://api.staging.lumi/v4'
+LOCAL_URL = 'http://localhost:5000/v4'
 
 #http://code.activestate.com/recipes/303279-getting-items-in-batches/
 def batches(iterable, size):
@@ -26,10 +26,14 @@ def upload_stream(stream, server, account, projname, reader_dict,
     if not append:
         # If we're not appending to an existing project, create new project.
         try:
-            client.post(account + '/projects/', project=projname)
+            info = client.post(account + '/projects/', name=projname)
+            project_id = info['project_id']
         except LuminosoAPIError:
             pass
-    project = client.change_path(account + '/projects/' + projname)
+    else:
+        project_id = client.get(account + '/lookup/project', name=projname)
+
+    project = client.change_path(account + '/projects/' + project_id)
 
     counter = 0
     for batch in batches(stream, 1000):

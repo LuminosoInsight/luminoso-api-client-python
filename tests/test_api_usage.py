@@ -17,10 +17,10 @@ PROJECT = None
 USERNAME = None
 
 PROJECT_NAME = os.environ.get('USER', 'jenkins') + '-test'
-SPACE_NAME = os.environ.get('USER', 'jenkins') + ' - test'
+PROJECT_ID = None
 EXAMPLE_DIR = os.path.dirname(__file__) + '/examples'
 
-ROOT_URL = 'http://localhost:5000/v3'
+ROOT_URL = 'http://localhost:5000/v4'
 
 def fileno_monkeypatch(self):
     return sys.__stdout__.fileno()
@@ -34,7 +34,7 @@ def setup():
     Make sure we're working with a fresh database. Build a client for
     interacting with that database and save it as a global.
     """
-    global ROOT_CLIENT, PROJECT, USERNAME, RELOGIN_CLIENT
+    global ROOT_CLIENT, PROJECT, USERNAME, RELOGIN_CLIENT, PROJECT_ID
     user_info_str = subprocess.check_output('tellme lumi-test', shell=True)
     user_info = eval(user_info_str)
     USERNAME = user_info['username']
@@ -47,20 +47,22 @@ def setup():
                                             password=user_info['password'],
                                             auto_login=True)
 
-    # check to see if the project exists; also create the client we'll use
+    # check to see if the project exists
     projects = ROOT_CLIENT.get(USERNAME + '/projects')
-    projlist = [proj['name'] for proj in projects]
-    PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/' + PROJECT_NAME)
+    projdict = dict((proj['name'], proj['project_id']) for proj in projects)
 
-    if PROJECT_NAME in projlist:
+    if PROJECT_NAME in projdict:
         logger.warn('The test database existed already. '
                     'We have to clean it up.')
-        ROOT_CLIENT.delete(USERNAME + '/projects', project=PROJECT_NAME)
+        ROOT_CLIENT.delete(USERNAME + '/projects',
+                           project_id=projdict[PROJECT_NAME])
 
-    # create the project
+    # create the project and client
     logger.info("Creating project: " + PROJECT_NAME)
-    logger.info("Existing projects: %r" % projlist)
-    ROOT_CLIENT.post(USERNAME + '/projects', project=PROJECT_NAME)
+    logger.info("Existing projects: %r" % projdict.keys())
+    creation = ROOT_CLIENT.post(USERNAME + '/projects', name=PROJECT_NAME)
+    PROJECT_ID = creation['project_id']
+    PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/' + PROJECT_ID)
     PROJECT.get()
 
 
@@ -136,32 +138,13 @@ def test_auto_login():
     assert RELOGIN_CLIENT.get('ping') == 'pong'
 
 
-def test_space_in_name():
-    """Test that spaces in project names work."""
-    projects = ROOT_CLIENT.get(USERNAME + '/projects')
-    projlist = [proj['name'] for proj in projects]
-    space_project = ROOT_CLIENT.change_path(USERNAME + '/projects/' +
-                                            SPACE_NAME)
-    if SPACE_NAME in projlist:
-        logger.warn('The test database existed already. '
-                    'We have to clean it up.')
-        ROOT_CLIENT.delete(USERNAME + '/projects', project=SPACE_NAME)
-
-    # create the project
-    logger.info("Creating project: " + SPACE_NAME)
-    ROOT_CLIENT.post(USERNAME + '/projects', project=SPACE_NAME)
-    space_project.get()
-
-
 def teardown():
     """
     Pack everything up, we're done.
     """
     if ROOT_CLIENT is not None:
-        ROOT_CLIENT.delete(USERNAME + '/projects', project=SPACE_NAME)
-        ROOT_CLIENT.delete(USERNAME + '/projects', project=PROJECT_NAME)
-        PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/' +
-                                          PROJECT_NAME)
+        ROOT_CLIENT.delete(USERNAME + '/projects', project_id=PROJECT_ID)
+        PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/' + PROJECT_ID)
         try:
             got = PROJECT.get()
         except LuminosoError:
