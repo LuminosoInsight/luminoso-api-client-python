@@ -65,8 +65,8 @@ class LuminosoClient(object):
     def __repr__(self):
         return '<LuminosoClient for %s>' % self.url
 
-    @staticmethod
-    def connect(url='/auto', username=None, password=None, root_url=None,
+    @classmethod
+    def connect(cls, url='/auto', username=None, password=None, root_url=None,
                 proxies=None, auto_login=True):
         """
         Returns an object that makes requests to the API, authenticated
@@ -116,7 +116,7 @@ class LuminosoClient(object):
         auth = LuminosoAuth(username, password, url=root_url, proxies=proxies,
                             auto_login=auto_login)
 
-        client = LuminosoClient(auth, url)
+        client = cls(auth, url)
         if auto_account:
             client = client.change_path('/%s/projects' %
                 client._get_default_account())
