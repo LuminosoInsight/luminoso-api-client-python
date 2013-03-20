@@ -31,6 +31,9 @@ from ftfy import ftfy
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+# Detect Python 3
+PY3 = (sys.hexversion >= 0x03000000)
+
 
 def transcode(input_filename, output_filename=None):
     """
@@ -48,7 +51,8 @@ def transcode(input_filename, output_filename=None):
         output = open(output_filename, 'w')
 
     for entry in open_json_or_csv_somehow(input_filename):
-        print >> output, json.dumps(entry, ensure_ascii=False).encode('utf-8')
+        output.write(json.dumps(entry, ensure_ascii=False).encode('utf-8'))
+        output.write('\n')
     output.close()
 
 
@@ -59,7 +63,8 @@ def transcode_to_stream(input_filename):
     """
     tmp = os.tmpfile()
     for entry in open_json_or_csv_somehow(input_filename):
-        print >> tmp, json.dumps(entry, ensure_ascii=False).encode('utf-8')
+        tmp.write(json.dumps(entry, ensure_ascii=False).encode('utf-8'))
+        tmp.write('\n')
     tmp.seek(0)
     return tmp
 
@@ -68,7 +73,7 @@ def open_json_or_csv_somehow(filename):
     """
     Deduce the format of a file, within reason.
 
-    - If the filename ends with .csv, it's csv.
+    - If the filename ends with .csv or .txt, it's csv.
     - If the filename ends with .jsons, it's a JSON stream (conveniently the
       format we want to output).
     - If the filename ends with .json, it could be a legitimate JSON file, or
@@ -77,6 +82,10 @@ def open_json_or_csv_somehow(filename):
       - If the first line is a complete JSON document, and there is more in the
         file besides the first line, then it is a JSON stream.
       - Otherwise, it is probably really JSON.
+    - If the filename does not end with .json, .jsons, or .csv, we have to guess
+      whether it's still CSV or tab-separated values or something like that.
+      If it's JSON, the first character would almost certainly have to be a
+      bracket or a brace. If it isn't, assume it's CSV or similar.
     """
     fileformat = None
     if filename.endswith('.csv'):
@@ -86,21 +95,24 @@ def open_json_or_csv_somehow(filename):
     else:
         opened = open(filename)
         line = opened.readline()
-        if (line.count('{') == line.count('}') and
-            line.count('[') == line.count(']')):
-            # This line contains a complete JSON document. This probably
-            # means it's in linewise JSON ('.jsons') format, unless the
-            # whole file is on one line.
-            char = ' '
-            while char.isspace():
-                char = opened.read()
-                if char == '':
-                    fileformat = 'json'
-                    break
-            if fileformat is None:
-                fileformat = 'jsons'
+        if line[0] not in '{[' and not filename.endswith('.json'):
+            fileformat = 'csv'
         else:
-            fileformat = 'json'
+            if (line.count('{') == line.count('}') and
+                line.count('[') == line.count(']')):
+                # This line contains a complete JSON document. This probably
+                # means it's in linewise JSON ('.jsons') format, unless the
+                # whole file is on one line.
+                char = ' '
+                while char.isspace():
+                    char = opened.read()
+                    if char == '':
+                        fileformat = 'json'
+                        break
+                if fileformat is None:
+                    fileformat = 'jsons'
+            else:
+                fileformat = 'json'
         opened.close()
 
     if fileformat == 'json':
@@ -124,7 +136,7 @@ def detect_file_encoding(filename):
     it in UTF-8. Actually, let me broaden that recommendation: no matter what
     your file contains, please save it in UTF-8.
     """
-    opened = open(filename)
+    opened = open(filename, 'rb')
     sample = opened.read(2 ** 16)
 
     detected = chardet.detect(sample)
@@ -178,11 +190,64 @@ def open_csv_somehow(filename):
     Use the `ftfy` module internally to fix Unicode problems at the level that
     chardet can't deal with.
     """
+    if PY3:
+        return open_csv_somehow_py3(filename)
+    else:
+        return open_csv_somehow_py2(filename)
+
+
+def transcode_to_utf8(filename, encoding):
+    """
+    Convert a file in some other encoding into a temporary file that's in
+    UTF-8.
+    """
+    tmp = os.tmpfile()
+    for line in codecs.open(filename, encoding=encoding):
+        tmp.write(line.encode('utf-8'))
+
+    tmp.seek(0)
+    return tmp
+
+
+def open_csv_somehow_py2(filename):
+    """
+    Open a CSV file using Python 2's CSV module, working around the deficiency
+    where it can't handle the null bytes of UTF-16.
+    """
     encoding = detect_file_encoding(filename)
-    csvfile = open(filename, 'rU')
-    reader = csv.reader(csvfile, dialect='excel')
+    if encoding.startswith('UTF-16'):
+        csvfile = transcode_to_utf8(filename, encoding)
+        encoding = 'UTF-8'
+    else:
+        csvfile = open(filename, 'rU')
+    line = csvfile.readline()
+    csvfile.seek(0)
+
+    if '\t' in line:
+        # tab-separated
+        reader = csv.reader(csvfile, delimiter='\t')
+    else:
+        reader = csv.reader(csvfile, dialect='excel', newline='')
+
     header = reader.next()
     header = [ftfy(cell.decode(encoding).lower()) for cell in header]
+    return _read_csv(reader, header, encoding)
+
+
+def open_csv_somehow_py3(filename):
+    encoding = detect_file_encoding(filename)
+    csvfile = open(filename, 'rU', encoding=encoding)
+    line = csvfile.readline()
+    csvfile.seek(0)
+
+    if '\t' in line:
+        # tab-separated
+        reader = csv.reader(csvfile, delimiter='\t')
+    else:
+        reader = csv.reader(csvfile, dialect='excel', newline='')
+
+    header = reader.next()
+    header = [ftfy(cell.lower()) for cell in header]
     return _read_csv(reader, header, encoding)
 
 
@@ -194,10 +259,7 @@ def _read_csv(reader, header, encoding):
     for row in reader:
         if len(row) == 0:
             continue
-        print row
         row = [ftfy(cell.decode(encoding)) for cell in row]
-        print encoding, row
-        print
         row_list = zip(header, row)
         row_dict = dict(row_list)
         if len(row_dict['text']) == 0:

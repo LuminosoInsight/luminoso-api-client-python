@@ -12,7 +12,13 @@ from .jstime import epoch
 import logging
 logger = logging.getLogger(__name__)
 
-from urllib2 import urlparse, quote, unquote
+import sys
+PY3 = (sys.hexversion >= 0x03000000)
+
+if PY3:
+    from urllib.parse import urlparse, quote, unquote
+else:
+    from urllib2 import urlparse, quote, unquote
 
 
 def js_compatible_quote(string):
