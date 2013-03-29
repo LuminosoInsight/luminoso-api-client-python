@@ -25,11 +25,8 @@ def upload_stream(stream, server, account, projname, reader_dict,
     client = LuminosoClient.connect(server)
     if not append:
         # If we're not appending to an existing project, create new project.
-        try:
-            info = client.post(account + '/projects/', name=projname)
-            project_id = info['project_id']
-        except LuminosoAPIError:
-            pass
+        info = client.post(account + '/projects/', project=projname)
+        project_id = info['project_id']
     else:
         project_id = client.get(account + '/lookup/project', name=projname)
 

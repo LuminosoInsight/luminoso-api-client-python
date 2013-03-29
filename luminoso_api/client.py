@@ -14,7 +14,7 @@ import logging
 import json
 import time
 logger = logging.getLogger(__name__)
-
+logging.basicConfig(level=logging.DEBUG)
 class LuminosoClient(object):
     """
     A tool for making authenticated requests to the Luminoso API version 4.

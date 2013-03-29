@@ -203,7 +203,7 @@ def transcode_to_utf8(filename, encoding):
     """
     tmp = os.tmpfile()
     for line in codecs.open(filename, encoding=encoding):
-        tmp.write(line.encode('utf-8'))
+        tmp.write(line.strip(u'\uFEFF').encode('utf-8'))
 
     tmp.seek(0)
     return tmp
@@ -227,7 +227,7 @@ def open_csv_somehow_py2(filename):
         # tab-separated
         reader = csv.reader(csvfile, delimiter='\t')
     else:
-        reader = csv.reader(csvfile, dialect='excel', newline='')
+        reader = csv.reader(csvfile, dialect='excel')
 
     header = reader.next()
     header = [ftfy(cell.decode(encoding).lower()) for cell in header]
