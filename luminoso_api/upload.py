@@ -25,12 +25,13 @@ def upload_stream(stream, server, account, projname, reader_dict,
     client = LuminosoClient.connect(server)
     if not append:
         # If we're not appending to an existing project, create new project.
-        info = client.post(account + '/projects/', project=projname)
+        info = client.post('/projects/' + account, name=projname)
         project_id = info['project_id']
     else:
-        project_id = client.get(account + '/lookup/project', name=projname)
+        projects = client.get('/projects/' + account, name=projname)
+        project_id = projects[0]['project_id']
 
-    project = client.change_path(account + '/projects/' + project_id)
+    project = client.change_path('/projects/' + account + '/' + project_id)
 
     counter = 0
     for batch in batches(stream, 1000):
