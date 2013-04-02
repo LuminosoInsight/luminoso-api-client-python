@@ -82,7 +82,7 @@ class LuminosoClient(object):
         it will default to http://api.staging.lumi, which is probably what
         you want:
 
-            client = LuminosoClient.connect('/public/projects', username=username)
+            client = LuminosoClient.connect('/projects/public', username=username)
 
         If you leave out the username, it will use your system username,
         which is convenient if it matches your Luminoso username:
@@ -116,9 +116,9 @@ class LuminosoClient(object):
         auth = LuminosoAuth(username, password, url=root_url, proxies=proxies,
                             auto_login=auto_login)
 
-        client = cls(auth, url)
+        client = cls(auth, url, root_url, proxies)
         if auto_account:
-            client = client.change_path('/%s/projects' %
+            client = client.change_path('/projects/%s' %
                 client._get_default_account())
         return client
 
@@ -317,15 +317,15 @@ class LuminosoClient(object):
 
         For example, you might want to start with a LuminosoClient for
         `http://api.staging.lumi/v4/`, then get a new one for
-        `http://api.staging.lumi/v4/myname/projects/myproject_id`. You
+        `http://api.staging.lumi/v4/projects/myaccount/myproject_id`. You
         accomplish that with the following call:
 
-            newclient = client.change_path('myname/projects/myproject_id')
+            newclient = client.change_path('projects/myaccount/myproject_id')
 
         If you start the path with `/`, it will start from the root_url
         instead of the current url:
 
-            project_area = newclient.change_path('/myname/projects')
+            project_area = newclient.change_path('/projects/myaccount')
 
         The advantage of using `.change_path` is that you will not need to
         re-authenticate like you would if you ran `.connect` again.
@@ -343,19 +343,14 @@ class LuminosoClient(object):
 
     def _get_default_account(self):
         """
-        Get the ID of an account you can use to create projects.
+        Get the ID of an account you can use to access projects.
         """
         newclient = LuminosoClient(self._auth, self.root_url, self.root_url)
-        account_info = newclient.get_raw('/.accounts')
-        account_data = json.loads(account_info)
-        if 'result' in account_data:
-            account_names = account_data['result']['accounts']
-        else:
-            account_names = account_data['accounts']
-
-        valid_accounts = [a for a in account_names if a != 'public']
-        if 'lumi-test' in valid_accounts:
-            return 'lumi-test'
+        account_info = newclient.get('/accounts/')
+        if account_info['default_account'] is not None:
+            return account_info['default_account']
+        valid_accounts = [a['account_id'] for a in account_info
+                          if a['account_id'] != 'public']
         if len(valid_accounts) == 0:
             raise ValueError("Can't determine your default URL. "
                              "Please request a specific URL or ask "
@@ -380,7 +375,7 @@ class LuminosoClient(object):
         """
         A convenience method for uploading a set of dictionaries representing
         documents. You still need to specify the URL to upload to, which will
-        look like ROOT_URL/myname/projects/project_id/docs.
+        look like ROOT_URL/projects/myaccount/project_id/docs.
         """
         json_data = json.dumps(list(docs))
         return self.post_data(path, json_data, 'application/json', **params)
