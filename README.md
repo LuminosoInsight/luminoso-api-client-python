@@ -8,7 +8,7 @@ In this code, instead of having to authenticate each request separately,
 you make a "session" object that keeps track of your login information,
 and call methods on it that will be properly authenticated.
 
-Getting started
+Installation
 ---------------
 This client API is designed to be used with Python 2.6 or 2.7.
 
@@ -23,7 +23,6 @@ or
 Or you can download this repository and install it the usual way:
 
     python setup.py install
-
 
 If you are installing into the main Python environment on a Mac or Unix
 system, you will probably need to prefix those commands with `sudo` and
@@ -44,7 +43,22 @@ Password for my_username: [here you enter your password]
 {u'result': [lots of terms and vectors here]}
 ```
 
-The URLs you can communicate with are documented at https://api.lumino.so/v2.
+When the first thing you want to do is create a new project, we've provided
+a useful default URL that uses a reasonable account_id where you can create
+projects:
+
+```
+>>> from luminoso_api import LuminosoClient
+>>> projects = LuminosoClient.connect(username='testuser')
+Password: ...
+>>> print projects
+<LuminosoClient for https://api.lumino.so/v3/lumi-test/projects/>
+```
+
+HTTP methods
+------------
+
+The URLs you can communicate with are documented at https://api.lumino.so/v3.
 That documentation is the authoritative source for what you can do with the
 API, and this Python code is just here to help you do it.
 
@@ -120,3 +134,50 @@ will turn these into NumPy vectors, so it requires NumPy.
     >>> unpack64('WAB6AJG6kL_6D_6y')
     array([ 0.00046539,  0.00222015, -0.08491898, -0.0014534 , -0.00127411], dtype=float32)
 ```
+
+Uploading from the command line
+-------------------------------
+Instead of sending your documents as a list of Python dictionaries, you can upload a file
+containing documents in JSON format.
+
+The file should contain one JSON object per line (we suggest using the extension `.jsons`
+to indicate that the entire file is not a single JSON object). It will look like this:
+
+```json
+{"title": "First example", "text": "This is an example document."},
+{"title": "Second example", "text": "Examples are a great source of inspiration."}
+{"title": "Third example", "text": "Great things come in threes."}
+```
+
+It can also be a CSV file (which can be created by Excel, for example) with columns named
+`title` and `text`:
+
+```
+title   text
+First example   This is an example document.
+Second example  Examples are a great source of inspiration.
+Third example   Great things come in threes.
+```
+
+This library installs a script called `lumi-upload` for uploading files in one of these formats.
+For example, you would type at the command line:
+
+    lumi_upload example.jsons ACCOUNT_NAME example_project
+
+Getting the correct version of `requests`
+-----------------------------------------
+This API client is a simple wrapper around a Python module called `requests`.
+Unfortunately, that module made some incompatible changes when it released version 1.0 in mid-December.
+
+In case your Python environment has the new version, our setup script installs
+the old version that the client is compatible with as a package called
+`requests0`. This is part of the `requests-transition` package:
+
+    https://github.com/LuminosoInsight/python-requests-transition
+
+If you cannot import `requests0`, please re-run the setup script to get this
+package:
+
+    python setup.py install
+
+Our next API version will include a client that supports Requests 1.0.
