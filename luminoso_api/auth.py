@@ -86,7 +86,7 @@ class LuminosoAuth(object):
         resp = self._session.post(self.url + '/user/login/', data=params)
 
         # Make sure the session is valid
-        if resp.status_code == 401:
+        if resp.status_code != 200:
             logger.error('%s gave response %r' % (resp.url, resp.text))
             raise LuminosoLoginError(resp.text)
 
