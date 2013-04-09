@@ -25,9 +25,10 @@ class LuminosoClient(object):
     `.put(url)`, and `.delete(url)`.
 
     These URLs are relative to a 'base URL' for the LuminosoClient. For
-    example, you can make requests for a specific account by creating
-    a LuminosoClient for `http://api.staging.lumi/v4/accountname`, or you
-    can go deeper to create a client that makes requests for a
+    example, you can make requests for a specific account's projects
+    by creating a LuminosoClient for
+    `http://api.staging.lumi/v4/projects/<accountname>`,
+    or you can go deeper to create a client that makes requests for a
     specific project.
 
     Some methods are most useful when the client's URL refers to a project.
@@ -330,10 +331,9 @@ class LuminosoClient(object):
         The advantage of using `.change_path` is that you will not need to
         re-authenticate like you would if you ran `.connect` again.
 
-        You can
-        use `.change_path` to split off as many sub-clients as you want, and
-        you don't have to stop using the old one just because you got a new
-        one with `.change_path`.
+        You can use `.change_path` to split off as many sub-clients as you
+        want, and you don't have to stop using the old one just because you
+        got a new one with `.change_path`.
         """
         if path.startswith('/'):
             url = self.root_url + path

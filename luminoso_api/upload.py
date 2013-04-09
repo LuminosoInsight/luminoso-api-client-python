@@ -1,6 +1,5 @@
 from itertools import islice, chain
 from luminoso_api import LuminosoClient
-from luminoso_api.errors import LuminosoAPIError
 from luminoso_api.json_stream import transcode_to_stream, stream_json_lines
 
 ROOT_URL = 'http://api.staging.lumi/v4'
