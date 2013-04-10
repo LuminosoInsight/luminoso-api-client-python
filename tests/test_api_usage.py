@@ -48,21 +48,21 @@ def setup():
                                             auto_login=True)
 
     # check to see if the project exists
-    projects = ROOT_CLIENT.get(USERNAME + '/projects')
+    projects = ROOT_CLIENT.get('projects/' + USERNAME)
     projdict = dict((proj['name'], proj['project_id']) for proj in projects)
 
     if PROJECT_NAME in projdict:
         logger.warn('The test database existed already. '
                     'We have to clean it up.')
-        ROOT_CLIENT.delete(USERNAME + '/projects',
+        ROOT_CLIENT.delete('projects/' + USERNAME,
                            project_id=projdict[PROJECT_NAME])
 
     # create the project and client
     logger.info("Creating project: " + PROJECT_NAME)
     logger.info("Existing projects: %r" % projdict.keys())
-    creation = ROOT_CLIENT.post(USERNAME + '/projects', name=PROJECT_NAME)
+    creation = ROOT_CLIENT.post('projects/' + USERNAME, name=PROJECT_NAME)
     PROJECT_ID = creation['project_id']
-    PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/' + PROJECT_ID)
+    PROJECT = ROOT_CLIENT.change_path('projects/' + USERNAME + '/' + PROJECT_ID)
     PROJECT.get()
 
 
