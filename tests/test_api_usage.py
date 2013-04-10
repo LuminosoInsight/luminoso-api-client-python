@@ -143,8 +143,8 @@ def teardown():
     Pack everything up, we're done.
     """
     if ROOT_CLIENT is not None:
-        ROOT_CLIENT.delete(USERNAME + '/projects', project_id=PROJECT_ID)
-        PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/' + PROJECT_ID)
+        ROOT_CLIENT.delete('projects/' + USERNAME + '/' + PROJECT_ID)
+        PROJECT = ROOT_CLIENT.change_path('projects/' + USERNAME + '/' + PROJECT_ID)
         try:
             got = PROJECT.get()
         except LuminosoError:
