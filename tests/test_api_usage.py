@@ -54,7 +54,7 @@ def setup():
     if PROJECT_NAME in projdict:
         logger.warn('The test database existed already. '
                     'We have to clean it up.')
-        ROOT_CLIENT.delete('projects/' + USERNAME + '/' + projdict[PROJECT_ID])
+        ROOT_CLIENT.delete('projects/' + USERNAME + '/' + projdict[PROJECT_NAME])
 
     # create the project and client
     logger.info("Creating project: " + PROJECT_NAME)
