@@ -156,6 +156,10 @@ class LuminosoClient(object):
         """
         response = self._request(req_type, url, **kwargs)
         json_response = response.json
+        if not json_response:
+            # I don't even know how this would happen, but it can.
+            logger.error("Received contentless response: %s" % response)
+            raise LuminosoError('Something has gone terribly wrong.')
         if json_response.get('error'):
             raise LuminosoAPIError(json_response.get('error'))
         return json_response['result']
