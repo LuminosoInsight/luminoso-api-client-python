@@ -158,7 +158,8 @@ class LuminosoClient(object):
         json_response = response.json
         if not json_response:
             # I don't even know how this would happen, but it can.
-            logger.error("Received contentless response: %s" % response)
+            logger.error("Received contentless response: %s %s" %
+                         (response, response.content))
             raise LuminosoError('Something has gone terribly wrong.')
         if json_response.get('error'):
             raise LuminosoAPIError(json_response.get('error'))
