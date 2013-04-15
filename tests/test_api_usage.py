@@ -87,12 +87,11 @@ def test_paths():
     assert client3.url == ROOT_CLIENT.url + 'baz/'
 
 
-@raises(LuminosoAPIError)
-def test_error_raising():
+def test_no_terms():
     """
     The project was just created, so it shouldn't have any terms in it.
     """
-    PROJECT.get('terms')
+    assert PROJECT.get('terms') == []
 
 
 def test_upload_and_wait_for():
