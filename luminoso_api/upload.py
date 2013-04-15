@@ -16,19 +16,27 @@ def batches(iterable, size):
         yield chain([batchiter.next()], batchiter)
 
 def upload_stream(stream, server, account, projname, reader_dict,
+                  username=None, password=None,
                   append=False, stage=False):
     """
     Given a file-like object containing a JSON stream, upload it to
     Luminoso with the given account name and project name.
     """
-    client = LuminosoClient.connect(server)
+    client = LuminosoClient.connect(server,
+                                    username=username, password=password)
     if not append:
         # If we're not appending to an existing project, create new project.
         info = client.post('/projects/' + account, name=projname)
         project_id = info['project_id']
     else:
         projects = client.get('/projects/' + account, name=projname)
+        if len(projects) == 0:
+            print 'No such project exists!'
+            return
+        if len(projects) > 1:
+            print 'Warning: Multiple projects with name "%s".  ' % projname,
         project_id = projects[0]['project_id']
+        print 'Using existing project with id %s.' % project_id
 
     project = client.change_path('/projects/' + account + '/' + project_id)
 
@@ -46,6 +54,7 @@ def upload_stream(stream, server, account, projname, reader_dict,
         project.wait_for(final_job_id)
 
 def upload_file(filename, server, account, projname, reader_dict,
+                username=None, password=None,
                 append=False, stage=False):
     """
     Upload a file to Luminoso with the given account and project name.
@@ -56,7 +65,8 @@ def upload_file(filename, server, account, projname, reader_dict,
     """
     stream = transcode_to_stream(filename)
     upload_stream(stream_json_lines(stream), server, account, projname,
-                  reader_dict, append=append, stage=stage)
+                  reader_dict, username=username, password=password,
+                  append=append, stage=stage)
 
 def main():
     """
@@ -84,6 +94,10 @@ def main():
         action="store_true")
     parser.add_argument('-r', '--readers', metavar='LANG=READER',
         help="Custom reader to use, in a form such as 'ja=metanl.ja,en=freeling.en'")
+    parser.add_argument('-u', '--username', default=None,
+        help="username (defaults to your username on your computer)")
+    parser.add_argument('-p', '--password', default=None,
+        help="password (you can leave this out and type it in later)")
     args = parser.parse_args()
     url = args.api_url
     if args.local:
@@ -99,7 +113,8 @@ def main():
             reader_dict[lang] = reader_name
 
     upload_file(args.filename, url, args.account, args.project_name,
-                reader_dict, append=args.append, stage=args.stage)
+                reader_dict, username=args.username, password=args.password,
+                append=args.append, stage=args.stage)
 
 if __name__ == '__main__':
     main()

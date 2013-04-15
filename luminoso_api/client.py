@@ -135,9 +135,9 @@ class LuminosoClient(object):
             result.raise_for_status()
         except requests.HTTPError:
             error = result.text
-            if result.status_code == 401:
+            if result.status_code in (401, 403):
                 error_class = LuminosoAuthError
-            elif result.status_code in (404, 405):
+            elif result.status_code in (400, 404, 405):
                 error_class = LuminosoClientError
             elif result.status_code >= 500:
                 error_class = LuminosoServerError
