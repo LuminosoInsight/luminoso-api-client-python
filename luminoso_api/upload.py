@@ -53,7 +53,7 @@ def upload_stream(stream, server, account, projname, reader_dict,
         final_job_id = project.post('docs/calculate', width=4)
         project.wait_for(final_job_id)
 
-def upload_file(filename, server, account, projname, reader_dict,
+def upload_file(filename, server, account, projname, reader_dict=None,
                 username=None, password=None,
                 append=False, stage=False):
     """
@@ -63,6 +63,8 @@ def upload_file(filename, server, account, projname, reader_dict,
     that we can successfully convert it to a JSON stream, then uploads that
     JSON stream.
     """
+    if reader_dict is None:
+        reader_dict = {}
     stream = transcode_to_stream(filename)
     upload_stream(stream_json_lines(stream), server, account, projname,
                   reader_dict, username=username, password=password,
