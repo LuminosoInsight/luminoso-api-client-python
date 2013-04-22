@@ -99,7 +99,7 @@ def test_upload_and_wait_for():
     Upload three documents and wait for the result.
     """
     docs = open_json_or_csv_somehow(EXAMPLE_DIR + '/example1.stream.json')
-    job_id = PROJECT.upload('docs', docs)
+    job_id = PROJECT.upload('docs', docs, stage=False)
     assert isinstance(job_id, int), job_id
     job_result = PROJECT.wait_for(job_id)
     assert job_result['success'] is True
