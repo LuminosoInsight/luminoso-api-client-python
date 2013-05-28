@@ -267,12 +267,19 @@ def _read_csv(reader, header, encoding):
         row_dict['text'] = unicodedata.normalize(
             'NFKC', row_dict['text'].strip()
         )
+        if row_dict.get('title') == '':
+            del row_dict['title']
         if 'date' in row_dict:
-            row_dict['date'] = int(row_dict['date'])
+            if row_dict['date'] == '':
+                del row_dict['date']
+            else:
+                row_dict['date'] = int(row_dict['date'])
         if 'query' in row_dict or 'subset' in row_dict:
             queries = [cell[1] for cell in row_list
-                       if cell[0] == 'query' or cell[0] == 'subset']
-            row_dict['queries'] = queries
+                       if cell[1] != '' and
+                       (cell[0] == 'query' or cell[0] == 'subset')]
+            if queries:
+                row_dict['queries'] = queries
             if 'query' in row_dict:
                 del row_dict['query']
             if 'subset' in row_dict:
