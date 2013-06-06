@@ -155,6 +155,12 @@ def detect_file_encoding(filename):
                  "but it's likely to be wrong." % encoding)
         encoding = 'windows-1252'
     opened.close()
+
+    # If it appears to be ASCII, make it strictly more general, so we can try
+    # to handle unexpected characters later
+    if encoding == 'ascii':
+        encoding = 'windows-1252'
+
     return encoding
 
 
@@ -195,7 +201,7 @@ def _read_csv(reader, header, encoding):
         if len(row) == 0:
             continue
         print row
-        row = [ftfy(cell.decode(encoding)) for cell in row]
+        row = [ftfy(cell.decode(encoding, 'replace')) for cell in row]
         print encoding, row
         print
         row_list = zip(header, row)
