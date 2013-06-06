@@ -137,7 +137,7 @@ def detect_file_encoding(filename):
     your file contains, please save it in UTF-8.
     """
     opened = open(filename, 'rb')
-    sample = opened.read()  #opened.read(2 ** 16)
+    sample = opened.read(2 ** 16)
 
     detected = chardet.detect(sample)
     encoding = detected['encoding']
