@@ -200,10 +200,7 @@ def _read_csv(reader, header, encoding):
     for row in reader:
         if len(row) == 0:
             continue
-        print row
         row = [ftfy(cell.decode(encoding, 'replace')) for cell in row]
-        print encoding, row
-        print
         row_list = zip(header, row)
         row_dict = dict(row_list)
         if len(row_dict['text']) == 0:
