@@ -36,29 +36,28 @@ authentication information.
 
 ```
 >>> from luminoso_api import LuminosoClient
->>> proj = LuminosoClient.connect('/my_billing_account/projects/my_project',
+>>> proj = LuminosoClient.connect('/projects/account_id/my_project_id',
                                   username='my_username')
 Password for my_username: [here you enter your password]
 >>> proj.get('terms')
 {u'result': [lots of terms and vectors here]}
 ```
 
-When the first thing you want to do is create a new project, we've provided
-a useful default URL that uses a reasonable account_id where you can create
-projects:
+When you don't specify a URL, the URL will be set to your default account_id
+under /projects:
 
 ```
 >>> from luminoso_api import LuminosoClient
 >>> projects = LuminosoClient.connect(username='testuser')
 Password: ...
 >>> print projects
-<LuminosoClient for https://api.lumino.so/v3/lumi-test/projects/>
+<LuminosoClient for http://api.staging.lumi/v4/projects/lumi-test/>
 ```
 
 HTTP methods
 ------------
 
-The URLs you can communicate with are documented at https://api.lumino.so/v3.
+The URLs you can communicate with are documented at http://api.staging.lumi/v4.
 That documentation is the authoritative source for what you can do with the
 API, and this Python code is just here to help you do it.
 
@@ -76,9 +75,11 @@ project (also known as a database), but one case where you don't is to get a lis
 
 ```python
 from luminoso_api import LuminosoClient
-client = LuminosoClient.connect('/my_billing_account',username='jane', password=MY_SECRET_PASSWORD)
-project_names = client.get('projects')
-print project_names
+client = LuminosoClient.connect(username='jane', password=MY_SECRET_PASSWORD)
+# this points to the /projects/janeaccount/ endpoint by default,
+# where janeaccount is the account_id of jane's default account
+project_info_list = client.get()
+print project_info_list
 ```
 
 
@@ -88,18 +89,18 @@ that we provide to make it convenient to upload documents in the right format:
 ```python
 from luminoso_api import LuminosoClient
 
-account = LuminosoClient.connect('/janes_billing_account', username='jane')
+projects = LuminosoClient.connect(username='jane')
 
 # Create a new project by POSTing its name
-account.post('projects', project='testproject')
+project_id = projects.post(name='testproject')['project_id']
 
 # use that project from here on
-project = account.change_path('projects/testproject')
+project = projects.change_path(project_id)
 
 docs = [{'title': 'First example', 'text': 'This is an example document.'},
         {'title': 'Second example', 'text': 'Examples are a great source of inspiration.'},
         {'title': 'Third example', 'text': 'Great things come in threes.'}]
-project.upload('docs',docs)
+project.upload('docs', docs)
 job_id = project.post('docs/calculate')
 ```
 
@@ -114,7 +115,7 @@ When the project is ready:
 
 ```python
 response = project.get('terms')
-terms = [(term['text'], term['score']) for term in response['result']]
+terms = [(term['text'], term['score']) for term in response]
 print terms
 ```
 
@@ -144,7 +145,7 @@ The file should contain one JSON object per line (we suggest using the extension
 to indicate that the entire file is not a single JSON object). It will look like this:
 
 ```json
-{"title": "First example", "text": "This is an example document."},
+{"title": "First example", "text": "This is an example document."}
 {"title": "Second example", "text": "Examples are a great source of inspiration."}
 {"title": "Third example", "text": "Great things come in threes."}
 ```
@@ -162,7 +163,7 @@ Third example   Great things come in threes.
 This library installs a script called `lumi-upload` for uploading files in one of these formats.
 For example, you would type at the command line:
 
-    lumi_upload example.jsons ACCOUNT_NAME example_project
+    lumi-upload example.jsons ACCOUNT_NAME example_project_name
 
 Getting the correct version of `requests`
 -----------------------------------------

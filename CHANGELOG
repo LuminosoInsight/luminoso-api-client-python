@@ -1,3 +1,24 @@
+Version 0.4.0 (2013-02-21)
+
+This is the first, preliminary version of a client that works with the Luminoso
+API v4. Please note that the v4 API is *still in testing* and not yet available
+for general use! This client points to a strictly internal URL.
+
+  * Client changes
+
+    - Several changes to the tests and documentation to take into account the
+      server changes between v3 and v4.
+
+  * Server changes
+
+    - Project creation now assigns an arbitrary five-character ID to the
+      project instead of using the specified name. (This allows more freedom in
+      naming projects, which are no longer subject to length limits, character
+      restrictions, or other code-internal issues.) The ID is returned upon
+      project creation as "project_id" in the resulting dictionary, and that
+      should be used after "projects" in URLs. See v4 documentation for more
+      details.
+
 Version 0.3.6 (2013-01-08)
 
   * Client changes

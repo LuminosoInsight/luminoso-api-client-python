@@ -17,17 +17,18 @@ logger = logging.getLogger(__name__)
 
 class LuminosoClient(object):
     """
-    A tool for making authenticated requests to the Luminoso API version 3.
+    A tool for making authenticated requests to the Luminoso API version 4.
 
     A LuminosoClient is a thin wrapper around the REST API documented at
-    https://api.lumino.so/v3. As such, you interact with it by calling its
+    http://api.staging.lumi/v4. As such, you interact with it by calling its
     methods that correspond to HTTP methods: `.get(url)`, `.post(url)`,
     `.put(url)`, and `.delete(url)`.
 
     These URLs are relative to a 'base URL' for the LuminosoClient. For
-    example, you can make requests for a specific account by creating
-    a LuminosoClient for `https://api.lumino.so/v3/accountname`, or you
-    can go deeper to create a client that makes requests for a
+    example, you can make requests for a specific account's projects
+    by creating a LuminosoClient for
+    `http://api.staging.lumi/v4/projects/<accountname>`,
+    or you can go deeper to create a client that makes requests for a
     specific project.
 
     Some methods are most useful when the client's URL refers to a project.
@@ -42,7 +43,7 @@ class LuminosoClient(object):
     password, or prompt you for the password if it is not specified.
 
     In addition to the base URL, the LuminosoClient has a `root_url`,
-    pointing to the root of the API, such as https://api.lumino.so/v3.
+    pointing to the root of the API, such as http://api.staging.lumi/v4.
     This is used, for example, as a starting point for the `change_path`
     method: when it gets a path starting with `/`, it will go back to the
     `root_url` instead of adding to the existing URL.
@@ -65,8 +66,8 @@ class LuminosoClient(object):
     def __repr__(self):
         return '<LuminosoClient for %s>' % self.url
 
-    @staticmethod
-    def connect(url='/auto', username=None, password=None, root_url=None,
+    @classmethod
+    def connect(cls, url='/auto', username=None, password=None, root_url=None,
                 proxies=None, auto_login=True):
         """
         Returns an object that makes requests to the API, authenticated
@@ -79,10 +80,10 @@ class LuminosoClient(object):
             client = LuminosoClient.connect(username=username)
 
         If the URL is simply a path, omitting the scheme and domain, then
-        it will default to https://api.lumino.so, which is probably what
+        it will default to http://api.staging.lumi, which is probably what
         you want:
 
-            client = LuminosoClient.connect('/public/projects', username=username)
+            client = LuminosoClient.connect('/projects/public', username=username)
 
         If you leave out the username, it will use your system username,
         which is convenient if it matches your Luminoso username:
@@ -116,9 +117,9 @@ class LuminosoClient(object):
         auth = LuminosoAuth(username, password, url=root_url, proxies=proxies,
                             auto_login=auto_login)
 
-        client = LuminosoClient(auth, url)
+        client = cls(auth, url, root_url, proxies)
         if auto_account:
-            client = client.change_path('/%s/projects' %
+            client = client.change_path('/projects/%s' %
                 client._get_default_account())
         return client
 
@@ -134,9 +135,9 @@ class LuminosoClient(object):
             result.raise_for_status()
         except requests.HTTPError:
             error = result.text
-            if result.status_code == 401:
+            if result.status_code in (401, 403):
                 error_class = LuminosoAuthError
-            elif result.status_code in (404, 405):
+            elif result.status_code in (400, 404, 405):
                 error_class = LuminosoClientError
             elif result.status_code >= 500:
                 error_class = LuminosoServerError
@@ -155,6 +156,11 @@ class LuminosoClient(object):
         """
         response = self._request(req_type, url, **kwargs)
         json_response = response.json
+        if not json_response:
+            logger.error("Received response with no JSON: %s %s" %
+                         (response, response.content))
+            raise LuminosoError('Response body contained no JSON.'
+                                'Perhaps you meant to use get_raw?')
         if json_response.get('error'):
             raise LuminosoAPIError(json_response.get('error'))
         return json_response['result']
@@ -316,24 +322,23 @@ class LuminosoClient(object):
         Return a new LuminosoClient for a subpath of this one.
 
         For example, you might want to start with a LuminosoClient for
-        `https://api.lumino.so/v3/`, then get a new one for
-        `https://api.lumino.so/v3/myname/projects/myproject`. You
+        `http://api.staging.lumi/v4/`, then get a new one for
+        `http://api.staging.lumi/v4/projects/myaccount/myproject_id`. You
         accomplish that with the following call:
 
-            newclient = client.change_path('myname/projects/myproject')
+            newclient = client.change_path('projects/myaccount/myproject_id')
 
         If you start the path with `/`, it will start from the root_url
         instead of the current url:
 
-            project_area = newclient.change_path('/myname/projects')
+            project_area = newclient.change_path('/projects/myaccount')
 
         The advantage of using `.change_path` is that you will not need to
         re-authenticate like you would if you ran `.connect` again.
 
-        You can
-        use `.change_path` to split off as many sub-clients as you want, and
-        you don't have to stop using the old one just because you got a new
-        one with `.change_path`.
+        You can use `.change_path` to split off as many sub-clients as you
+        want, and you don't have to stop using the old one just because you
+        got a new one with `.change_path`.
         """
         if path.startswith('/'):
             url = self.root_url + path
@@ -343,19 +348,14 @@ class LuminosoClient(object):
 
     def _get_default_account(self):
         """
-        Get the ID of an account you can use to create projects.
+        Get the ID of an account you can use to access projects.
         """
         newclient = LuminosoClient(self._auth, self.root_url, self.root_url)
-        account_info = newclient.get_raw('/.accounts')
-        account_data = json.loads(account_info)
-        if 'result' in account_data:
-            account_names = account_data['result']['accounts']
-        else:
-            account_names = account_data['accounts']
-
-        valid_accounts = [a for a in account_names if a != 'public']
-        if 'lumi-test' in valid_accounts:
-            return 'lumi-test'
+        account_info = newclient.get('/accounts/')
+        if account_info['default_account'] is not None:
+            return account_info['default_account']
+        valid_accounts = [a['account_id'] for a in account_info
+                          if a['account_id'] != 'public']
         if len(valid_accounts) == 0:
             raise ValueError("Can't determine your default URL. "
                              "Please request a specific URL or ask "
@@ -380,7 +380,7 @@ class LuminosoClient(object):
         """
         A convenience method for uploading a set of dictionaries representing
         documents. You still need to specify the URL to upload to, which will
-        look like ROOT_URL/myname/projects/projectname/docs.
+        look like ROOT_URL/projects/myaccount/project_id/docs.
         """
         json_data = json.dumps(list(docs))
         return self.post_data(path, json_data, 'application/json', **params)
@@ -432,7 +432,7 @@ class LuminosoClient(object):
 def get_root_url(url):
     """
     If we have to guess a root URL, assume it contains the scheme,
-    hostname, and one path component, as in "https://api.lumino.so/v4".
+    hostname, and one path component, as in "http://api.staging.lumi/v4".
     """
     # make sure it's a complete URL, not a relative one
     assert ':' in url

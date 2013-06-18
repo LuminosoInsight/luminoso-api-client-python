@@ -17,10 +17,10 @@ PROJECT = None
 USERNAME = None
 
 PROJECT_NAME = os.environ.get('USER', 'jenkins') + '-test'
-SPACE_NAME = os.environ.get('USER', 'jenkins') + ' - test'
+PROJECT_ID = None
 EXAMPLE_DIR = os.path.dirname(__file__) + '/examples'
 
-ROOT_URL = 'http://localhost:5000/v3'
+ROOT_URL = 'http://localhost:5021/v4'
 
 def fileno_monkeypatch(self):
     return sys.__stdout__.fileno()
@@ -34,7 +34,7 @@ def setup():
     Make sure we're working with a fresh database. Build a client for
     interacting with that database and save it as a global.
     """
-    global ROOT_CLIENT, PROJECT, USERNAME, RELOGIN_CLIENT
+    global ROOT_CLIENT, PROJECT, USERNAME, RELOGIN_CLIENT, PROJECT_ID
     user_info_str = subprocess.check_output('tellme lumi-test', shell=True)
     user_info = eval(user_info_str)
     USERNAME = user_info['username']
@@ -47,20 +47,21 @@ def setup():
                                             password=user_info['password'],
                                             auto_login=True)
 
-    # check to see if the project exists; also create the client we'll use
-    projects = ROOT_CLIENT.get(USERNAME + '/projects')
-    projlist = [proj['name'] for proj in projects]
-    PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/' + PROJECT_NAME)
+    # check to see if the project exists
+    projects = ROOT_CLIENT.get('projects/' + USERNAME)
+    projdict = dict((proj['name'], proj['project_id']) for proj in projects)
 
-    if PROJECT_NAME in projlist:
+    if PROJECT_NAME in projdict:
         logger.warn('The test database existed already. '
                     'We have to clean it up.')
-        ROOT_CLIENT.delete(USERNAME + '/projects', project=PROJECT_NAME)
+        ROOT_CLIENT.delete('projects/' + USERNAME + '/' + projdict[PROJECT_NAME])
 
-    # create the project
+    # create the project and client
     logger.info("Creating project: " + PROJECT_NAME)
-    logger.info("Existing projects: %r" % projlist)
-    ROOT_CLIENT.post(USERNAME + '/projects', project=PROJECT_NAME)
+    logger.info("Existing projects: %r" % projdict.keys())
+    creation = ROOT_CLIENT.post('projects/' + USERNAME, name=PROJECT_NAME)
+    PROJECT_ID = creation['project_id']
+    PROJECT = ROOT_CLIENT.change_path('projects/' + USERNAME + '/' + PROJECT_ID)
     PROJECT.get()
 
 
@@ -86,12 +87,11 @@ def test_paths():
     assert client3.url == ROOT_CLIENT.url + 'baz/'
 
 
-@raises(LuminosoAPIError)
-def test_error_raising():
+def test_no_terms():
     """
     The project was just created, so it shouldn't have any terms in it.
     """
-    PROJECT.get('terms')
+    assert PROJECT.get('terms') == []
 
 
 def test_upload_and_wait_for():
@@ -99,7 +99,8 @@ def test_upload_and_wait_for():
     Upload three documents and wait for the result.
     """
     docs = open_json_or_csv_somehow(EXAMPLE_DIR + '/example1.stream.json')
-    job_id = PROJECT.upload('docs', docs)
+    job_id = PROJECT.upload('docs', docs, stage=False)
+    assert isinstance(job_id, int), job_id
     job_result = PROJECT.wait_for(job_id)
     assert job_result['success'] is True
 
@@ -135,6 +136,7 @@ def test_auto_login():
     RELOGIN_CLIENT._session.auth._key_id = ''
     assert RELOGIN_CLIENT.get('ping') == 'pong'
 
+<<<<<<< HEAD
 # Due to a bug in third-party software, spaces in project names do not in fact
 # currently work.  Our apologies!
 def DONOTtest_space_in_name():
@@ -153,16 +155,23 @@ def DONOTtest_space_in_name():
     ROOT_CLIENT.post(USERNAME + '/projects', project=SPACE_NAME)
     space_project.get()
 
+=======
+>>>>>>> v4-client
 
 def teardown():
     """
     Pack everything up, we're done.
     """
     if ROOT_CLIENT is not None:
+<<<<<<< HEAD
         # ROOT_CLIENT.delete(USERNAME + '/projects', project=SPACE_NAME)
         ROOT_CLIENT.delete(USERNAME + '/projects', project=PROJECT_NAME)
         PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/' +
                                           PROJECT_NAME)
+=======
+        ROOT_CLIENT.delete('projects/' + USERNAME + '/' + PROJECT_ID)
+        PROJECT = ROOT_CLIENT.change_path('projects/' + USERNAME + '/' + PROJECT_ID)
+>>>>>>> v4-client
         try:
             got = PROJECT.get()
         except LuminosoError:

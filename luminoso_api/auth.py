@@ -12,7 +12,13 @@ from .jstime import epoch
 import logging
 logger = logging.getLogger(__name__)
 
-from urllib2 import urlparse, quote, unquote
+import sys
+PY3 = (sys.hexversion >= 0x03000000)
+
+if PY3:
+    from urllib.parse import urlparse, quote, unquote
+else:
+    from urllib2 import urlparse, quote, unquote
 
 
 def js_compatible_quote(string):
@@ -77,10 +83,10 @@ class LuminosoAuth(object):
     def login(self, username, password):
         """Fetch a session key to use in this authentication context"""
         params = {'username': username, 'password': password}
-        resp = self._session.post(self.url + '/.auth/login/', data=params)
+        resp = self._session.post(self.url + '/user/login/', data=params)
 
         # Make sure the session is valid
-        if resp.status_code == 401:
+        if resp.status_code != 200:
             logger.error('%s gave response %r' % (resp.url, resp.text))
             raise LuminosoLoginError(resp.text)
 
