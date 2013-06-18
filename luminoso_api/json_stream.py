@@ -137,11 +137,7 @@ def detect_file_encoding(filename):
     your file contains, please save it in UTF-8.
     """
     opened = open(filename, 'rb')
-<<<<<<< HEAD
-    sample = opened.read()
-=======
     sample = opened.read(2 ** 16)
->>>>>>> v4-client
 
     detected = chardet.detect(sample)
     encoding = detected['encoding']
@@ -257,11 +253,7 @@ def open_csv_somehow_py3(filename):
         reader = csv.reader(csvfile, dialect='excel', newline='')
 
     header = reader.next()
-<<<<<<< HEAD
-    header = [ftfy(cell.decode(encoding).lower().strip()) for cell in header]
-=======
     header = [ftfy(cell.lower().strip()) for cell in header]
->>>>>>> v4-client
     return _read_csv(reader, header, encoding)
 
 

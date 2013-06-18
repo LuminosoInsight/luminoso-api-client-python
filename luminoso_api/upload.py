@@ -16,12 +16,8 @@ def batches(iterable, size):
         yield chain([batchiter.next()], batchiter)
 
 def upload_stream(stream, server, account, projname, reader_dict,
-<<<<<<< HEAD
-                  append=False, stage=False, vectorize_only=False):
-=======
                   username=None, password=None,
                   append=False, stage=False, preload=False):
->>>>>>> v4-client
     """
     Given a file-like object containing a JSON stream, upload it to
     Luminoso with the given account name and project name.
@@ -53,15 +49,7 @@ def upload_stream(stream, server, account, projname, reader_dict,
     for batch in batches(stream, 1000):
         counter += 1
         documents = list(batch)
-<<<<<<< HEAD
-        if vectorize_only:
-            job_id = project.upload('docs/admin', documents, width=8, do_not_build_assocspace=True,
-                do_not_save_ngrams=True, do_not_save_termstats=True, do_not_correlate_topics=True)
-        else:
-            job_id = project.upload('docs', documents, width=4, readers=reader_dict)
-=======
         job_id = project.upload(url, documents, width=4, readers=reader_dict)
->>>>>>> v4-client
         print 'Uploaded batch #%d into job %s' % (counter, job_id)
 
     if not stage:
@@ -70,14 +58,9 @@ def upload_stream(stream, server, account, projname, reader_dict,
         final_job_id = project.post('docs/recalculate', width=4)
         project.wait_for(final_job_id)
 
-<<<<<<< HEAD
-def upload_file(filename, server, account, projname, reader_dict,
-                append=False, stage=False, vectorize_only=False):
-=======
 def upload_file(filename, server, account, projname, reader_dict=None,
                 username=None, password=None,
                 append=False, stage=False, preload=False):
->>>>>>> v4-client
     """
     Upload a file to Luminoso with the given account and project name.
 
@@ -89,13 +72,8 @@ def upload_file(filename, server, account, projname, reader_dict=None,
         reader_dict = {}
     stream = transcode_to_stream(filename)
     upload_stream(stream_json_lines(stream), server, account, projname,
-<<<<<<< HEAD
-                  reader_dict, append=append, stage=stage,
-                  vectorize_only=vectorize_only)
-=======
                   reader_dict, username=username, password=password,
                   append=append, stage=stage, preload=preload)
->>>>>>> v4-client
 
 def main():
     """
@@ -110,9 +88,6 @@ def main():
     parser.add_argument('--append',
         help=("If append flag is used, upload documents to existing project,"
               "rather than creating a new project."),
-        action="store_true")
-    parser.add_argument('--vectorize',
-        help=("Vectorize these documents in an existing project. Implies -a and -s."),
         action="store_true")
     parser.add_argument('-s', '--stage',
         help=("If stage flag is used, just upload docs, don't commit."),
@@ -147,18 +122,9 @@ def main():
             lang, reader_name = item.split('=', 1)
             reader_dict[lang] = reader_name
 
-    if args.vectorize:
-        args.append = True
-        args.stage = True
-
     upload_file(args.filename, url, args.account, args.project_name,
-<<<<<<< HEAD
-                reader_dict, append=args.append, stage=args.stage,
-                vectorize_only=args.vectorize)
-=======
                 reader_dict, username=args.username, password=args.password,
                 append=args.append, stage=args.stage, preload=args.preload)
->>>>>>> v4-client
 
 if __name__ == '__main__':
     main()

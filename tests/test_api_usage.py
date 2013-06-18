@@ -2,13 +2,12 @@ import logging
 import subprocess
 import sys
 import os
-from nose.tools import raises
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 from luminoso_api import LuminosoClient
-from luminoso_api.errors import LuminosoAPIError, LuminosoError
+from luminoso_api.errors import LuminosoError
 from luminoso_api.json_stream import open_json_or_csv_somehow
 
 ROOT_CLIENT = None
@@ -136,42 +135,14 @@ def test_auto_login():
     RELOGIN_CLIENT._session.auth._key_id = ''
     assert RELOGIN_CLIENT.get('ping') == 'pong'
 
-<<<<<<< HEAD
-# Due to a bug in third-party software, spaces in project names do not in fact
-# currently work.  Our apologies!
-def DONOTtest_space_in_name():
-    """Test that spaces in project names work."""
-    projects = ROOT_CLIENT.get(USERNAME + '/projects')
-    projlist = [proj['name'] for proj in projects]
-    space_project = ROOT_CLIENT.change_path(USERNAME + '/projects/' +
-                                            SPACE_NAME)
-    if SPACE_NAME in projlist:
-        logger.warn('The test database existed already. '
-                    'We have to clean it up.')
-        ROOT_CLIENT.delete(USERNAME + '/projects', project=SPACE_NAME)
-
-    # create the project
-    logger.info("Creating project: " + SPACE_NAME)
-    ROOT_CLIENT.post(USERNAME + '/projects', project=SPACE_NAME)
-    space_project.get()
-
-=======
->>>>>>> v4-client
 
 def teardown():
     """
     Pack everything up, we're done.
     """
     if ROOT_CLIENT is not None:
-<<<<<<< HEAD
-        # ROOT_CLIENT.delete(USERNAME + '/projects', project=SPACE_NAME)
-        ROOT_CLIENT.delete(USERNAME + '/projects', project=PROJECT_NAME)
-        PROJECT = ROOT_CLIENT.change_path(USERNAME + '/projects/' +
-                                          PROJECT_NAME)
-=======
         ROOT_CLIENT.delete('projects/' + USERNAME + '/' + PROJECT_ID)
         PROJECT = ROOT_CLIENT.change_path('projects/' + USERNAME + '/' + PROJECT_ID)
->>>>>>> v4-client
         try:
             got = PROJECT.get()
         except LuminosoError:
