@@ -2,7 +2,6 @@ import logging
 import subprocess
 import sys
 import os
-import json
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -95,8 +94,7 @@ def test_no_assoc():
         PROJECT.get('terms')
         assert False, 'Should have failed with NO_ASSOC.'
     except LuminosoAPIError as e:
-        message = json.loads(e.message)
-        assert message['code'] == 'NO_ASSOC', message
+        assert e.message['code'] == 'NO_ASSOC', e.message
 
 
 def test_upload_and_wait_for():
