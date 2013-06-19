@@ -2,12 +2,13 @@ import logging
 import subprocess
 import sys
 import os
+import json
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 from luminoso_api import LuminosoClient
-from luminoso_api.errors import LuminosoError
+from luminoso_api.errors import LuminosoError, LuminosoAPIError
 from luminoso_api.json_stream import open_json_or_csv_somehow
 
 ROOT_CLIENT = None
@@ -86,11 +87,16 @@ def test_paths():
     assert client3.url == ROOT_CLIENT.url + 'baz/'
 
 
-def test_no_terms():
+def test_no_assoc():
     """
-    The project was just created, so it shouldn't have any terms in it.
+    The project was just created, so it shouldn't let you get terms.
     """
-    assert PROJECT.get('terms') == []
+    try:
+        PROJECT.get('terms')
+        assert False, 'Should have failed with NO_ASSOC.'
+    except LuminosoAPIError as e:
+        message = json.loads(e.message)
+        assert message['code'] == 'NO_ASSOC', message
 
 
 def test_upload_and_wait_for():
