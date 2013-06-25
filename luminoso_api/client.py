@@ -354,7 +354,7 @@ class LuminosoClient(object):
         account_info = newclient.get('/accounts/')
         if account_info['default_account'] is not None:
             return account_info['default_account']
-        valid_accounts = [a['account_id'] for a in account_info
+        valid_accounts = [a['account_id'] for a in account_info['accounts']
                           if a['account_id'] != 'public']
         if len(valid_accounts) == 0:
             raise ValueError("Can't determine your default URL. "
