@@ -2,7 +2,7 @@ from itertools import islice, chain
 from luminoso_api import LuminosoClient
 from luminoso_api.json_stream import transcode_to_stream, stream_json_lines
 
-ROOT_URL = 'http://api.staging.lumi/v4'
+ROOT_URL = 'https://api.luminoso.com/v4'
 LOCAL_URL = 'http://localhost:5000/v4'
 
 #http://code.activestate.com/recipes/303279-getting-items-in-batches/

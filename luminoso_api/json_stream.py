@@ -16,7 +16,7 @@ Its input can be:
 - Or a JSON stream, which will effectively be validated before uploading.
 
 The dictionary keys in JSON, or the column labels in CSV, should be the
-document properties defined in the documentation at http://api.staging.lumi/v4.
+document properties defined in the documentation at https://api.luminoso.com/v4.
 """
 
 import json
