@@ -17,7 +17,7 @@ def batches(iterable, size):
 
 def upload_stream(stream, server, account, projname, reader_dict,
                   username=None, password=None,
-                  append=False, stage=False, preload=False):
+                  append=False, stage=False):
     """
     Given a file-like object containing a JSON stream, upload it to
     Luminoso with the given account name and project name.
@@ -40,27 +40,32 @@ def upload_stream(stream, server, account, projname, reader_dict,
 
     project = client.change_path('/projects/' + account + '/' + project_id)
 
-    if preload:
-        url = 'docs/preload'
-    else:
+    if stage:
         url = 'docs'
+    else:
+        url = 'docs/preload'
 
     counter = 0
+    final_job_id = None
     for batch in batches(stream, 1000):
         counter += 1
         documents = list(batch)
         job_id = project.upload(url, documents, width=4, readers=reader_dict)
         print 'Uploaded batch #%d into job %s' % (counter, job_id)
+        final_job_id = job_id
 
     if not stage:
         # Calculate the docs into the assoc space.
-        print 'Committing.'
+        print 'Recalculating.'
         final_job_id = project.post('docs/recalculate', width=4)
+
+    if final_job_id is not None:
         project.wait_for(final_job_id)
+
 
 def upload_file(filename, server, account, projname, reader_dict=None,
                 username=None, password=None,
-                append=False, stage=False, preload=False):
+                append=False, stage=False):
     """
     Upload a file to Luminoso with the given account and project name.
 
@@ -73,7 +78,7 @@ def upload_file(filename, server, account, projname, reader_dict=None,
     stream = transcode_to_stream(filename)
     upload_stream(stream_json_lines(stream), server, account, projname,
                   reader_dict, username=username, password=password,
-                  append=append, stage=stage, preload=preload)
+                  append=append, stage=stage)
 
 def main():
     """
@@ -90,10 +95,7 @@ def main():
               "rather than creating a new project."),
         action="store_true")
     parser.add_argument('-s', '--stage',
-        help=("If stage flag is used, just upload docs, don't commit."),
-        action="store_true")
-    parser.add_argument('-e', '--preload',
-        help=("If preload flag is used, preload instead of upload."),
+        help=("If stage flag is used, just upload docs, don't recalculate."),
         action="store_true")
     parser.add_argument('-a', '--api-url',
         help="Specify an alternate API url",
@@ -124,7 +126,7 @@ def main():
 
     upload_file(args.filename, url, args.account, args.project_name,
                 reader_dict, username=args.username, password=args.password,
-                append=args.append, stage=args.stage, preload=args.preload)
+                append=args.append, stage=args.stage)
 
 if __name__ == '__main__':
     main()
