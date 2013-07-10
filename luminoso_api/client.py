@@ -405,6 +405,9 @@ class LuminosoClient(object):
         under the current URL, assuming that this LuminosoClient's URL
         represents a project. You can specify a different URL by changing
         `base_path`.
+
+        If the job failed, will raise a LuminosoError with the job status
+        as its message.
         """
         if base_path is None:
             base_path = 'jobs/id'
@@ -417,7 +420,10 @@ class LuminosoClient(object):
                 self.keepalive()
             response = self.get(path)
             if response['stop_time']:
-                return response
+                if response['success']:
+                    return response
+                else:
+                    raise LuminosoError(response)
             time.sleep(interval)
 
     def get_raw(self, path, **params):
