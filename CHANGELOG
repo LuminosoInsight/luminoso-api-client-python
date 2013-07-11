@@ -1,3 +1,29 @@
+Version 0.4.1 (2013-07-10)
+
+This is the first released version for the v4 Luminoso API.
+
+  * Client changes
+
+    - Various improvements to the lumi-upload command-line interface, which
+      now is more robust for CSV uploads and has some Python 3 support.
+    - Errors are more informative when login fails or when API's response
+      does not contain JSON.
+    - The wait_for method raises an error if the job fails.
+    - Client uses the URL for the deployed v4 API.
+
+  * Server changes
+
+    - Various endpoint URL changes, including:
+        /<account>/projects/ is now /projects/<account>/
+        /.auth/login/ is now /user/login/
+	/.accounts/ is now /accounts/
+    - Users can have a default account, which the client can check for instead
+      of arbitrarily picking one.
+    - When documents are uploaded to an empty project (to be immediately
+      recalculated), they should go to the /preload/ endpoint.  There is no
+      longer /calculate/, only /recalculate/.
+
+
 Version 0.4.0 (2013-02-21)
 
 This is the first, preliminary version of a client that works with the Luminoso
