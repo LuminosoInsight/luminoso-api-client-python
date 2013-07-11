@@ -344,7 +344,7 @@ class LuminosoClient(object):
             url = self.root_url + path
         else:
             url = self.url + path
-        return LuminosoClient(self._auth, url, self.root_url)
+        return self.__class__(self._auth, url, self.root_url)
 
     def _get_default_account(self):
         """
