@@ -40,7 +40,7 @@ authentication information.
                                   username='my_username')
 Password for my_username: [here you enter your password]
 >>> proj.get('terms')
-{u'result': [lots of terms and vectors here]}
+[lots of terms and vectors here]
 ```
 
 When you don't specify a URL, the URL will be set to your default account_id
@@ -100,12 +100,12 @@ project = projects.change_path(project_id)
 docs = [{'title': 'First example', 'text': 'This is an example document.'},
         {'title': 'Second example', 'text': 'Examples are a great source of inspiration.'},
         {'title': 'Third example', 'text': 'Great things come in threes.'}]
-project.upload('docs', docs)
-job_id = project.post('docs/calculate')
+project.upload('docs/preload', docs)
+job_id = project.post('docs/recalculate')
 ```
 
 This starts an asynchronous job, returning us its ID number. We can use
-`wait\_for` to block until it's ready:
+`wait_for` to block until it's ready:
 
 ```python
 project.wait_for(job_id)
@@ -168,7 +168,7 @@ For example, you would type at the command line:
 Getting the correct version of `requests`
 -----------------------------------------
 This API client is a simple wrapper around a Python module called `requests`.
-Unfortunately, that module made some incompatible changes when it released version 1.0 in mid-December.
+Unfortunately, that module made some incompatible changes when it released version 1.0 in mid-December 2012.
 
 In case your Python environment has the new version, our setup script installs
 the old version that the client is compatible with as a package called
