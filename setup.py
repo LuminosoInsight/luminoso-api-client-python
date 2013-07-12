@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-VERSION = "0.4.1"
+VERSION = "0.4.2"
 
 from setuptools import setup, find_packages
 
@@ -14,8 +14,8 @@ classifiers = [
 setup(
     name="luminoso-api",
     version=VERSION,
-    maintainer='Luminoso, LLC',
-    maintainer_email='team@lumino.so',
+    maintainer='Luminoso Technologies, Inc.',
+    maintainer_email='info@luminoso.com',
     url='http://github.com/LuminosoInsight/luminoso-api-client-python',
     platforms=["any"],
     description="Python client library for communicating with the Luminoso REST API",
