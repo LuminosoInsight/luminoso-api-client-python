@@ -135,6 +135,10 @@ class LuminosoClient(object):
             result.raise_for_status()
         except requests.HTTPError:
             error = result.text
+            try:
+                error = json.loads(error)['error']
+            except (KeyError, ValueError):
+                pass
             if result.status_code in (401, 403):
                 error_class = LuminosoAuthError
             elif result.status_code in (400, 404, 405):
