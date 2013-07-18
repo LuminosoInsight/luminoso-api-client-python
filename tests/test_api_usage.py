@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 from luminoso_api import LuminosoClient
-from luminoso_api.errors import LuminosoError, LuminosoAPIError
+from luminoso_api.errors import LuminosoError, LuminosoClientError
 from luminoso_api.json_stream import open_json_or_csv_somehow
 
 ROOT_CLIENT = None
@@ -93,7 +93,7 @@ def test_no_assoc():
     try:
         PROJECT.get('terms')
         assert False, 'Should have failed with NO_ASSOC.'
-    except LuminosoAPIError as e:
+    except LuminosoClientError as e:
         assert e.message['code'] == 'NO_ASSOC', e.message
 
 
