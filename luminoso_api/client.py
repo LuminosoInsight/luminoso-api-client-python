@@ -48,7 +48,7 @@ class LuminosoClient(object):
     method: when it gets a path starting with `/`, it will go back to the
     `root_url` instead of adding to the existing URL.
     """
-    def __init__(self, auth, url, root_url=None, proxies=None):
+    def __init__(self, auth, url, proxies=None):
         """
         Create a LuminosoClient given an existing auth object.
 
@@ -61,13 +61,13 @@ class LuminosoClient(object):
         if proxies is not None:
             self._session.proxies = proxies
         self.url = ensure_trailing_slash(url)
-        self.root_url = root_url or get_root_url(url)
+        self.root_url = get_root_url(url)
 
     def __repr__(self):
         return '<LuminosoClient for %s>' % self.url
 
     @classmethod
-    def connect(cls, url='/auto', username=None, password=None, root_url=None,
+    def connect(cls, url=None, username=None, password=None,
                 proxies=None, auto_login=True):
         """
         Returns an object that makes requests to the API, authenticated
@@ -99,14 +99,15 @@ class LuminosoClient(object):
         want this to happen, set `auto_login` to False.
         """
         auto_account = False
-        if url == '/auto':
+        if url is None:
             auto_account = True
+            url = '/'
 
-        if url.startswith('/'):
-            url = URL_BASE + url
-
-        if root_url is None:
+        if url.startswith('http'):
             root_url = get_root_url(url)
+        else:
+            url = URL_BASE + '/' + url.lstrip('/')
+            root_url = URL_BASE
 
         logger.info('collecting credentials')
         username = username or os.environ['USER']
@@ -117,7 +118,7 @@ class LuminosoClient(object):
         auth = LuminosoAuth(username, password, url=root_url, proxies=proxies,
                             auto_login=auto_login)
 
-        client = cls(auth, url, root_url, proxies)
+        client = cls(auth, url, proxies)
         if auto_account:
             client = client.change_path('/projects/%s' %
                 client._get_default_account())
@@ -348,13 +349,13 @@ class LuminosoClient(object):
             url = self.root_url + path
         else:
             url = self.url + path
-        return self.__class__(self._auth, url, self.root_url)
+        return self.__class__(self._auth, url)
 
     def _get_default_account(self):
         """
         Get the ID of an account you can use to access projects.
         """
-        newclient = LuminosoClient(self._auth, self.root_url, self.root_url)
+        newclient = LuminosoClient(self._auth, self.root_url)
         account_info = newclient.get('/accounts/')
         if account_info['default_account'] is not None:
             return account_info['default_account']
@@ -370,14 +371,14 @@ class LuminosoClient(object):
         """
         Get the documentation that the server sends for the API.
         """
-        newclient = LuminosoClient(self._auth, self.root_url, self.root_url)
+        newclient = LuminosoClient(self._auth, self.root_url)
         return newclient.get_raw('/')
 
     def keepalive(self):
         """
         Send a pointless POST request so that auth doesn't time out.
         """
-        newclient = LuminosoClient(self._auth, self.root_url, self.root_url)
+        newclient = LuminosoClient(self._auth, self.root_url)
         return newclient.post('ping')
 
     def upload(self, path, docs, **params):
