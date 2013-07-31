@@ -20,7 +20,7 @@ PROJECT_NAME = os.environ.get('USER', 'jenkins') + '-test'
 SPACE_NAME = os.environ.get('USER', 'jenkins') + ' - test'
 EXAMPLE_DIR = os.path.dirname(__file__) + '/examples'
 
-ROOT_URL = 'http://localhost:5000/v3'
+ROOT_URL = 'http://localhost:5011/v3'
 
 def fileno_monkeypatch(self):
     return sys.__stdout__.fileno()
