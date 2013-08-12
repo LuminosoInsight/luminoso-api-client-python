@@ -51,7 +51,7 @@ def upload_stream(stream, server, account, projname, reader_dict,
         counter += 1
         documents = list(batch)
         job_id = project.upload(url, documents, width=4, readers=reader_dict)
-        print 'Uploaded batch #%d into job %s' % (counter, job_id)
+        print 'Uploaded batch #%d' % (counter)
         final_job_id = job_id
 
     if not stage:
