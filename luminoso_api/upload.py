@@ -56,8 +56,8 @@ def upload_stream(stream, server, account, projname, reader_dict,
 
     if not stage:
         # Calculate the docs into the assoc space.
-        print 'Recalculating.'
-        final_job_id = project.post('docs/recalculate', width=4)
+        print 'Calculating.'
+        final_job_id = project.post('docs/recalculate', width=4, readers=reader_dict)
 
     if final_job_id is not None:
         project.wait_for(final_job_id)
