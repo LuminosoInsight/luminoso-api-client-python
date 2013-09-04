@@ -9,7 +9,7 @@ from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
     LuminosoServerError, LuminosoAPIError)
 from getpass import getpass
 import os
-import requests0 as requests
+import requests1 as requests
 import logging
 import json
 import time

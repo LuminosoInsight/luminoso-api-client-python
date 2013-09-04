@@ -1,5 +1,5 @@
-import requests0 as requests
-from requests0.utils import dict_from_cookiejar, cookiejar_from_dict
+import requests
+from requests.utils import dict_from_cookiejar, cookiejar_from_dict
 
 from hmac import HMAC
 from hashlib import sha1
@@ -16,9 +16,10 @@ import sys
 PY3 = (sys.hexversion >= 0x03000000)
 
 if PY3:
-    from urllib.parse import urlparse, quote, unquote
+    from urllib.parse import urlparse, quote, unquote, urlencode
 else:
     from urllib2 import urlparse, quote, unquote
+    from urllib import urlencode
 
 
 def js_compatible_quote(string):
@@ -39,7 +40,7 @@ def get_json(resp):
     else:
         return resp.json
 
-class LuminosoAuth(object):
+class LuminosoAuth(requests.auth.AuthBase):
     """Wraps REST requests with Luminoso's required authentication parameters"""
     def __init__(self, username, password, url=URL_BASE,
                  validity_ms=120000, auto_login=False, proxies=None):
@@ -169,24 +170,36 @@ class LuminosoAuth(object):
         # Determine the expiry
         expiry = epoch() + self._validity_ms
 
+        # Get the URL parameters out
+        (scheme, netloc, path, paramstring, querystring, fragment) = \
+            urlparse.urlparse(req.url)
+        req_params = {key: value[0] for (key, value) in
+                      urlparse.parse_qs(querystring).items()}
+
         # Set the key id
-        req.params['key_id'] = self._key_id
+        req_params['key_id'] = self._key_id
 
         # Remove auth fields
         for field in ('expires', 'sig'):
-            if field in req.params:
-                req.params.pop(field)
+            if field in req_params:
+                req_params.pop(field)
 
         # Determine if this is an upload
-        if isinstance(req.data, dict):
-            params = req.params.copy()
-            params.update(req.data)
+        params = req_params.copy()
+        content_type = req.headers.get('Content-Type')
+        content_body = None
+        if content_type == 'application/x-www-form-urlencoded':
+            # These are form parameters for a POST or PUT or something
+            form_params = {key: value[0] for (key, value) in
+                           urlparse.parse_qs(req.body).items()}
+            params.update(form_params)
             content_type = None
-            content_body = None
-        else:
-            params = req.params
-            content_type = req.headers['Content-Type']
-            content_body = req.data
+        elif content_type == 'application/json':
+            # This is a file upload
+            content_body = req.body
+        elif content_type is not None:
+            # Some other content type??
+            raise ValueError('Content-Type %s not supported' % content_type)
 
         # Compute the signing string
         signing_string = self.__signing_string(req, params, expiry,
@@ -197,8 +210,14 @@ class LuminosoAuth(object):
         sig = b64encode(HMAC(str(self._secret), signing_string, sha1).digest())
 
         # Pack the remaining parameters into the request
-        req.params['expires'] = expiry
-        req.params['sig'] = sig
+        req_params['expires'] = expiry
+        req_params['sig'] = sig
+
+        # Put the parameters back onto the request
+        new_query = urlencode(req_params)
+        new_url = urlparse.urlunparse((scheme, netloc, path, paramstring,
+                                       new_query, fragment))
+        req.prepare_url(new_url, '')
 
         # Load the session cookie into the request
         req.cookies = cookiejar_from_dict({'session': self._session_cookie})
