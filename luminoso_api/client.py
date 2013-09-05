@@ -160,7 +160,7 @@ class LuminosoClient(object):
         its contents. Otherwise, return the contents of the 'result' value.
         """
         response = self._request(req_type, url, **kwargs)
-        json_response = response.json
+        json_response = response.json()
         if not json_response:
             logger.error("Received response with no JSON: %s %s" %
                          (response, response.content))

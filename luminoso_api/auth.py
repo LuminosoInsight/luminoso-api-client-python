@@ -218,11 +218,12 @@ class LuminosoAuth(requests.auth.AuthBase):
         new_url = urlparse.urlunparse((scheme, netloc, path, paramstring,
                                        new_query, fragment))
         req.prepare_url(new_url, '')
+        print 'req url is', req.url
 
         # Load the session cookie into the request
-        req.cookies = cookiejar_from_dict({'session': self._session_cookie})
-        if 'Cookie' in req.headers:
-            req.headers.pop('Cookie')
-            req.headers._lower_keys = None
+        cookies = cookiejar_from_dict({'session': self._session_cookie})
+        req.prepare_cookies(cookies)
+        req.headers._lower_keys = None
+        print 'headers are', req.headers
 
         return req
