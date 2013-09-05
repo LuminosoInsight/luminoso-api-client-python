@@ -30,16 +30,6 @@ def js_compatible_quote(string):
     return quote(string, safe='~@#$&()*!+=:;,.?/\'')
 
 
-def get_json(resp):
-    """
-    Deal with a breaking change in requests 1.0. We don't know if we will need
-    to ask for resp.json or resp.json() unless we do this.
-    """
-    if callable(resp.json):
-        return resp.json()
-    else:
-        return resp.json
-
 class LuminosoAuth(requests.auth.AuthBase):
     """Wraps REST requests with Luminoso's required authentication parameters"""
     def __init__(self, username, password, url=URL_BASE,
@@ -95,11 +85,14 @@ class LuminosoAuth(requests.auth.AuthBase):
         self._session_cookie = resp.cookies['session']
 
         # Save the key_id
-        self._key_id = get_json(resp)['result']['key_id']
-        self._secret = get_json(resp)['result']['secret']
+        self._key_id = resp.json()['result']['key_id']
+        self._secret = resp.json()['result']['secret']
 
-    def __on_response(self, resp):
+    def __on_response(self, resp, **kwargs):
         """Handle auto-login and update session cookies"""
+        # Note: the kwargs are not used, but they're given to this method
+        # by the requests hook-dispatcher, so we have to accept them.  They
+        # exist because the session sets defaults for them when sending.
         if resp.status_code == 401:
             if self._auto_login:
                 logger.info('request failed with 401; retrying with fresh login')
@@ -108,11 +101,11 @@ class LuminosoAuth(requests.auth.AuthBase):
                 resp.request.deregister_hook('response', self.__on_response)
 
                 # Re-issue the request
-                resp.request.auth = retry_auth
-                resp.request.send(anyway=True)
+                resp.request.prepare_auth(retry_auth)
+                new_resp = self._session.send(resp.request)
 
                 # Save the new credentials if successful
-                new_result = resp.request.response.status_code
+                new_result = new_resp.status_code
                 if 200 <= new_result < 300:
                     # Save the new credentials
                     logger.info('retry successful')
@@ -121,7 +114,7 @@ class LuminosoAuth(requests.auth.AuthBase):
                     self._session_cookie = retry_auth._session_cookie
 
                     # Return the new result
-                    return resp.request.response
+                    return new_resp
                 else:
                     logger.error('retry failed')
                     return resp
