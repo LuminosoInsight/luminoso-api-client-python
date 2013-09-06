@@ -124,7 +124,10 @@ class LuminosoAuth(requests.auth.AuthBase):
                     logger.error('retry failed')
                     return resp
 
-        self._session_cookie = dict_from_cookiejar(resp.cookies)['session']
+        # If a replacement session cookie was returned, save it
+        resp_cookies = dict_from_cookiejar(resp.cookies)
+        if 'session' in resp_cookies:
+            self._session_cookie = resp_cookies['session']
         logger.debug('Cookie: %r', self._session_cookie)
 
         return resp
