@@ -6,7 +6,7 @@ from hashlib import sha1
 from base64 import b64encode
 
 from .constants import URL_BASE
-from .errors import LuminosoLoginError, LuminosoSessionExpired
+from .errors import LuminosoLoginError
 from .jstime import epoch
 
 import logging
@@ -102,7 +102,12 @@ class LuminosoAuth(requests.auth.AuthBase):
 
                 # Re-issue the request
                 resp.request.prepare_auth(retry_auth)
-                new_resp = self._session.send(resp.request)
+                cookies = cookiejar_from_dict({'session': retry_auth._session_cookie})
+                if 'Cookie' in resp.request.headers:
+                    resp.request.headers.pop('Cookie', None)
+                resp.request.prepare_cookies(cookies)
+                new_resp = retry_auth._session.send(resp.request)
+                logger.info('resent request')
 
                 # Save the new credentials if successful
                 new_result = new_resp.status_code
@@ -215,8 +220,8 @@ class LuminosoAuth(requests.auth.AuthBase):
 
         # Load the session cookie into the request
         cookies = cookiejar_from_dict({'session': self._session_cookie})
+        if 'Cookie' in req.headers:
+            req.headers.pop('Cookie')
         req.prepare_cookies(cookies)
-        req.headers._lower_keys = None
-        print 'headers are', req.headers
 
         return req
