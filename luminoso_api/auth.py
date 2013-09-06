@@ -107,7 +107,6 @@ class LuminosoAuth(requests.auth.AuthBase):
                     resp.request.headers.pop('Cookie', None)
                 resp.request.prepare_cookies(cookies)
                 new_resp = retry_auth._session.send(resp.request)
-                logger.info('resent request')
 
                 # Save the new credentials if successful
                 new_result = new_resp.status_code
@@ -219,7 +218,6 @@ class LuminosoAuth(requests.auth.AuthBase):
         new_url = urlparse.urlunparse((scheme, netloc, path, paramstring,
                                        new_query, fragment))
         req.prepare_url(new_url, '')
-        print 'req url is', req.url
 
         # Load the session cookie into the request
         cookies = cookiejar_from_dict({'session': self._session_cookie})
