@@ -50,14 +50,14 @@ def upload_stream(stream, server, account, projname, reader_dict,
     for batch in batches(stream, 1000):
         counter += 1
         documents = list(batch)
-        job_id = project.upload(url, documents, width=4, readers=reader_dict)
+        job_id = project.upload(url, documents, readers=reader_dict)
         print 'Uploaded batch #%d' % (counter)
         final_job_id = job_id
 
     if not stage:
         # Calculate the docs into the assoc space.
         print 'Recalculating.'
-        final_job_id = project.post('docs/recalculate', width=4)
+        final_job_id = project.post('docs/recalculate')
 
     if final_job_id is not None:
         project.wait_for(final_job_id)
