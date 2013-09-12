@@ -21,7 +21,7 @@ setup(
     description="Python client library for communicating with the Luminoso REST API",
     classifiers=classifiers,
     packages=find_packages(),
-    install_requires=['requests >= 1.2.1',
+    install_requires=['requests >= 1.2.1, < 2.0',
                       'chardet',
                       'ftfy'],
     entry_points={
