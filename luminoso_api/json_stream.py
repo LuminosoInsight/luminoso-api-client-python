@@ -28,7 +28,7 @@ import unicodedata
 import sys
 import os
 from ftfy import ftfy
-LOG = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 # Detect Python 3
@@ -45,8 +45,9 @@ def transcode(input_filename, output_filename=None):
         output = sys.stdout
     else:
         if output_filename.endswith('.json'):
-            LOG.warn("Changing .json to .jsons, because this program outputs a "
-                     "JSON stream format that is not technically JSON itself.")
+            logger.warn("Changing .json to .jsons, because this program "
+                        "outputs a JSON stream format that is not technically "
+                        "JSON itself.")
             output_filename += 's'
         output = open(output_filename, 'w')
 
@@ -149,11 +150,11 @@ def detect_file_encoding(filename):
             encoding = 'macroman'
         else:
             if confidence < .95:
-                LOG.warn("This file is in some ISO-like encoding, but we "
-                         "aren't confident about what it is. Guessing it's "
-                         "Windows-1252.")
-                LOG.warn("If this is wrong, please re-encode "
-                         "your file as UTF-8.")
+                logger.warn("This file is in some ISO-like encoding, but we "
+                            "aren't confident about what it is. Guessing it's "
+                            "Windows-1252.")
+                logger.warn("If this is wrong, please re-encode "
+                            "your file as UTF-8.")
                 encoding = 'windows-1252'
 
     try:
@@ -162,9 +163,9 @@ def detect_file_encoding(filename):
         # You might find this case unlikely, of Python detecting a codec it
         # can't read, but it happened when Luminoso-the-Media-Lab-project
         # got a file from the Taiwanese version of Excel.
-        LOG.warn("This file might be encoded as %r, but Python doesn't "
-                 "know how to read that. Falling back on Windows-1252, "
-                 "but it's likely to be wrong." % encoding)
+        logger.warn("This file might be encoded as %r, but Python doesn't "
+                    "know how to read that. Falling back on Windows-1252, "
+                    "but it's likely to be wrong." % encoding)
         encoding = 'windows-1252'
     opened.close()
 
