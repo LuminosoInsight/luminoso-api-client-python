@@ -1,3 +1,23 @@
+Version 0.4.3 (2013-09-13)
+
+  * Client changes
+
+    - Don't send "width=n" to the /preload/ endpoint, because it doesn't
+      do anything.
+    - Send the reader configuration given on the command line to the
+      /recalculate/ endpoint.
+    - Get rid of root_url as a client parameter, because nobody used it
+      and it didn't actually work.
+
+  * Server changes
+
+    - API endpoints will now return an error when you give them unexpected
+      arguments. /preload/ accepts some arguments for backward compatibility.
+
+Version 0.4.2 (2013-07-12)
+
+  * Update the documentation to match the changes in 0.4.1.
+
 Version 0.4.1 (2013-07-10)
 
 This is the first released version for the v4 Luminoso API.
