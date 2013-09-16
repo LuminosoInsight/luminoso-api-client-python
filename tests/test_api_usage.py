@@ -74,6 +74,16 @@ def test_noop():
     assert ROOT_CLIENT.delete('ping') == 'pong'
 
 
+def test_documentation():
+    """
+    Test the get_raw method, and also the documentation endpoint, which is
+    different because it doesn't require you to be logged in and therefore
+    doesn't return a replacement session cookie.
+    """
+    assert ROOT_CLIENT.get_raw('/').strip().startswith(
+        'This API supports the following methods.')
+
+
 def test_paths():
     """
     Without interacting with the network, make sure our path logic works.
