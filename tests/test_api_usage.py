@@ -107,6 +107,23 @@ def test_no_assoc():
         assert e.message['code'] == 'NO_ASSOC', e.message
 
 
+def test_empty_string():
+    """
+    GET and PUT with parameters whose value is empty string.
+    """
+    # Change the project name
+    name = PROJECT.get()['name']
+    assert name == PROJECT_NAME, name
+    PROJECT.put(name='')
+    name2 = PROJECT.get()['name']
+    assert name2 == '', name2
+
+    # Get project by name
+    matches = ROOT_CLIENT.get('projects', name='')
+    assert any(p['project_id'] == PROJECT_ID and p['owner'] == USERNAME
+               for p in matches), matches
+
+
 def test_upload_and_wait_for():
     """
     Upload three documents and wait for the result.

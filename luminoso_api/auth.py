@@ -173,8 +173,8 @@ class LuminosoAuth(requests.auth.AuthBase):
         # Get the URL parameters out
         (scheme, netloc, path, paramstring, querystring, fragment) = \
             urlparse.urlparse(req.url)
-        req_params = {key: value[0] for (key, value) in
-                      urlparse.parse_qs(querystring).items()}
+        url_dict = urlparse.parse_qs(querystring, keep_blank_values=True)
+        req_params = {key: value[0] for (key, value) in url_dict.items()}
 
         # Set the key id
         req_params['key_id'] = self._key_id
@@ -190,8 +190,8 @@ class LuminosoAuth(requests.auth.AuthBase):
         content_body = None
         if content_type == 'application/x-www-form-urlencoded':
             # These are form parameters for a POST or PUT or something
-            form_params = {key: value[0] for (key, value) in
-                           urlparse.parse_qs(req.body).items()}
+            form_dict = urlparse.parse_qs(req.body, keep_blank_values=True)
+            form_params = {key: value[0] for (key, value) in form_dict.items()}
             params.update(form_params)
             content_type = None
         elif content_type == 'application/json':
