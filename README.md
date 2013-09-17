@@ -164,21 +164,3 @@ This library installs a script called `lumi-upload` for uploading files in one o
 For example, you would type at the command line:
 
     lumi-upload example.jsons ACCOUNT_NAME example_project_name
-
-Getting the correct version of `requests`
------------------------------------------
-This API client is a simple wrapper around a Python module called `requests`.
-Unfortunately, that module made some incompatible changes when it released version 1.0 in mid-December 2012.
-
-In case your Python environment has the new version, our setup script installs
-the old version that the client is compatible with as a package called
-`requests0`. This is part of the `requests-transition` package:
-
-    https://github.com/LuminosoInsight/python-requests-transition
-
-If you cannot import `requests0`, please re-run the setup script to get this
-package:
-
-    python setup.py install
-
-Our next API version will include a client that supports Requests 1.0.
