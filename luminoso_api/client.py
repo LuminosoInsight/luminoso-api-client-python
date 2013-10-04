@@ -3,7 +3,7 @@ Provides the LuminosoClient object, a wrapper for making
 properly-authenticated requests to the Luminoso REST API.
 """
 
-from .auth import LuminosoAuth
+from .auth import LuminosoAuth, OAuth
 from .constants import URL_BASE
 from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
     LuminosoServerError, LuminosoAPIError)
@@ -68,7 +68,7 @@ class LuminosoClient(object):
 
     @classmethod
     def connect(cls, url=None, username=None, password=None,
-                proxies=None, auto_login=True):
+                proxies=None, auto_login=True, auth_method='luminoso'):
         """
         Returns an object that makes requests to the API, authenticated
         with the provided username/password, at URLs beginning with `url`.
@@ -97,6 +97,10 @@ class LuminosoClient(object):
         authentication times out, which happens after ten minutes of inactivity
         or one hour, whichever comes first. If for security reasons you do not
         want this to happen, set `auto_login` to False.
+
+        The default method of authentication is Luminoso's custom method; the
+        API also supports OAuth, so if you would like to use OAuth instead,
+        specify auth_method='oauth'.
         """
         auto_account = False
         if url is None:
@@ -114,9 +118,16 @@ class LuminosoClient(object):
         if password is None:
             password = getpass('Password for %s: ' % username)
 
-        logger.info('creating LuminosoAuth object')
-        auth = LuminosoAuth(username, password, url=root_url, proxies=proxies,
-                            auto_login=auto_login)
+        if auth_method == 'luminoso':
+            logger.info('creating LuminosoAuth object')
+            auth = LuminosoAuth(username, password, url=root_url,
+                                proxies=proxies, auto_login=auto_login)
+        elif auth_method == 'oauth':
+            logger.info('creating OAuth object')
+            auth = OAuth(username, password, url=root_url,
+                         proxies=proxies, auto_login=auto_login)
+        else:
+            raise ValueError('Unknown authentication method: %s' % auth_method)
 
         client = cls(auth, url, proxies)
         if auto_account:
