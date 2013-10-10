@@ -2,6 +2,7 @@ import logging
 import subprocess
 import sys
 import os
+import json
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -34,8 +35,9 @@ def setup():
     interacting with that database and save it as a global.
     """
     global ROOT_CLIENT, PROJECT, USERNAME, RELOGIN_CLIENT, PROJECT_ID
-    user_info_str = subprocess.check_output('tellme lumi-test', shell=True)
-    user_info = eval(user_info_str)
+    user_info_str = subprocess.check_output('tellme -f json lumi-test',
+                                            shell=True)
+    user_info = json.loads(user_info_str)
     USERNAME = user_info['username']
 
     ROOT_CLIENT = LuminosoClient.connect(ROOT_URL,
