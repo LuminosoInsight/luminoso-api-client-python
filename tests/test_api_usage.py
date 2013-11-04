@@ -2,6 +2,7 @@ import logging
 import subprocess
 import sys
 import os
+import json
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -34,8 +35,9 @@ def setup():
     interacting with that database and save it as a global.
     """
     global ROOT_CLIENT, PROJECT, USERNAME, RELOGIN_CLIENT, PROJECT_ID
-    user_info_str = subprocess.check_output('tellme lumi-test', shell=True)
-    user_info = eval(user_info_str)
+    user_info_str = subprocess.check_output('tellme -f json lumi-test',
+                                            shell=True)
+    user_info = json.loads(user_info_str)
     USERNAME = user_info['username']
 
     ROOT_CLIENT = LuminosoClient.connect(ROOT_URL,
@@ -126,11 +128,13 @@ def test_empty_string():
 
 def test_upload_and_wait_for():
     """
-    Upload three documents and wait for the result.
+    Upload three documents, recalculate, and wait for the result.
     """
-    docs = open_json_or_csv_somehow(EXAMPLE_DIR + '/example1.stream.json')
-    job_id = PROJECT.upload('docs', docs)
-    assert isinstance(job_id, int), job_id
+    docs = list(open_json_or_csv_somehow(EXAMPLE_DIR + '/example1.stream.json'))
+    doc_ids = PROJECT.upload('docs', docs)
+    assert isinstance(doc_ids, list), doc_ids
+    assert len(doc_ids) == len(docs), doc_ids
+    job_id = PROJECT.post('docs/recalculate')
     job_result = PROJECT.wait_for(job_id)
     assert job_result['success'] is True
 
