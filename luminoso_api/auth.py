@@ -371,15 +371,25 @@ class OAuth(requests.auth.AuthBase):
         req.register_hook('response', self.__on_response)
         logger.debug('auto_login is %s', 'on' if self._auto_login else 'off')
 
+        is_form_encoded=(req.headers.get('Content-Type', '').lower() ==
+                         'application/x-www-form-urlencoded')
+        parameters = {'oauth_consumer_key': self.username,
+                      'oauth_token': self._token.key,
+                      'oauth_signature_method': self.sig_method.name,
+                      'oauth_timestamp': int(time.time()),
+                      'oauth_nonce': oauth2.generate_nonce()}
+        if is_form_encoded:
+            form_dict = urlparse.parse_qs(req.body, keep_blank_values=True)
+            form_params = {key: value[0] for (key, value) in form_dict.items()}
+            parameters.update(form_params)
+
         oauth_request = oauth2.Request(
             method=req.method,
             url=req.url,
-            parameters={'oauth_consumer_key': self.username,
-                        'oauth_token': self._token.key,
-                        'oauth_signature_method': self.sig_method.name,
-                        'oauth_timestamp': int(time.time()),
-                        'oauth_nonce': oauth2.generate_nonce()})
+            parameters=parameters,
+            is_form_encoded=is_form_encoded)
         oauth_request.sign_request(self.sig_method, self._consumer, self._token)
+
         oauth_header = oauth_request.to_header()
         req.headers.update(oauth_header)
 
