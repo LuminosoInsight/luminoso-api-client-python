@@ -4,6 +4,7 @@ import sys
 import os
 import json
 import uuid
+import time
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -24,8 +25,8 @@ PROJECT_NAME = os.environ.get('USER', 'jenkins') + '-test-' + str(uuid.uuid4())
 PROJECT_ID = None
 EXAMPLE_DIR = os.path.dirname(__file__) + '/examples'
 
-#ROOT_URL = 'http://localhost:5021/v4'
-ROOT_URL = 'http://erie.lumi:5022/v4'
+ROOT_URL = 'http://localhost:5021/v4'
+
 
 def fileno_monkeypatch(self):
     return sys.__stdout__.fileno()
@@ -71,8 +72,11 @@ def setup():
     PROJECT_ID = creation['project_id']
     PROJECT = ROOT_CLIENT.change_path('projects/' + USERNAME + '/' + PROJECT_ID)
     PROJECT.get()
-    OAUTH_PROJECT = OAUTH_CLIENT.change_path('projects/' + USERNAME + '/'
-                                             + PROJECT_ID)
+    # this one is non-auto-login so we can test logging in/out
+    OAUTH_PROJECT = LuminosoClient.connect(
+        ROOT_URL + '/projects/' + USERNAME + '/' + PROJECT_ID,
+        username=USERNAME, password=user_info['password'],
+        auth_method='oauth', auto_login=False)
 
 
 def test_noop():
@@ -195,12 +199,26 @@ def test_auto_login():
     relogin_client._session.auth._key_id = ''
     assert relogin_client.get('ping') == 'pong'
 
-    # TODO: set timeouts so this can be tested
-    # oauth_relogin_client = LuminosoClient.connect(
-    #     ROOT_URL, username=USERNAME, password=PASSWORD, auto_login=True,
-    #     auth_method='oauth')
-    # oauth_relogin_client._session.auth._token = oauth2.Token('', '')
-    # assert oauth_relogin_client.get('ping') == 'pong'
+
+def DONOTtest_oauth_auto_login():
+    # Unlike regular-auth auto-relogin, the OAuth client will only try to
+    # auto-relogin if the reason you got a 401 was that your login expired.
+    # This means that the only way to test it is to wait for your session
+    # to expire, which takes a long time, so this test should not run
+    # automatically.  You can run it on a local API, and you will probably
+    # want to set the API's timeout to less than 20 minutes.
+    oauth_relogin_client = LuminosoClient.connect(
+        ROOT_URL, username=USERNAME, password=PASSWORD, auto_login=True,
+        auth_method='oauth')
+    time.sleep(20.5 * 60)
+    # The non-auto-relogin client should get an auth error
+    try:
+        OAUTH_PROJECT.get()
+        assert False, 'Token should have expired.'
+    except LuminosoError as e:
+        eq_(e.message['code'], 'LOGIN_EXPIRED')
+    # The auto-relogin client should log itself back in
+    assert oauth_relogin_client.get('ping') == 'pong'
 
 
 def test_logout():

@@ -345,7 +345,6 @@ class OAuth(requests.auth.AuthBase):
 
             # Re-issue the request
             resp.request.prepare_auth(retry_auth)
-            # TODO: will this use the correct auth?
             new_resp = retry_auth._session.send(resp.request)
 
             # Save the new credentials if successful
