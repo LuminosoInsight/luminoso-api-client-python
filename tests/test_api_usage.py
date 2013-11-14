@@ -203,6 +203,19 @@ def test_auto_login():
     # assert oauth_relogin_client.get('ping') == 'pong'
 
 
+def test_logout():
+    """
+    Test that when you log out, your OAuth token doesn't work anymore.
+    """
+    logout_resp = OAUTH_CLIENT.post('oauth/logout')
+    eq_(logout_resp, 'Logged out.')
+    try:
+        got = OAUTH_CLIENT.get('projects')
+        assert False, 'Should have raised an error, but got %s' % got
+    except LuminosoError as e:
+        eq_(e.message['code'], 'INVALID_TOKEN')
+
+
 def teardown():
     """
     Pack everything up, we're done.
