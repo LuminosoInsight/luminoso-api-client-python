@@ -36,10 +36,8 @@ StringIO.StringIO.fileno = fileno_monkeypatch
 
 
 def setup():
-    """
-    Make sure we're working with a fresh database. Build a client for
-    interacting with that database and save it as a global.
-    """
+    # Make sure we're working with a fresh database. Build a client for
+    # interacting with that database and save it as a global.
     global ROOT_CLIENT, OAUTH_CLIENT, PROJECT, OAUTH_PROJECT, \
         USERNAME, PASSWORD, PROJECT_ID
     user_info_str = subprocess.check_output('tellme -f json lumi-test',
@@ -79,32 +77,25 @@ def setup():
         auth_method='oauth', auto_login=False)
 
 
-def test_noop():
-    """
-    Sometimes you just need to do nothing.
-    """
-    for client in [ROOT_CLIENT, OAUTH_CLIENT]:
-        eq_(client.get('ping'), 'pong')
-        eq_(client.post('ping'), 'pong')
-        eq_(client.put('ping'), 'pong')
-        eq_(client.delete('ping'), 'pong')
-
-
 def test_documentation():
-    """
-    Test the get_raw method, and also the documentation endpoint, which is
-    different because it doesn't require you to be logged in and therefore
-    doesn't return a replacement session cookie.
-    """
+    # Test the get_raw method, and also the documentation endpoint, which is
+    # different because it doesn't require you to be logged in and therefore
+    # doesn't return a replacement session cookie.
     for client in [ROOT_CLIENT, OAUTH_CLIENT]:
         assert client.get_raw('/').strip().startswith(
             'This API supports the following methods.')
 
 
+def test_noop():
+    # Sometimes you just need to do nothing.
+    assert ROOT_CLIENT.get('ping') == 'pong'
+    assert ROOT_CLIENT.post('ping') == 'pong'
+    assert ROOT_CLIENT.put('ping') == 'pong'
+    assert ROOT_CLIENT.delete('ping') == 'pong'
+
+
 def test_paths():
-    """
-    Without interacting with the network, make sure our path logic works.
-    """
+    # Without interacting with the network, make sure our path logic works.
     client1 = ROOT_CLIENT.change_path('foo')
     eq_(client1.url, ROOT_CLIENT.url + 'foo/')
     client2 = client1.change_path('bar')
@@ -114,9 +105,7 @@ def test_paths():
 
 
 def test_no_assoc():
-    """
-    The project was just created, so it shouldn't let you get terms.
-    """
+    # The project was just created, so it shouldn't let you get terms.
     for proj_client in [PROJECT, OAUTH_PROJECT]:
         try:
             proj_client.get('terms')
@@ -126,9 +115,7 @@ def test_no_assoc():
 
 
 def test_empty_string():
-    """
-    GET and PUT with parameters whose value is empty string.
-    """
+    # GET and PUT with parameters whose value is empty string.
     for (proj_client, root_client) in [(PROJECT, ROOT_CLIENT),
                                        (OAUTH_PROJECT, OAUTH_CLIENT)]:
         # Change the project name
@@ -148,9 +135,7 @@ def test_empty_string():
 
 
 def test_upload_and_wait_for():
-    """
-    Upload three documents, recalculate, and wait for the result.
-    """
+    # Upload three documents, recalculate, and wait for the result.
     for proj_client in [PROJECT, OAUTH_PROJECT]:
         docs = list(open_json_or_csv_somehow(
                 EXAMPLE_DIR + '/example1.stream.json'))
@@ -193,7 +178,7 @@ def test_post_with_parameters():
 
 
 def test_auto_login():
-    """Test auto-login after 401 responses."""
+    # Test auto-login after 401 responses.
     relogin_client = LuminosoClient.connect(
         ROOT_URL, username=USERNAME, password=PASSWORD, auto_login=True)
     relogin_client._session.auth._key_id = ''
@@ -235,9 +220,7 @@ def test_logout():
 
 
 def teardown():
-    """
-    Pack everything up, we're done.
-    """
+    # Pack everything up, we're done.
     if ROOT_CLIENT is not None:
         ROOT_CLIENT.delete('projects/' + USERNAME + '/' + PROJECT_ID)
         PROJECT = ROOT_CLIENT.change_path('projects/' + USERNAME + '/' + PROJECT_ID)

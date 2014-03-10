@@ -40,27 +40,18 @@ def upload_stream(stream, server, account, projname, reader_dict,
 
     project = client.change_path('/projects/' + account + '/' + project_id)
 
-    if stage:
-        url = 'docs'
-    else:
-        url = 'docs/preload'
-
     counter = 0
-    final_job_id = None
     for batch in batches(stream, 1000):
         counter += 1
         documents = list(batch)
-        job_id = project.upload(url, documents, readers=reader_dict)
+        project.upload('docs', documents, readers=reader_dict)
         print 'Uploaded batch #%d' % (counter)
-        final_job_id = job_id
 
     if not stage:
         # Calculate the docs into the assoc space.
         print 'Calculating.'
-        final_job_id = project.post('docs/recalculate', readers=reader_dict)
-
-    if final_job_id is not None:
-        project.wait_for(final_job_id)
+        job_id = project.post('docs/recalculate', readers=reader_dict)
+        project.wait_for(job_id)
 
 
 def upload_file(filename, server, account, projname, reader_dict=None,
@@ -120,7 +111,7 @@ def main():
         for item in args.readers.split(','):
             if '=' not in item:
                 raise ValueError("You entered %r as a reader, but it should "\
-                                 "have the form 'lang=reader.name'")
+                                 "have the form 'lang=reader.name'" % item)
             lang, reader_name = item.split('=', 1)
             reader_dict[lang] = reader_name
 
