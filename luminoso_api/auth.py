@@ -56,12 +56,13 @@ class LuminosoAuth(requests.auth.AuthBase):
         self._validity_ms = validity_ms
 
         # Initialize the requests session
-        self._session = requests.session()
+        self.session = requests.session()
         if proxies is not None:
-            self._session.proxies = proxies
+            self.session.proxies = proxies
 
         # Fetch session credentials
         self.login(username, password)
+        self.session.auth = self
 
     def no_retry_copy(self):
         """
@@ -71,12 +72,12 @@ class LuminosoAuth(requests.auth.AuthBase):
                             url=self.url,
                             validity_ms=self._validity_ms,
                             auto_login=False,
-                            proxies=self._session.proxies)
+                            proxies=self.session.proxies)
 
     def login(self, username, password):
         """Fetch a session key to use in this authentication context"""
         params = {'username': username, 'password': password}
-        resp = self._session.post(self.url + '/user/login/', data=params)
+        resp = self.session.post(self.url + '/user/login/', data=params)
 
         # Make sure the session is valid
         if resp.status_code != 200:
@@ -108,7 +109,7 @@ class LuminosoAuth(requests.auth.AuthBase):
                 if 'Cookie' in resp.request.headers:
                     resp.request.headers.pop('Cookie', None)
                 resp.request.prepare_cookies(cookies)
-                new_resp = retry_auth._session.send(resp.request)
+                new_resp = retry_auth.session.send(resp.request)
 
                 # Save the new credentials if successful
                 new_result = new_resp.status_code
@@ -258,12 +259,13 @@ class OAuth(requests.auth.AuthBase):
         self._consumer = oauth2.Consumer(username, '')
 
         # Initialize the requests session
-        self._session = requests.session()
+        self.session = requests.session()
         if proxies is not None:
-            self._session.proxies = proxies
+            self.session.proxies = proxies
 
         # Fetch session credentials
         self.login(username, password)
+        self.session.auth = self
 
     def no_retry_copy(self):
         """
@@ -272,7 +274,7 @@ class OAuth(requests.auth.AuthBase):
         return OAuth(self.username, self.password,
                      url=self.url,
                      auto_login=False,
-                     proxies=self._session.proxies)
+                     proxies=self.session.proxies)
 
     def login(self, username, password):
         """
@@ -291,7 +293,7 @@ class OAuth(requests.auth.AuthBase):
         temp_creds_request.sign_request(
             self.sig_method, self._consumer, self._token)
         temp_creds_header = temp_creds_request.to_header()
-        temp_resp = self._session.post(temp_url, headers=temp_creds_header)
+        temp_resp = self.session.post(temp_url, headers=temp_creds_header)
         if temp_resp.status_code != 200:
             logger.error('%s gave response %r' % (temp_resp.url,
                                                   temp_resp.text))
@@ -315,7 +317,7 @@ class OAuth(requests.auth.AuthBase):
         access_creds_request.sign_request(
             self.sig_method, self._consumer, temp_token)
         access_creds_header = access_creds_request.to_header()
-        access_resp = self._session.post(access_url,
+        access_resp = self.session.post(access_url,
                                          headers=access_creds_header)
         if access_resp.status_code != 200:
             logger.error('%s gave response %r' % (access_resp.url,
@@ -345,7 +347,7 @@ class OAuth(requests.auth.AuthBase):
 
             # Re-issue the request
             resp.request.prepare_auth(retry_auth)
-            new_resp = retry_auth._session.send(resp.request)
+            new_resp = retry_auth.session.send(resp.request)
 
             # Save the new credentials if successful
             if 200 <= new_resp.status_code < 300:

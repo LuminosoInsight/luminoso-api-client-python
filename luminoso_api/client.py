@@ -48,7 +48,7 @@ class LuminosoClient(object):
     method: when it gets a path starting with `/`, it will go back to the
     `root_url` instead of adding to the existing URL.
     """
-    def __init__(self, auth, url, proxies=None):
+    def __init__(self, auth, url):
         """
         Create a LuminosoClient given an existing auth object.
 
@@ -56,10 +56,6 @@ class LuminosoClient(object):
         the authentication for you.
         """
         self._auth = auth
-        self._session = requests.session()
-        self._session.auth = auth
-        if proxies is not None:
-            self._session.proxies = proxies
         self.url = ensure_trailing_slash(url)
         self.root_url = get_root_url(url)
 
@@ -129,7 +125,7 @@ class LuminosoClient(object):
         else:
             raise ValueError('Unknown authentication method: %s' % auth_method)
 
-        client = cls(auth, url, proxies)
+        client = cls(auth, url)
         if auto_account:
             client = client.change_path('/projects/%s' %
                 client._get_default_account())
@@ -141,7 +137,7 @@ class LuminosoClient(object):
         error status, convert that to a Python exception.
         """
         logger.debug('%s %s' % (req_type, url))
-        func = getattr(self._session, req_type)
+        func = getattr(self._auth.session, req_type)
         result = func(url, **kwargs)
         try:
             result.raise_for_status()
