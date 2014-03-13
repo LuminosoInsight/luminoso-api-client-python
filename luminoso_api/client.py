@@ -209,9 +209,7 @@ class LuminosoClient(object):
         """
         params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._json_request('post', url,
-            data=params,
-        )
+        return self._json_request('post', url, data=params)
 
     def put(self, path='', **params):
         """
@@ -226,9 +224,7 @@ class LuminosoClient(object):
         """
         params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._json_request('put', url,
-            data=params,
-        )
+        return self._json_request('put', url, data=params)
 
     def patch(self, path='', **params):
         """
@@ -243,9 +239,7 @@ class LuminosoClient(object):
         """
         params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._json_request('patch', url,
-            data=params,
-        )
+        return self._json_request('patch', url, data=params)
 
     def delete(self, path='', **params):
         """
@@ -258,9 +252,7 @@ class LuminosoClient(object):
         """
         params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._json_request('delete', url,
-            params=params,
-        )
+        return self._json_request('delete', url, params=params)
 
     # Operations with a data payload
     def post_data(self, path, data, content_type, **params):
