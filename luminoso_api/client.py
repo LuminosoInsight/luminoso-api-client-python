@@ -420,18 +420,19 @@ class LuminosoClient(object):
         if base_path is None:
             base_path = 'jobs/id'
         path = '%s%d' % (ensure_trailing_slash(base_path), job_id)
-        logger.info('waiting')
-        count = 0
+        start = time.time()
+        next_log = 0
         while True:
-            count += 1
-            if count % 10 == 0:
-                self.keepalive()
             response = self.get(path)
             if response['stop_time']:
                 if response['success']:
                     return response
                 else:
                     raise LuminosoError(response)
+            elapsed = time.time() - start
+            if elapsed > next_log:
+                logger.info('Still waiting (%d seconds elapsed).', next_log)
+                next_log += 120
             time.sleep(interval)
 
     def get_raw(self, path, **params):
