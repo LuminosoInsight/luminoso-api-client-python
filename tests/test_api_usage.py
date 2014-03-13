@@ -48,10 +48,10 @@ def setup():
 
     ROOT_CLIENT = LuminosoClient.connect(ROOT_URL,
                                          username=USERNAME,
-                                         password=user_info['password'])
+                                         password=PASSWORD)
     OAUTH_CLIENT = LuminosoClient.connect(ROOT_URL,
                                           username=USERNAME,
-                                          password=user_info['password'],
+                                          password=PASSWORD,
                                           auth_method='oauth')
 
     # check to see if the project exists
@@ -73,7 +73,7 @@ def setup():
     # this one is non-auto-login so we can test logging in/out
     OAUTH_PROJECT = LuminosoClient.connect(
         ROOT_URL + '/projects/' + USERNAME + '/' + PROJECT_ID,
-        username=USERNAME, password=user_info['password'],
+        username=USERNAME, password=PASSWORD,
         auth_method='oauth', auto_login=False)
 
 
