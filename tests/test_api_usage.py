@@ -181,7 +181,7 @@ def test_auto_login():
     # Test auto-login after 401 responses.
     relogin_client = LuminosoClient.connect(
         ROOT_URL, username=USERNAME, password=PASSWORD, auto_login=True)
-    relogin_client._session.auth._key_id = ''
+    relogin_client._auth._key_id = ''
     assert relogin_client.get('ping') == 'pong'
 
 
