@@ -75,7 +75,7 @@ class LuminosoAuth(requests.auth.AuthBase):
 
     def login(self, username, password):
         """Fetch a session key to use in this authentication context"""
-        # These requests should be unauthenticated, even if previous ones were
+        # These requests should not be authenticated even if previous ones were
         self.session.auth = None
 
         params = {'username': username, 'password': password}
@@ -284,7 +284,7 @@ class OAuth(requests.auth.AuthBase):
         """
         Two-step OAuth login.
         """
-        # These requests should be unauthenticated, even if previous ones were
+        # These requests should not be authenticated even if previous ones were
         self.session.auth = None
 
         # step one: get temporary credentials
