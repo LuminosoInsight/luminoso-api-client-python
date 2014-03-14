@@ -48,7 +48,7 @@ class LuminosoClient(object):
     method: when it gets a path starting with `/`, it will go back to the
     `root_url` instead of adding to the existing URL.
     """
-    def __init__(self, auth, url, proxies=None):
+    def __init__(self, auth, url):
         """
         Create a LuminosoClient given an existing auth object.
 
@@ -56,10 +56,6 @@ class LuminosoClient(object):
         the authentication for you.
         """
         self._auth = auth
-        self._session = requests.session()
-        self._session.auth = auth
-        if proxies is not None:
-            self._session.proxies = proxies
         self.url = ensure_trailing_slash(url)
         self.root_url = get_root_url(url)
 
@@ -129,7 +125,7 @@ class LuminosoClient(object):
         else:
             raise ValueError('Unknown authentication method: %s' % auth_method)
 
-        client = cls(auth, url, proxies)
+        client = cls(auth, url)
         if auto_account:
             client = client.change_path('/projects/%s' %
                 client._get_default_account())
@@ -141,7 +137,7 @@ class LuminosoClient(object):
         error status, convert that to a Python exception.
         """
         logger.debug('%s %s' % (req_type, url))
-        func = getattr(self._session, req_type)
+        func = getattr(self._auth.session, req_type)
         result = func(url, **kwargs)
         try:
             result.raise_for_status()
@@ -209,9 +205,7 @@ class LuminosoClient(object):
         """
         params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._json_request('post', url,
-            data=params,
-        )
+        return self._json_request('post', url, data=params)
 
     def put(self, path='', **params):
         """
@@ -226,9 +220,7 @@ class LuminosoClient(object):
         """
         params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._json_request('put', url,
-            data=params,
-        )
+        return self._json_request('put', url, data=params)
 
     def patch(self, path='', **params):
         """
@@ -243,9 +235,7 @@ class LuminosoClient(object):
         """
         params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._json_request('patch', url,
-            data=params,
-        )
+        return self._json_request('patch', url, data=params)
 
     def delete(self, path='', **params):
         """
@@ -258,9 +248,7 @@ class LuminosoClient(object):
         """
         params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._json_request('delete', url,
-            params=params,
-        )
+        return self._json_request('delete', url, params=params)
 
     # Operations with a data payload
     def post_data(self, path, data, content_type, **params):
@@ -428,18 +416,19 @@ class LuminosoClient(object):
         if base_path is None:
             base_path = 'jobs/id'
         path = '%s%d' % (ensure_trailing_slash(base_path), job_id)
-        logger.info('waiting')
-        count = 0
+        start = time.time()
+        next_log = 0
         while True:
-            count += 1
-            if count % 10 == 0:
-                self.keepalive()
             response = self.get(path)
             if response['stop_time']:
                 if response['success']:
                     return response
                 else:
                     raise LuminosoError(response)
+            elapsed = time.time() - start
+            if elapsed > next_log:
+                logger.info('Still waiting (%d seconds elapsed).', next_log)
+                next_log += 120
             time.sleep(interval)
 
     def get_raw(self, path, **params):
