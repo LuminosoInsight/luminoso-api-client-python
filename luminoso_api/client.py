@@ -119,9 +119,9 @@ class LuminosoClient(object):
             auth = LuminosoAuth(username, password, url=root_url,
                                 proxies=proxies, auto_login=auto_login)
         elif auth_method == 'oauth':
-            logger.info('creating OAuth object')
+            logger.info('creating OAuth session')
             auth = OAuth(username, password, url=root_url,
-                         proxies=proxies, auto_login=auto_login)
+                         auto_login=auto_login, proxies=proxies)
         else:
             raise ValueError('Unknown authentication method: %s' % auth_method)
 

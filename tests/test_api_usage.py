@@ -148,9 +148,7 @@ def test_upload_and_wait_for():
 
 
 def test_post_with_parameters():
-    """
-    Test post with parameters via topics.
-    """
+    # Test post with parameters via topics.
     for proj_client in [PROJECT, OAUTH_PROJECT]:
         topics = proj_client.get('topics')
         eq_(topics, [])
@@ -207,9 +205,7 @@ def DONOTtest_oauth_auto_login():
 
 
 def test_logout():
-    """
-    Test that when you log out, your OAuth token doesn't work anymore.
-    """
+    # Test that when you log out, your OAuth token doesn't work anymore.
     logout_resp = OAUTH_CLIENT.post('oauth/logout')
     eq_(logout_resp, 'Logged out.')
     try:
