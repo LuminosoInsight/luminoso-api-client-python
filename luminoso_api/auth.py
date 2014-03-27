@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 import requests
 from requests.utils import dict_from_cookiejar, cookiejar_from_dict
-from requests_oauthlib import OAuth1Session
+from requests_oauthlib.oauth1_session import OAuth1Session, urldecode
 
 from hmac import HMAC
 from hashlib import sha1
@@ -281,7 +281,11 @@ class OAuthSession(OAuth1Session):
              'oauth_token_secret': temp_response['oauth_token_secret'],
              'oauth_verifier': password})
         self._client.client.client_secret = self._client.client.resource_owner_secret
-        self.fetch_access_token(self.url + '/oauth/access_creds/')
+        access_response = self.post(self.url + '/oauth/access_creds/')
+        if access_response.status_code >= 400:
+            raise LuminosoLoginError(access_response.text)
+        self._populate_attributes(dict(urldecode(access_response.text)))
+        self._client.client.verifier = None
         self._client.client.client_secret = self._client.client.resource_owner_secret
 
     def request(self, *args, **kwargs):
