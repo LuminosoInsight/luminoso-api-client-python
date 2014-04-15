@@ -25,7 +25,6 @@ setup(
         'requests >= 1.2.1, < 3.0',
         'chardet',
         'ftfy',
-        'oauth2',
     ],
     entry_points={
         'console_scripts': [
