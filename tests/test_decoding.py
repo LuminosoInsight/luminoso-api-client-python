@@ -26,7 +26,6 @@ def test_json_loading():
 
 def test_csv_loading():
     reference = canonical_dicts(openstuff(EXAMPLE_DIR + '/utf8.csv'))
-    print reference
     eq(reference[0][0][1], u"This — should be an em dash")
     eq(reference[1][0][1], u'This one\'s got "smart" quotes')
     eq(reference[2][0][1], u"HTML escaping makes me mad >:(")

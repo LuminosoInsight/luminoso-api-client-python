@@ -1,4 +1,4 @@
-import time
+import json
 import requests
 from requests.utils import dict_from_cookiejar, cookiejar_from_dict
 
@@ -40,8 +40,7 @@ class LuminosoAuth(requests.auth.AuthBase):
            username, password => (str) credentials to access the server
            validity_ms => milliseconds of validity for signed messages
            auto_login => remember the credentials and use them when the
-                         connection times out
-           session => requests session to use for queries"""
+                         connection times out"""
 
         # Store the login parameters
         self._auto_login = auto_login
@@ -233,3 +232,52 @@ class LuminosoAuth(requests.auth.AuthBase):
         req.prepare_cookies(cookies)
 
         return req
+
+
+class TokenAuth(requests.auth.AuthBase):
+    def __init__(self, token, proxies=None):
+        """
+        Initialize the auth object to be used for token authentication.  The
+        token can be either a long-lived API token or a short-lived token
+        obtained from logging in with a username and password.
+        """
+        # The only reason we need a session here is that the LuminosoAuth
+        # object has a session and the LuminosoClient uses the session from
+        # the auth object.
+        self.session = requests.session()
+        if proxies is not None:
+            self.session.proxies = proxies
+        self.session.auth = self
+
+        self.token = token
+
+    def __call__(self, request):
+        """
+        Add an authorization header containing the token.
+        """
+        request.headers['Authorization'] = 'Token ' + self.token
+        return request
+
+    @classmethod
+    def from_user_creds(cls, username, password, url=URL_BASE, proxies=None):
+        """
+        Obtain a short-lived token using a username and password, and use that
+        token to create an auth object.
+        """
+        session = requests.session()
+        if proxies is not None:
+            session.proxies = proxies
+
+        token_resp = session.post(url.rstrip('/') + '/user/login/',
+                                  data={'username': username,
+                                        'password': password,
+                                        'token_auth': True})
+        if token_resp.status_code != 200:
+            error = token_resp.text
+            try:
+                error = json.loads(error)['error']
+            except (KeyError, ValueError):
+                pass
+            raise LuminosoLoginError(error)
+
+        return cls(token_resp.json()['result']['token'])
