@@ -3,7 +3,7 @@ Provides the LuminosoClient object, a wrapper for making
 properly-authenticated requests to the Luminoso REST API.
 """
 
-from .auth import LuminosoAuth
+from .auth import LuminosoAuth, TokenAuth
 from .constants import URL_BASE
 from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
     LuminosoServerError, LuminosoAPIError)
@@ -22,12 +22,12 @@ class LuminosoClient(object):
     A LuminosoClient is a thin wrapper around the REST API documented at
     https://api.luminoso.com/v4. As such, you interact with it by calling its
     methods that correspond to HTTP methods: `.get(url)`, `.post(url)`,
-    `.put(url)`, and `.delete(url)`.
+    `.put(url)`, `.patch(url)`, and `.delete(url)`.
 
     These URLs are relative to a 'base URL' for the LuminosoClient. For
     example, you can make requests for a specific account's projects
     by creating a LuminosoClient for
-    `https://api.luminoso.com/v4/projects/<accountname>`,
+    `https://api.luminoso.com/v4/projects/<account_id>`,
     or you can go deeper to create a client that makes requests for a
     specific project.
 
@@ -64,7 +64,7 @@ class LuminosoClient(object):
 
     @classmethod
     def connect(cls, url=None, username=None, password=None,
-                proxies=None, auto_login=True):
+                proxies=None, auto_login=True, token_auth=True):
         """
         Returns an object that makes requests to the API, authenticated
         with the provided username/password, at URLs beginning with `url`.
@@ -90,9 +90,11 @@ class LuminosoClient(object):
         servers, in the same form used by the `requests` module.
 
         By default, this object will automatically re-login if its
-        authentication times out, which happens after ten minutes of inactivity
-        or one hour, whichever comes first. If for security reasons you do not
-        want this to happen, set `auto_login` to False.
+        authentication times out (but this will rarely happen anymore, because
+        now login sessions expire after 2 weeks rather than 10 minutes). If
+        for security reasons you do not want this to happen, set `auto_login`
+        to False.
+        NOTE: the auto_login parameter is ignored for token authentication.
         """
         auto_account = False
         if url is None:
@@ -110,10 +112,16 @@ class LuminosoClient(object):
         if password is None:
             password = getpass('Password for %s: ' % username)
 
-        logger.info('creating LuminosoAuth object')
-        auth = LuminosoAuth(username, password, url=root_url,
-                            proxies=proxies, auto_login=auto_login)
+        if token_auth:
+            logger.info('creating TokenAuth object')
+            auth = TokenAuth.from_user_creds(username, password, url=root_url,
+                                             proxies=proxies)
+        else:
+            logger.info('creating LuminosoAuth object')
+            auth = LuminosoAuth(username, password, url=root_url,
+                                proxies=proxies, auto_login=auto_login)
         client = cls(auth, url)
+
         if auto_account:
             client = client.change_path('/projects/%s' %
                 client._get_default_account())
