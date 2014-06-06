@@ -108,9 +108,11 @@ class LuminosoClient(object):
             url = URL_BASE + '/' + url.lstrip('/')
             root_url = URL_BASE
 
-        logger.info('collecting credentials')
-        username = username or os.environ['USER']
-        if password is None and token is None:
+        if ((not token_auth and username is None) or
+            (token_auth and username is None and token is None)):
+            username = os.environ['USER']
+        if ((not token_auth and password is None) or
+            (token_auth and password is None and token is None)):
             password = getpass('Password for %s: ' % username)
 
         if token_auth:
@@ -125,10 +127,10 @@ class LuminosoClient(object):
                     logger.warn('ignoring "password" argument (using token)')
                 auth = TokenAuth(token, proxies=proxies)
         else:
+            logger.info('creating LuminosoAuth object')
             if token is not None:
                 logger.warn(
                     'ignoring "token" argument (using username and password)')
-            logger.info('creating LuminosoAuth object')
             auth = LuminosoAuth(username, password, url=root_url,
                                 proxies=proxies, auto_login=auto_login)
         client = cls(auth, url)
