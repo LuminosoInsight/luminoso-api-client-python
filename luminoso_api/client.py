@@ -14,6 +14,7 @@ import logging
 import json
 import time
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 class LuminosoClient(object):
     """
@@ -63,7 +64,7 @@ class LuminosoClient(object):
         return '<LuminosoClient for %s>' % self.url
 
     @classmethod
-    def connect(cls, url=None, username=None, password=None,
+    def connect(cls, url=None, username=None, password=None, token=None,
                 proxies=None, auto_login=True, token_auth=True):
         """
         Returns an object that makes requests to the API, authenticated
@@ -107,17 +108,29 @@ class LuminosoClient(object):
             url = URL_BASE + '/' + url.lstrip('/')
             root_url = URL_BASE
 
-        logger.info('collecting credentials')
-        username = username or os.environ['USER']
-        if password is None:
+        if ((not token_auth and username is None) or
+            (token_auth and username is None and token is None)):
+            username = os.environ['USER']
+        if ((not token_auth and password is None) or
+            (token_auth and password is None and token is None)):
             password = getpass('Password for %s: ' % username)
 
         if token_auth:
             logger.info('creating TokenAuth object')
-            auth = TokenAuth.from_user_creds(username, password, url=root_url,
-                                             proxies=proxies)
+            if token is None:
+                auth = TokenAuth.from_user_creds(
+                    username, password, url=root_url, proxies=proxies)
+            else:
+                if username is not None:
+                    logger.warn('ignoring "username" argument (using token)')
+                if password is not None:
+                    logger.warn('ignoring "password" argument (using token)')
+                auth = TokenAuth(token, proxies=proxies)
         else:
             logger.info('creating LuminosoAuth object')
+            if token is not None:
+                logger.warn(
+                    'ignoring "token" argument (using username and password)')
             auth = LuminosoAuth(username, password, url=root_url,
                                 proxies=proxies, auto_login=auto_login)
         client = cls(auth, url)
