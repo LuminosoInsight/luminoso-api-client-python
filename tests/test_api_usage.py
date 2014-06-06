@@ -24,7 +24,8 @@ PROJECT_NAME = os.environ.get('USER', 'jenkins') + '-test-' + str(uuid.uuid4())
 PROJECT_ID = None
 EXAMPLE_DIR = os.path.dirname(__file__) + '/examples'
 
-ROOT_URL = 'http://localhost:5021/v4'
+#ROOT_URL = 'http://localhost:5021/v4'
+ROOT_URL = 'http://api.int.morning-glow.luminoso.com/v4'
 
 
 def fileno_monkeypatch(self):
@@ -175,9 +176,16 @@ def test_post_with_parameters():
 def test_auto_login():
     # Test auto-login after 401 responses.
     relogin_client = LuminosoClient.connect(
-        ROOT_URL, username=USERNAME, password=PASSWORD, auto_login=True)
+        ROOT_URL, username=USERNAME, password=PASSWORD,
+        token_auth=False, auto_login=True)
     relogin_client._auth._key_id = ''
     assert relogin_client.get('ping') == 'pong'
+
+
+def test_token_only():
+    # Log in using an existing token, without specifying username/password.
+    client = LuminosoClient.connect(ROOT_URL, token=ROOT_CLIENT._auth.token)
+    eq_(client.get('ping'), 'pong')
 
 
 def test_logout():
