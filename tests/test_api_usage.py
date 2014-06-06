@@ -24,8 +24,7 @@ PROJECT_NAME = os.environ.get('USER', 'jenkins') + '-test-' + str(uuid.uuid4())
 PROJECT_ID = None
 EXAMPLE_DIR = os.path.dirname(__file__) + '/examples'
 
-#ROOT_URL = 'http://localhost:5021/v4'
-ROOT_URL = 'http://api.int.morning-glow.luminoso.com/v4'
+ROOT_URL = 'http://localhost:5021/v4'
 
 
 def fileno_monkeypatch(self):
