@@ -184,7 +184,7 @@ def test_auto_login():
 
 def test_token_only():
     # Log in using an existing token, without specifying username/password.
-    client = LuminosoClient.connect(ROOT_URL, token=ROOT_CLIENT._auth.token)
+    client = LuminosoClient.connect(ROOT_URL, token=TOKEN_CLIENT._auth.token)
     eq_(client.get('ping'), 'pong')
 
 
