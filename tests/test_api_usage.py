@@ -40,7 +40,8 @@ def setup():
 
     ROOT_CLIENT = LuminosoClient.connect(ROOT_URL,
                                          username=USERNAME,
-                                         password=PASSWORD)
+                                         password=PASSWORD,
+                                         token_auth=False)
     TOKEN_CLIENT = LuminosoClient.connect(ROOT_URL,
                                           username=USERNAME,
                                           password=PASSWORD,
