@@ -144,7 +144,7 @@ def detect_file_encoding(filename):
     if encoding is None:
         encoding = 'utf-8'
     elif encoding.startswith('ISO'):
-        if '\r' in sample and '\n' not in sample:
+        if b'\r' in sample and b'\n' not in sample:
             encoding = 'macroman'
         else:
             if confidence < .95:
@@ -236,12 +236,13 @@ def open_csv_somehow_py2(filename):
 
     header = reader.next()
     header = [ftfy(cell.decode(encoding).lower().strip()) for cell in header]
-    return _read_csv(reader, header, encoding)
+    encode_fn = lambda x: x.decode(encoding, 'replace')
+    return _read_csv(reader, header, encode_fn)
 
 
 def open_csv_somehow_py3(filename):
     encoding = detect_file_encoding(filename)
-    csvfile = open(filename, 'rU', encoding=encoding)
+    csvfile = open(filename, 'rU', encoding=encoding, newline='')
     line = csvfile.readline()
     csvfile.seek(0)
 
@@ -249,14 +250,15 @@ def open_csv_somehow_py3(filename):
         # tab-separated
         reader = csv.reader(csvfile, delimiter='\t')
     else:
-        reader = csv.reader(csvfile, dialect='excel', newline='')
+        reader = csv.reader(csvfile, dialect='excel')
 
     header = next(reader)
     header = [ftfy(cell.lower().strip()) for cell in header]
-    return _read_csv(reader, header, encoding)
+    encode_fn = lambda x: x
+    return _read_csv(reader, header, encode_fn)
 
 
-def _read_csv(reader, header, encoding):
+def _read_csv(reader, header, encode_fn):
     """
     Given a constructed CSV reader object, a header row that we've read, and
     a detected encoding, yield its rows as dictionaries.
@@ -264,7 +266,7 @@ def _read_csv(reader, header, encoding):
     for row in reader:
         if len(row) == 0:
             continue
-        row = [ftfy(cell.decode(encoding, 'replace')) for cell in row]
+        row = [ftfy(encode_fn(cell)) for cell in row]
         row_list = zip(header, row)
         row_dict = dict(row_list)
         if len(row_dict['text']) == 0:
