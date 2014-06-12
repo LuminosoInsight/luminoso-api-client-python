@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import json
 import requests
 from requests.utils import dict_from_cookiejar, cookiejar_from_dict
@@ -9,25 +10,16 @@ from base64 import b64encode
 from .constants import URL_BASE
 from .errors import LuminosoLoginError
 from .jstime import epoch
+from .compat import (urlparse, parse_qs, urlunparse, quote, unquote, urlencode,
+                     unicode_type)
 
 import logging
 logger = logging.getLogger(__name__)
 
-import sys
-PY3 = (sys.hexversion >= 0x03000000)
-
-if PY3:
-    from urllib.parse import urlparse, quote, unquote, urlencode
-else:
-    from urllib2 import urlparse, quote, unquote
-    from urllib import urlencode
-
 
 def js_compatible_quote(string):
-    if not isinstance(string, basestring):
-        string = str(string)
-    if isinstance(string, unicode):
-        string = string.encode('utf-8')
+    if not isinstance(string, unicode_type):
+        string = unicode_type(string).encode('utf-8')
     return quote(string, safe='~@#$&()*!+=:;,.?/\'')
 
 
@@ -47,7 +39,7 @@ class LuminosoAuth(requests.auth.AuthBase):
         self.username = username if auto_login else None
         self.password = password if auto_login else None
         self.url = url.rstrip('/')
-        parsed = urlparse.urlparse(self.url)
+        parsed = urlparse(self.url)
         self._host = parsed.netloc
 
         # Store the validity parameter
@@ -142,10 +134,10 @@ class LuminosoAuth(requests.auth.AuthBase):
         """Return the signing string for a proposed request"""
         # Determine if there is a payload
         if content_type is not None:
-            content_hash = b64encode(sha1(content_body).digest())
+            content_hash = b64encode(sha1(content_body.encode('utf-8')).digest())
         else:
             content_type = ''
-            content_hash = ''
+            content_hash = b''
 
         pathstring = req.path_url.split('?')[0]
         if not pathstring.endswith('/'):
@@ -155,9 +147,9 @@ class LuminosoAuth(requests.auth.AuthBase):
         signing_list = [req.method,
                         self._host,
                         pathstring,
-                        content_hash,
+                        content_hash.decode('utf-8'),
                         content_type,
-                        str(expiry)]
+                        unicode_type(expiry)]
 
         # Canonicalize the dictionary
         for key in sorted(params.keys()):
@@ -178,8 +170,8 @@ class LuminosoAuth(requests.auth.AuthBase):
 
         # Get the URL parameters out
         (scheme, netloc, path, paramstring, querystring, fragment) = \
-            urlparse.urlparse(req.url)
-        url_dict = urlparse.parse_qs(querystring, keep_blank_values=True)
+            urlparse(req.url)
+        url_dict = parse_qs(querystring, keep_blank_values=True)
         req_params = {key: value[0] for (key, value) in url_dict.items()}
 
         # Set the key id
@@ -196,7 +188,7 @@ class LuminosoAuth(requests.auth.AuthBase):
         content_body = None
         if content_type == 'application/x-www-form-urlencoded':
             # These are form parameters for a POST or PUT or something
-            form_dict = urlparse.parse_qs(req.body, keep_blank_values=True)
+            form_dict = parse_qs(req.body, keep_blank_values=True)
             form_params = {key: value[0] for (key, value) in form_dict.items()}
             params.update(form_params)
             content_type = None
@@ -213,7 +205,9 @@ class LuminosoAuth(requests.auth.AuthBase):
         logger.debug('signing string: %r' % signing_string)
 
         # Sign the signing string
-        sig = b64encode(HMAC(str(self._secret), signing_string, sha1).digest())
+        sig = b64encode(HMAC(self._secret.encode('utf-8'),
+                             signing_string.encode('utf-8'),
+                             sha1).digest())
 
         # Pack the remaining parameters into the request
         req_params['expires'] = expiry
@@ -221,8 +215,8 @@ class LuminosoAuth(requests.auth.AuthBase):
 
         # Put the parameters back onto the request
         new_query = urlencode(req_params)
-        new_url = urlparse.urlunparse((scheme, netloc, path, paramstring,
-                                       new_query, fragment))
+        new_url = urlunparse((scheme, netloc, path, paramstring,
+                              new_query, fragment))
         req.prepare_url(new_url, '')
 
         # Load the session cookie into the request

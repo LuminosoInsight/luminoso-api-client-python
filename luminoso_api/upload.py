@@ -1,3 +1,4 @@
+from __future__ import print_function
 from itertools import islice, chain
 from luminoso_api import LuminosoClient
 from luminoso_api.json_stream import transcode_to_stream, stream_json_lines
@@ -31,12 +32,13 @@ def upload_stream(stream, server, account, projname, reader_dict,
     else:
         projects = client.get('/projects/' + account, name=projname)
         if len(projects) == 0:
-            print 'No such project exists!'
+            print('No such project exists!')
             return
         if len(projects) > 1:
-            print 'Warning: Multiple projects with name "%s".  ' % projname,
+            print('Warning: Multiple projects with name "%s".  ' % projname,
+                  end='')
         project_id = projects[0]['project_id']
-        print 'Using existing project with id %s.' % project_id
+        print('Using existing project with id %s.' % project_id)
 
     project = client.change_path('/projects/' + account + '/' + project_id)
 
@@ -45,11 +47,11 @@ def upload_stream(stream, server, account, projname, reader_dict,
         counter += 1
         documents = list(batch)
         project.upload('docs', documents, readers=reader_dict)
-        print 'Uploaded batch #%d' % (counter)
+        print('Uploaded batch #%d' % (counter))
 
     if not stage:
         # Calculate the docs into the assoc space.
-        print 'Calculating.'
+        print('Calculating.')
         job_id = project.post('docs/recalculate', readers=reader_dict)
         project.wait_for(job_id)
 

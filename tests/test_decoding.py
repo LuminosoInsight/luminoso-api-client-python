@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 from luminoso_api.json_stream import open_json_or_csv_somehow as openstuff
 from nose.tools import eq_ as eq
 import os
@@ -26,9 +27,9 @@ def test_json_loading():
 
 def test_csv_loading():
     reference = canonical_dicts(openstuff(EXAMPLE_DIR + '/utf8.csv'))
-    eq(reference[0][0][1], u"This — should be an em dash")
-    eq(reference[1][0][1], u'This one\'s got "smart" quotes')
-    eq(reference[2][0][1], u"HTML escaping makes me mad >:(")
+    eq(reference[0][0][1], "This — should be an em dash")
+    eq(reference[1][0][1], 'This one\'s got "smart" quotes')
+    eq(reference[2][0][1], "HTML escaping makes me mad >:(")
 
     loaded = canonical_dicts(openstuff(EXAMPLE_DIR + '/windows1252.csv'))
     eq(loaded, reference)

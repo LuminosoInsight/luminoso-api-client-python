@@ -18,7 +18,7 @@ Its input can be:
 The dictionary keys in JSON, or the column labels in CSV, should be the
 document properties defined in the documentation at https://api.luminoso.com/v4.
 """
-
+from __future__ import unicode_literals
 import json
 import codecs
 import csv
@@ -28,11 +28,9 @@ import unicodedata
 import sys
 import os
 from ftfy import ftfy
+from .compat import PY3, string_type
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
-
-# Detect Python 3
-PY3 = (sys.hexversion >= 0x03000000)
 
 
 def transcode(input_filename, output_filename=None):
@@ -181,7 +179,7 @@ def stream_json_lines(file):
     """
     Load a JSON stream and return a generator, yielding one object at a time.
     """
-    if isinstance(file, basestring):
+    if isinstance(file, string_type):
         file = open(file)
     for line in file:
         line = line.strip()
@@ -210,7 +208,7 @@ def transcode_to_utf8(filename, encoding):
     """
     tmp = os.tmpfile()
     for line in codecs.open(filename, encoding=encoding):
-        tmp.write(line.strip(u'\uFEFF').encode('utf-8'))
+        tmp.write(line.strip('\uFEFF').encode('utf-8'))
 
     tmp.seek(0)
     return tmp
@@ -253,7 +251,7 @@ def open_csv_somehow_py3(filename):
     else:
         reader = csv.reader(csvfile, dialect='excel', newline='')
 
-    header = reader.next()
+    header = next(reader)
     header = [ftfy(cell.lower().strip()) for cell in header]
     return _read_csv(reader, header, encoding)
 
