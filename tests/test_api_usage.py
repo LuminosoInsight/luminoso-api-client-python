@@ -1,6 +1,6 @@
+from __future__ import unicode_literals
 import logging
 import subprocess
-import sys
 import os
 import json
 import uuid
@@ -27,13 +27,6 @@ EXAMPLE_DIR = os.path.dirname(__file__) + '/examples'
 ROOT_URL = 'http://localhost:5021/v4'
 
 
-def fileno_monkeypatch(self):
-    return sys.__stdout__.fileno()
-
-import StringIO
-StringIO.StringIO.fileno = fileno_monkeypatch
-
-
 def setup():
     # Make sure we're working with a fresh database. Build a client for
     # interacting with that database and save it as a global.
@@ -41,7 +34,7 @@ def setup():
         USERNAME, PASSWORD, PROJECT_ID
     user_info_str = subprocess.check_output('tellme -f json lumi-test',
                                             shell=True)
-    user_info = json.loads(user_info_str)
+    user_info = json.loads(user_info_str.decode('utf-8'))
     USERNAME = user_info['username']
     PASSWORD = user_info['password']
 
@@ -65,7 +58,6 @@ def setup():
 
     # create the project and clients
     logger.info("Creating project: " + PROJECT_NAME)
-    logger.info("Existing projects: %r" % projdict.keys())
     creation = ROOT_CLIENT.post('projects/' + USERNAME, name=PROJECT_NAME)
     PROJECT_ID = creation['project_id']
     PROJECT = ROOT_CLIENT.change_path('projects/' + USERNAME + '/' + PROJECT_ID)
@@ -109,7 +101,7 @@ def test_no_assoc():
             proj_client.get('terms')
             assert False, 'Should have failed with NO_ASSOC.'
         except LuminosoClientError as e:
-            eq_(e.message['code'], 'NO_ASSOC')
+            eq_(e.args[0]['code'], 'NO_ASSOC')
 
 
 def test_empty_string():
@@ -196,7 +188,7 @@ def test_logout():
         got = TOKEN_CLIENT.get('projects')
         assert False, 'Should have raised an error, but got %s' % got
     except LuminosoError as e:
-        eq_(e.message['code'], 'INVALID_TOKEN')
+        eq_(e.args[0]['code'], 'INVALID_TOKEN')
 
 
 def teardown():
