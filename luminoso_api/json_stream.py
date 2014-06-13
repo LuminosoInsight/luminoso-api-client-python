@@ -30,7 +30,6 @@ import os
 from ftfy import ftfy
 from .compat import PY3, string_type
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
 
 
 def transcode(input_filename, output_filename=None):
@@ -299,6 +298,7 @@ def main():
     Handle command line arguments to convert a file to a JSON stream as a
     script.
     """
+    logging.basicConfig(level=logging.INFO)
     import argparse
     parser = argparse.ArgumentParser(
         description="Translate CSV or JSON input to a JSON stream, or verify "
