@@ -18,9 +18,16 @@ logger = logging.getLogger(__name__)
 
 
 def js_compatible_quote(string):
-    if not isinstance(string, unicode_type):
+    # Anything passed to this function has already been run through
+    # jsonify_parameters, so it's going to be a number or a string.
+    if isinstance(string, bytes):
+        # don't need to change anything
+        pass
+    elif isinstance(string, unicode_type):
+        string = string.encode('utf-8')
+    else:
         string = unicode_type(string).encode('utf-8')
-    return quote(string, safe='~@#$&()*!+=:;,.?/\'')
+    return quote(string, safe=b'~@#$&()*!+=:;,.?/\'')
 
 
 class LuminosoAuth(requests.auth.AuthBase):

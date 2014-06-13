@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import logging
 import subprocess
@@ -144,7 +145,7 @@ def test_post_with_parameters():
         eq_(topics, [])
 
         proj_client.post('topics',
-                         name='Example topic',
+                         name='Example topic ☃',
                          color='#aabbcc',
                          surface_texts=['Examples']
                          )
@@ -152,7 +153,7 @@ def test_post_with_parameters():
         result = proj_client.get('topics')
         assert len(result) == 1, result
         topic = result[0]
-        eq_(topic['name'], 'Example topic')
+        eq_(topic['name'], 'Example topic ☃')
         eq_(topic['surface_texts'], ['Examples'])
         eq_(topic['color'], '#aabbcc')
         topic_id = topic['_id']
