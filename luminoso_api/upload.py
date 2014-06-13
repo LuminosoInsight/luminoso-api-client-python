@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 from itertools import islice, chain
 from luminoso_api import LuminosoClient
 from luminoso_api.json_stream import transcode_to_stream, stream_json_lines
