@@ -65,7 +65,7 @@ class LuminosoClient(object):
 
     @classmethod
     def connect(cls, url=None, username=None, password=None, token=None,
-                proxies=None, auto_login=True, token_auth=True):
+                token_auth=True):
         """
         Returns an object that makes requests to the API, authenticated
         with the provided username/password, at URLs beginning with `url`.
@@ -86,16 +86,6 @@ class LuminosoClient(object):
         which is convenient if it matches your Luminoso username:
 
             client = LuminosoClient.connect()
-
-        `proxies` is a dictionary from URL schemes (like 'http') to proxy
-        servers, in the same form used by the `requests` module.
-
-        By default, this object will automatically re-login if its
-        authentication times out (but this will rarely happen anymore, because
-        now login sessions expire after 2 weeks rather than 10 minutes). If
-        for security reasons you do not want this to happen, set `auto_login`
-        to False.
-        NOTE: the auto_login parameter is ignored for token authentication.
         """
         auto_account = False
         if url is None:
@@ -109,11 +99,9 @@ class LuminosoClient(object):
             root_url = URL_BASE
 
         if token_auth:
-            auth = cls._get_token_auth(username, password, token, root_url,
-                                       proxies)
+            auth = cls._get_token_auth(username, password, token, root_url)
         else:
-            auth = cls._get_nontoken_auth(username, password, token, root_url,
-                                          proxies, auto_login)
+            auth = cls._get_nontoken_auth(username, password, token, root_url)
         client = cls(auth, url)
         if auto_account:
             client = client.change_path('/projects/%s' %
@@ -121,7 +109,7 @@ class LuminosoClient(object):
         return client
 
     @staticmethod
-    def _get_token_auth(username, password, token, root_url, proxies):
+    def _get_token_auth(username, password, token, root_url):
         logger.info('creating TokenAuth object')
         if token is None:
             if username is None:
@@ -129,19 +117,18 @@ class LuminosoClient(object):
             if password is None:
                 password = getpass('Password for %s: ' % username)
             auth = TokenAuth.from_user_creds(
-                username, password, url=root_url, proxies=proxies)
+                username, password, url=root_url)
         else:
             if username is not None:
                 logger.warn('ignoring "username" argument (using token)')
             if password is not None:
                 logger.warn('ignoring "password" argument (using token)')
-            auth = TokenAuth(token, proxies=proxies)
+            auth = TokenAuth(token)
 
         return auth
 
     @staticmethod
-    def _get_nontoken_auth(username, password, token, root_url, proxies,
-                           auto_login):
+    def _get_nontoken_auth(username, password, token, root_url):
         if username is None:
             username = os.environ['USER']
         if password is None:
@@ -151,8 +138,7 @@ class LuminosoClient(object):
         if token is not None:
             logger.warn(
                 'ignoring "token" argument (using username and password)')
-        return LuminosoAuth(username, password, url=root_url,
-                            proxies=proxies, auto_login=auto_login)
+        return LuminosoAuth(username, password, url=root_url)
 
     def _request(self, req_type, url, **kwargs):
         """
