@@ -33,18 +33,13 @@ def js_compatible_quote(string):
 class LuminosoAuth(requests.auth.AuthBase):
     """Wraps REST requests with Luminoso's required authentication parameters"""
     def __init__(self, username, password, url=URL_BASE,
-                 validity_ms=120000, auto_login=False, proxies=None):
+                 validity_ms=120000):
         """Log-in to the Luminoso API
 
            username, password => (str) credentials to access the server
            validity_ms => milliseconds of validity for signed messages
-           auto_login => remember the credentials and use them when the
-                         connection times out"""
-
+        """
         # Store the login parameters
-        self._auto_login = auto_login
-        self.username = username if auto_login else None
-        self.password = password if auto_login else None
         self.url = url.rstrip('/')
         parsed = urlparse(self.url)
         self._host = parsed.netloc
@@ -54,21 +49,9 @@ class LuminosoAuth(requests.auth.AuthBase):
 
         # Initialize the requests session
         self.session = requests.session()
-        if proxies is not None:
-            self.session.proxies = proxies
 
         # Fetch session credentials
         self.login(username, password)
-
-    def no_retry_copy(self):
-        """
-        Return a duplicate LuminosoAuth object that will not retry a connection
-        """
-        return LuminosoAuth(self.username, self.password,
-                            url=self.url,
-                            validity_ms=self._validity_ms,
-                            auto_login=False,
-                            proxies=self.session.proxies)
 
     def login(self, username, password):
         """Fetch a session key to use in this authentication context"""
@@ -94,39 +77,10 @@ class LuminosoAuth(requests.auth.AuthBase):
         self.session.auth = self
 
     def __on_response(self, resp, **kwargs):
-        """Handle auto-login and update session cookies"""
+        """Update session cookies"""
         # Note: the kwargs are not used, but they're given to this method
         # by the requests hook-dispatcher, so we have to accept them.  They
         # exist because the session sets defaults for them when sending.
-        if resp.status_code == 401:
-            if self._auto_login:
-                logger.info('request failed with 401; retrying with fresh login')
-                # Do not enter an infinite retry loop
-                retry_auth = self.no_retry_copy()
-                resp.request.deregister_hook('response', self.__on_response)
-
-                # Re-issue the request
-                resp.request.prepare_auth(retry_auth)
-                cookies = cookiejar_from_dict({'session': retry_auth._session_cookie})
-                if 'Cookie' in resp.request.headers:
-                    resp.request.headers.pop('Cookie', None)
-                resp.request.prepare_cookies(cookies)
-                new_resp = retry_auth.session.send(resp.request)
-
-                # Save the new credentials if successful
-                new_result = new_resp.status_code
-                if 200 <= new_result < 300:
-                    # Save the new credentials
-                    logger.info('retry successful')
-                    self._key_id = retry_auth._key_id
-                    self._secret = retry_auth._secret
-                    self._session_cookie = retry_auth._session_cookie
-
-                    # Return the new result
-                    return new_resp
-                else:
-                    logger.error('retry failed')
-                    return resp
 
         # If a replacement session cookie was returned, save it
         resp_cookies = dict_from_cookiejar(resp.cookies)
@@ -170,7 +124,6 @@ class LuminosoAuth(requests.auth.AuthBase):
     def __call__(self, req):
         # Register the on_response hook
         req.register_hook('response', self.__on_response)
-        logger.debug('auto_login is %s', 'on' if self._auto_login else 'off')
 
         # Determine the expiry
         expiry = epoch() + self._validity_ms
@@ -236,7 +189,7 @@ class LuminosoAuth(requests.auth.AuthBase):
 
 
 class TokenAuth(requests.auth.AuthBase):
-    def __init__(self, token, proxies=None):
+    def __init__(self, token):
         """
         Initialize the auth object to be used for token authentication.  The
         token can be either a long-lived API token or a short-lived token
@@ -246,10 +199,7 @@ class TokenAuth(requests.auth.AuthBase):
         # object has a session and the LuminosoClient uses the session from
         # the auth object.
         self.session = requests.session()
-        if proxies is not None:
-            self.session.proxies = proxies
         self.session.auth = self
-
         self.token = token
 
     def __call__(self, request):
@@ -260,15 +210,12 @@ class TokenAuth(requests.auth.AuthBase):
         return request
 
     @classmethod
-    def from_user_creds(cls, username, password, url=URL_BASE, proxies=None):
+    def from_user_creds(cls, username, password, url=URL_BASE):
         """
         Obtain a short-lived token using a username and password, and use that
         token to create an auth object.
         """
         session = requests.session()
-        if proxies is not None:
-            session.proxies = proxies
-
         token_resp = session.post(url.rstrip('/') + '/user/login/',
                                   data={'username': username,
                                         'password': password,
