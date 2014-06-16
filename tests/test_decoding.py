@@ -24,6 +24,9 @@ def test_json_loading():
     loaded2 = canonical_dicts(openstuff(EXAMPLE_DIR + '/example1.stream.json'))
     eq(loaded2, reference)
 
+    unbroken = list(openstuff(EXAMPLE_DIR + '/linebreaks.jsons'))
+    eq(len(unbroken), 1)
+
 
 def test_csv_loading():
     reference = canonical_dicts(openstuff(EXAMPLE_DIR + '/utf8.csv'))

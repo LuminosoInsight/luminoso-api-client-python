@@ -179,11 +179,13 @@ def stream_json_lines(file):
     Load a JSON stream and return a generator, yielding one object at a time.
     """
     if isinstance(file, string_type):
-        file = open(file)
+        file = open(file, 'rb')
     for line in file:
         line = line.strip()
         if line:
-            yield json.loads(line, encoding='utf-8')
+            if isinstance(line, bytes):
+                line = line.decode('utf-8')
+            yield json.loads(line)
 
 
 def open_csv_somehow(filename):
