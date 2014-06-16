@@ -108,37 +108,51 @@ class LuminosoClient(object):
             url = URL_BASE + '/' + url.lstrip('/')
             root_url = URL_BASE
 
-        if ((not token_auth and username is None) or
-            (token_auth and username is None and token is None)):
-            username = os.environ['USER']
-        if ((not token_auth and password is None) or
-            (token_auth and password is None and token is None)):
-            password = getpass('Password for %s: ' % username)
-
         if token_auth:
-            logger.info('creating TokenAuth object')
-            if token is None:
-                auth = TokenAuth.from_user_creds(
-                    username, password, url=root_url, proxies=proxies)
-            else:
-                if username is not None:
-                    logger.warn('ignoring "username" argument (using token)')
-                if password is not None:
-                    logger.warn('ignoring "password" argument (using token)')
-                auth = TokenAuth(token, proxies=proxies)
+            auth = cls._get_token_auth(username, password, token, root_url,
+                                       proxies)
         else:
-            logger.info('creating LuminosoAuth object')
-            if token is not None:
-                logger.warn(
-                    'ignoring "token" argument (using username and password)')
-            auth = LuminosoAuth(username, password, url=root_url,
-                                proxies=proxies, auto_login=auto_login)
+            auth = cls._get_nontoken_auth(username, password, token, root_url,
+                                          proxies, auto_login)
         client = cls(auth, url)
-
         if auto_account:
             client = client.change_path('/projects/%s' %
                 client._get_default_account())
         return client
+
+    @staticmethod
+    def _get_token_auth(username, password, token, root_url, proxies):
+        logger.info('creating TokenAuth object')
+        if token is None:
+            if username is None:
+                username = os.environ['USER']
+            if password is None:
+                password = getpass('Password for %s: ' % username)
+            auth = TokenAuth.from_user_creds(
+                username, password, url=root_url, proxies=proxies)
+        else:
+            if username is not None:
+                logger.warn('ignoring "username" argument (using token)')
+            if password is not None:
+                logger.warn('ignoring "password" argument (using token)')
+            auth = TokenAuth(token, proxies=proxies)
+
+        return auth
+
+    @staticmethod
+    def _get_nontoken_auth(username, password, token, root_url, proxies,
+                           auto_login):
+        if username is None:
+            username = os.environ['USER']
+        if password is None:
+            password = getpass('Password for %s: ' % username)
+
+        logger.info('creating LuminosoAuth object')
+        if token is not None:
+            logger.warn(
+                'ignoring "token" argument (using username and password)')
+        return LuminosoAuth(username, password, url=root_url,
+                            proxies=proxies, auto_login=auto_login)
 
     def _request(self, req_type, url, **kwargs):
         """
