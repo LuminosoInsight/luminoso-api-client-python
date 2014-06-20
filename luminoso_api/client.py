@@ -7,7 +7,7 @@ from .auth import LuminosoAuth, TokenAuth
 from .constants import URL_BASE
 from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
     LuminosoServerError, LuminosoAPIError)
-from .compat import types_not_to_encode
+from .compat import types_not_to_encode, urlparse
 from getpass import getpass
 import os
 import requests
@@ -65,7 +65,7 @@ class LuminosoClient(object):
 
     @classmethod
     def connect(cls, url=None, username=None, password=None, token=None,
-                token_auth=True):
+                token_file=None, token_auth=True):
         """
         Returns an object that makes requests to the API, authenticated
         with the provided username/password, at URLs beginning with `url`.
@@ -99,7 +99,8 @@ class LuminosoClient(object):
             root_url = URL_BASE
 
         if token_auth:
-            auth = cls._get_token_auth(username, password, token, root_url)
+            auth = cls._get_token_auth(username, password, token, token_file,
+                                       root_url)
         else:
             auth = cls._get_nontoken_auth(username, password, token, root_url)
         client = cls(auth, url)
@@ -109,8 +110,17 @@ class LuminosoClient(object):
         return client
 
     @staticmethod
-    def _get_token_auth(username, password, token, root_url):
+    def _get_token_auth(username, password, token, token_file, root_url):
         logger.info('creating TokenAuth object')
+        if token is None and username is None:
+            # If no token or username was specified, check for a token saved
+            # in a local file.
+            token_file = token_file or get_token_filename()
+            try:
+                token_dict = json.load(open(token_file))
+                token = token_dict.get(urlparse(root_url).netloc)
+            except IOError:
+                logger.info('unable to read file %s; not using saved token')
         if token is None:
             if username is None:
                 username = os.environ['USER']
@@ -139,6 +149,33 @@ class LuminosoClient(object):
             logger.warn(
                 'ignoring "token" argument (using username and password)')
         return LuminosoAuth(username, password, url=root_url)
+
+    def save_token(self, token_file=None):
+        """
+        Obtain the user's long-lived API token and save it in a local file.
+        If the user has no long-lived API token, one will be created.
+        Returns the token that was saved.
+        """
+        tokens = self._json_request('get', self.root_url + '/user/tokens/')
+        long_lived = [token['type'] == 'long_lived' for token in tokens]
+        if any(long_lived):
+            dic = tokens[long_lived.index(True)]
+        else:
+            # User doesn't have a long-lived token, so create one
+            dic = self._json_request('post', self.root_url + '/user/tokens/')
+        token = dic['token']
+        token_file = token_file or get_token_filename()
+        if os.path.exists(token_file):
+            saved_tokens = json.load(open(token_file))
+        else:
+            saved_tokens = {}
+        saved_tokens[urlparse(self.root_url).netloc] = token
+        directory, filename = os.path.split(token_file)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory)
+        with open(token_file, 'w') as f:
+            json.dump(saved_tokens, f)
+        return token
 
     def _request(self, req_type, url, **kwargs):
         """
@@ -448,6 +485,15 @@ class LuminosoClient(object):
         """
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('get', url, params=params).text
+
+
+def get_token_filename():
+    """
+    Return the default filename for storing API tokens.
+    """
+    return os.path.join(os.path.expanduser('~'),
+                        '.luminoso',
+                        'tokens.json')
 
 def get_root_url(url):
     """
