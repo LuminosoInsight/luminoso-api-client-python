@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 import json
+import time
 import requests
 from requests.utils import dict_from_cookiejar, cookiejar_from_dict
 
@@ -9,7 +10,6 @@ from base64 import b64encode
 
 from .constants import URL_BASE
 from .errors import LuminosoLoginError
-from .jstime import epoch
 from .compat import (urlparse, parse_qs, urlunparse, quote, unquote, urlencode,
                      unicode_type)
 
@@ -125,8 +125,9 @@ class LuminosoAuth(requests.auth.AuthBase):
         # Register the on_response hook
         req.register_hook('response', self.__on_response)
 
-        # Determine the expiry
-        expiry = epoch() + self._validity_ms
+        # Determine the expiry (time after which the server should reject the
+        # request instead of returning a response)
+        expiry = (1000 * time.time()) + self._validity_ms
 
         # Get the URL parameters out
         (scheme, netloc, path, paramstring, querystring, fragment) = \
