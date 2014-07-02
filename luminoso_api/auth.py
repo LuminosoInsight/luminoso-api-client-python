@@ -127,7 +127,7 @@ class LuminosoAuth(requests.auth.AuthBase):
 
         # Determine the expiry (time after which the server should reject the
         # request instead of returning a response)
-        expiry = (1000 * time.time()) + self._validity_ms
+        expiry = int(1000 * time.time()) + self._validity_ms
 
         # Get the URL parameters out
         (scheme, netloc, path, paramstring, querystring, fragment) = \
