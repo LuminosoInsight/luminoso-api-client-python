@@ -1,0 +1,1 @@
+We used to have some tests in here, but we moved them to a separate repository.  They needed to use a local copy of the API, so most people wouldn't be able to run them anyway.  But don't worry, we have tests!  They have pretty good coverage and they pass!
