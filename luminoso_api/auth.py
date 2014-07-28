@@ -113,7 +113,7 @@ class LuminosoAuth(requests.auth.AuthBase):
                         unicode_type(expiry)]
 
         # Canonicalize the dictionary
-        for key in sorted(params.keys()):
+        for key in sorted(params):
             signing_list.append('%s: %s' % (key,
                                             js_compatible_quote(params[key])
                                             )
