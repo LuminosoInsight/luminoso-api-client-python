@@ -34,7 +34,9 @@ You interact with the API using a LuminosoClient object, which sends HTTP
 requests to URLs starting with a given path, and keeps track of your
 authentication information.
 
-```
+You can connect using a username and password:
+
+```python
 >>> from luminoso_api import LuminosoClient
 >>> proj = LuminosoClient.connect('/projects/account_id/my_project_id',
                                   username='my_username')
@@ -43,10 +45,32 @@ Password for my_username: [here you enter your password]
 [lots of terms and vectors here]
 ```
 
-When you don't specify a URL, the URL will be set to your default account_id
-under /projects:
+Or you can connect using an existing API token:
 
+```python
+from luminoso_api import LuminosoClient
+proj = LuminosoClient.connect('/projects/account_id/my_project_id',
+                              token='my-api-token-here')
 ```
+
+You can even save your API token to a file on your computer and load it
+automatically, so that you don't have to specify any credentials:
+
+```python
+from luminoso_api import LuminosoClient
+client = LuminosoClient.connect(token='my-api-token-here')
+# This will save a non-expiring token, regardless of whether you are currently
+# using that token or some other token or non-token authentication.
+client.save_token()
+# Now you can exit Python, restart your computer, etc., and your token will
+# still be saved when you come back.
+proj = LuminosoClient.connect('/projects/account_id/my_project_id')
+```
+
+When you connect without specifying a URL, the URL will be set to your default
+account_id under /projects:
+
+```python
 >>> from luminoso_api import LuminosoClient
 >>> projects = LuminosoClient.connect(username='testuser')
 Password: ...
@@ -131,9 +155,9 @@ download our library called `pack64`, available as `pip install pack64`. It
 will turn these into NumPy vectors, so it requires NumPy.
 
 ```python
-    >>> from pack64 import unpack64
-    >>> unpack64('WAB6AJG6kL_6D_6y')
-    array([ 0.00046539,  0.00222015, -0.08491898, -0.0014534 , -0.00127411], dtype=float32)
+>>> from pack64 import unpack64
+>>> unpack64('WAB6AJG6kL_6D_6y')
+array([ 0.00046539,  0.00222015, -0.08491898, -0.0014534 , -0.00127411], dtype=float32)
 ```
 
 Uploading from the command line
