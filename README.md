@@ -10,7 +10,7 @@ and call methods on it that will be properly authenticated.
 
 Installation
 ---------------
-This client API is designed to be used with Python 2.6 or 2.7.
+This client API is designed to be used with Python 2.6, 2.7, 3.3, or 3.4.
 
 You can download and install it using a Python package manager:
 
@@ -74,7 +74,7 @@ account_id under /projects:
 >>> from luminoso_api import LuminosoClient
 >>> projects = LuminosoClient.connect(username='testuser')
 Password: ...
->>> print projects
+>>> print(projects)
 <LuminosoClient for https://api.luminoso.com/v4/projects/lumi-test/>
 ```
 
@@ -103,7 +103,7 @@ client = LuminosoClient.connect(username='jane', password=MY_SECRET_PASSWORD)
 # this points to the /projects/janeaccount/ endpoint by default,
 # where janeaccount is the account_id of jane's default account
 project_info_list = client.get()
-print project_info_list
+print(project_info_list)
 ```
 
 
@@ -140,7 +140,7 @@ When the project is ready:
 ```python
 response = project.get('terms')
 terms = [(term['text'], term['score']) for term in response]
-print terms
+print(terms)
 ```
 
 Vectors
