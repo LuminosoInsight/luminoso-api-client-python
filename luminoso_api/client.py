@@ -130,9 +130,9 @@ class LuminosoClient(object):
                 username, password, url=root_url)
         else:
             if username is not None:
-                logger.warn('ignoring "username" argument (using token)')
+                logger.warning('ignoring "username" argument (using token)')
             if password is not None:
-                logger.warn('ignoring "password" argument (using token)')
+                logger.warning('ignoring "password" argument (using token)')
             auth = TokenAuth(token)
 
         return auth
@@ -146,8 +146,8 @@ class LuminosoClient(object):
 
         logger.info('creating LuminosoAuth object')
         if token is not None:
-            logger.warn(
-                'ignoring "token" argument (using username and password)')
+            logger.warning('ignoring "token" argument (using username and '
+                           'password)')
         return LuminosoAuth(username, password, url=root_url)
 
     def save_token(self, token_file=None):
