@@ -21,12 +21,13 @@ document properties defined in the documentation at https://api.luminoso.com/v4.
 from __future__ import unicode_literals
 import json
 import codecs
+import io
 import csv
 import chardet
 import logging
 import unicodedata
 import sys
-import os
+import tempfile
 from ftfy import ftfy
 from .compat import PY3, string_type
 logger = logging.getLogger(__name__)
@@ -59,10 +60,10 @@ def transcode_to_stream(input_filename):
     Read a JSON or CSV file and convert it into a JSON stream, which will
     be saved in an anonymous temp file.
     """
-    tmp = os.tmpfile()
+    tmp = tempfile.TemporaryFile()
     for entry in open_json_or_csv_somehow(input_filename):
         tmp.write(json.dumps(entry, ensure_ascii=False).encode('utf-8'))
-        tmp.write('\n')
+        tmp.write(b'\n')
     tmp.seek(0)
     return tmp
 
@@ -207,8 +208,8 @@ def transcode_to_utf8(filename, encoding):
     Convert a file in some other encoding into a temporary file that's in
     UTF-8.
     """
-    tmp = os.tmpfile()
-    for line in codecs.open(filename, encoding=encoding):
+    tmp = tempfile.TemporaryFile()
+    for line in io.open(filename, encoding=encoding):
         tmp.write(line.strip('\uFEFF').encode('utf-8'))
 
     tmp.seek(0)
