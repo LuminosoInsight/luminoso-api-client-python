@@ -124,7 +124,7 @@ project = projects.change_path(project_id)
 docs = [{'title': 'First example', 'text': 'This is an example document.'},
         {'title': 'Second example', 'text': 'Examples are a great source of inspiration.'},
         {'title': 'Third example', 'text': 'Great things come in threes.'}]
-project.upload('docs/preload', docs)
+project.upload('docs', docs)
 job_id = project.post('docs/recalculate')
 ```
 
