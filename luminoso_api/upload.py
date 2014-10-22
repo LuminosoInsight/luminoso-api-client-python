@@ -14,7 +14,7 @@ def batches(iterable, size):
     sourceiter = iter(iterable)
     while True:
         batchiter = islice(sourceiter, size)
-        yield chain([batchiter.next()], batchiter)
+        yield chain([next(batchiter)], batchiter)
 
 def upload_stream(stream, server, account, projname, reader_dict,
                   username=None, password=None,
