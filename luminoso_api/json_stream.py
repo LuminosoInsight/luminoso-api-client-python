@@ -28,7 +28,6 @@ import logging
 import unicodedata
 import sys
 import tempfile
-from ftfy import ftfy
 from .compat import PY3, string_type
 logger = logging.getLogger(__name__)
 
@@ -193,9 +192,6 @@ def open_csv_somehow(filename):
     """
     Given a filename that we're told is a CSV file, detect its encoding,
     parse its header, and return a generator yielding its rows as dictionaries.
-
-    Use the `ftfy` module internally to fix Unicode problems at the level that
-    chardet can't deal with.
     """
     if PY3:
         return open_csv_somehow_py3(filename)
@@ -237,7 +233,7 @@ def open_csv_somehow_py2(filename):
         reader = csv.reader(csvfile, dialect='excel')
 
     header = reader.next()
-    header = [ftfy(cell.decode(encoding).lower().strip()) for cell in header]
+    header = [cell.decode(encoding).lower().strip() for cell in header]
     encode_fn = lambda x: x.decode(encoding, 'replace')
     return _read_csv(reader, header, encode_fn)
 
@@ -255,7 +251,7 @@ def open_csv_somehow_py3(filename):
         reader = csv.reader(csvfile, dialect='excel')
 
     header = next(reader)
-    header = [ftfy(cell.lower().strip()) for cell in header]
+    header = [cell.lower().strip() for cell in header]
     encode_fn = lambda x: x
     return _read_csv(reader, header, encode_fn)
 
@@ -268,7 +264,7 @@ def _read_csv(reader, header, encode_fn):
     for row in reader:
         if len(row) == 0:
             continue
-        row = [ftfy(encode_fn(cell)) for cell in row]
+        row = [encode_fn(cell) for cell in row]
         row_list = zip(header, row)
         row_dict = dict(row_list)
         if len(row_dict['text']) == 0:
