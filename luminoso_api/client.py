@@ -487,6 +487,16 @@ class LuminosoClient(object):
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('get', url, params=params).text
 
+    def save_to_file(self, path, filename, **params):
+        """
+        Saves binary content to file filename. Useful for downloading .xlsx
+        files.
+        """
+        url = ensure_trailing_slash(self.url + path.lstrip('/'))
+        content = self._request('get', url, params=params).content
+        with open(filename, 'wb') as f:
+            f.write(content)
+
 
 def get_token_filename():
     """
