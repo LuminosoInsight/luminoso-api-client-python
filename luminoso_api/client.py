@@ -489,8 +489,11 @@ class LuminosoClient(object):
 
     def save_to_file(self, path, filename, **params):
         """
-        Saves binary content to file filename. Useful for downloading .xlsx
-        files.
+        Saves binary content to a file with name filename. filename should
+        include the appropriate file extension, such as .xlsx or .txt, e.g.,
+        filename = 'sample.xlsx'.
+
+        Useful for downloading .xlsx files.
         """
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         content = self._request('get', url, params=params).content
