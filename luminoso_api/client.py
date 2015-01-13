@@ -38,9 +38,8 @@ class LuminosoClient(object):
     the appropriate way for the request, which is described in the
     individual documentation for each method.
 
-    A LuminosoClient requires a Session object that has a TokenAuth object as
-    its .auth attribute. The easiest way to create a LuminosoClient is using
-    the `LuminosoClient.connect()` static method.
+    The easiest way to create a LuminosoClient is using the
+    `LuminosoClient.connect()` static method.
 
     In addition to the base URL, the LuminosoClient has a `root_url`,
     pointing to the root of the API, such as https://api.luminoso.com/v4.
@@ -50,7 +49,8 @@ class LuminosoClient(object):
     """
     def __init__(self, session, url):
         """
-        Create a LuminosoClient given an existing auth object.
+        Create a LuminosoClient given an existing Session object that has a
+        TokenAuth object as its .auth attribute.
 
         It is probably easier to call LuminosoClient.connect() to handle
         the authentication for you.
