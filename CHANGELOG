@@ -1,4 +1,17 @@
-Version 0.4.4 (unreleased)
+Version 0.4.5 (unreleased)
+
+  * Client changes
+
+    - Removed support for non-token authentication.
+    - New `save_to_file` method allows saving API output directly to a file.
+    - Removed ftfy dependency, because ftfy is now run on documents after
+      they are uploaded.
+
+  * Server changes
+
+    - Some API endpoints can return xlsx files.
+
+Version 0.4.4 (2014-07-30)
 
   * Client changes
 
