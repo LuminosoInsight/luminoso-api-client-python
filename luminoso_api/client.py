@@ -3,7 +3,7 @@ Provides the LuminosoClient object, a wrapper for making
 properly-authenticated requests to the Luminoso REST API.
 """
 from __future__ import unicode_literals
-from .auth import LuminosoAuth, TokenAuth
+from .auth import TokenAuth
 from .constants import URL_BASE
 from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
     LuminosoServerError, LuminosoAPIError)
@@ -38,10 +38,8 @@ class LuminosoClient(object):
     the appropriate way for the request, which is described in the
     individual documentation for each method.
 
-    A LuminosoClient requires a LuminosoAuth object. The easiest way to
-    create a LuminosoClient is using the `LuminosoClient.connect(url)`
-    static method, which will take in your username and optionally your
-    password, or prompt you for the password if it is not specified.
+    The easiest way to create a LuminosoClient is using the
+    `LuminosoClient.connect()` static method.
 
     In addition to the base URL, the LuminosoClient has a `root_url`,
     pointing to the root of the API, such as https://api.luminoso.com/v4.
@@ -49,14 +47,15 @@ class LuminosoClient(object):
     method: when it gets a path starting with `/`, it will go back to the
     `root_url` instead of adding to the existing URL.
     """
-    def __init__(self, auth, url):
+    def __init__(self, session, url):
         """
-        Create a LuminosoClient given an existing auth object.
+        Create a LuminosoClient given an existing Session object that has a
+        TokenAuth object as its .auth attribute.
 
         It is probably easier to call LuminosoClient.connect() to handle
         the authentication for you.
         """
-        self._auth = auth
+        self.session = session
         self.url = ensure_trailing_slash(url)
         self.root_url = get_root_url(url)
 
@@ -65,7 +64,7 @@ class LuminosoClient(object):
 
     @classmethod
     def connect(cls, url=None, username=None, password=None, token=None,
-                token_file=None, token_auth=True):
+                token_file=None):
         """
         Returns an object that makes requests to the API, authenticated
         with the provided username/password, at URLs beginning with `url`.
@@ -98,12 +97,11 @@ class LuminosoClient(object):
             url = URL_BASE + '/' + url.lstrip('/')
             root_url = URL_BASE
 
-        if token_auth:
-            auth = cls._get_token_auth(username, password, token, token_file,
-                                       root_url)
-        else:
-            auth = cls._get_nontoken_auth(username, password, token, root_url)
-        client = cls(auth, url)
+        auth = cls._get_token_auth(username, password, token, token_file,
+                                   root_url)
+        session = requests.session()
+        session.auth = auth
+        client = cls(session, url)
         if auto_account:
             client = client.change_path('/projects/%s' %
                 client._get_default_account())
@@ -136,19 +134,6 @@ class LuminosoClient(object):
             auth = TokenAuth(token)
 
         return auth
-
-    @staticmethod
-    def _get_nontoken_auth(username, password, token, root_url):
-        if username is None:
-            username = os.environ['USER']
-        if password is None:
-            password = getpass('Password for %s: ' % username)
-
-        logger.info('creating LuminosoAuth object')
-        if token is not None:
-            logger.warning('ignoring "token" argument (using username and '
-                           'password)')
-        return LuminosoAuth(username, password, url=root_url)
 
     def save_token(self, token_file=None):
         """
@@ -183,7 +168,7 @@ class LuminosoClient(object):
         error status, convert that to a Python exception.
         """
         logger.debug('%s %s' % (req_type, url))
-        func = getattr(self._auth.session, req_type)
+        func = getattr(self.session, req_type)
         result = func(url, **kwargs)
         try:
             result.raise_for_status()
@@ -395,13 +380,13 @@ class LuminosoClient(object):
             url = self.root_url + path
         else:
             url = self.url + path
-        return self.__class__(self._auth, url)
+        return self.__class__(self.session, url)
 
     def _get_default_account(self):
         """
         Get the ID of an account you can use to access projects.
         """
-        newclient = LuminosoClient(self._auth, self.root_url)
+        newclient = self.__class__(self.session, self.root_url)
         account_info = newclient.get('/accounts/')
         if account_info['default_account'] is not None:
             return account_info['default_account']
@@ -417,15 +402,8 @@ class LuminosoClient(object):
         """
         Get the documentation that the server sends for the API.
         """
-        newclient = LuminosoClient(self._auth, self.root_url)
+        newclient = self.__class__(self.session, self.root_url)
         return newclient.get_raw('/')
-
-    def keepalive(self):
-        """
-        Send a pointless POST request so that auth doesn't time out.
-        """
-        newclient = LuminosoClient(self._auth, self.root_url)
-        return newclient.post('ping')
 
     def upload(self, path, docs, **params):
         """

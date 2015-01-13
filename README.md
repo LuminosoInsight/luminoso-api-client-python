@@ -60,7 +60,7 @@ automatically, so that you don't have to specify any credentials:
 from luminoso_api import LuminosoClient
 client = LuminosoClient.connect(token='my-api-token-here')
 # This will save a non-expiring token, regardless of whether you are currently
-# using that token or some other token or non-token authentication.
+# using that token or some other token.
 client.save_token()
 # Now you can exit Python, restart your computer, etc., and your token will
 # still be saved when you come back.
