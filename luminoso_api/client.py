@@ -38,9 +38,9 @@ class LuminosoClient(object):
     the appropriate way for the request, which is described in the
     individual documentation for each method.
 
-    A LuminosoClient requires a TokenAuth object. The easiest way to
-    create a LuminosoClient is using the `LuminosoClient.connect()`
-    static method.
+    A LuminosoClient requires a Session object that has a TokenAuth object as
+    its .auth attribute. The easiest way to create a LuminosoClient is using
+    the `LuminosoClient.connect()` static method.
 
     In addition to the base URL, the LuminosoClient has a `root_url`,
     pointing to the root of the API, such as https://api.luminoso.com/v4.
@@ -48,15 +48,14 @@ class LuminosoClient(object):
     method: when it gets a path starting with `/`, it will go back to the
     `root_url` instead of adding to the existing URL.
     """
-    def __init__(self, auth, url):
+    def __init__(self, session, url):
         """
         Create a LuminosoClient given an existing auth object.
 
         It is probably easier to call LuminosoClient.connect() to handle
         the authentication for you.
         """
-        self.session = requests.session()
-        self.session.auth = auth
+        self.session = session
         self.url = ensure_trailing_slash(url)
         self.root_url = get_root_url(url)
 
@@ -100,7 +99,9 @@ class LuminosoClient(object):
 
         auth = cls._get_token_auth(username, password, token, token_file,
                                    root_url)
-        client = cls(auth, url)
+        session = requests.session()
+        session.auth = auth
+        client = cls(session, url)
         if auto_account:
             client = client.change_path('/projects/%s' %
                 client._get_default_account())
@@ -379,13 +380,13 @@ class LuminosoClient(object):
             url = self.root_url + path
         else:
             url = self.url + path
-        return self.__class__(self.session.auth, url)
+        return self.__class__(self.session, url)
 
     def _get_default_account(self):
         """
         Get the ID of an account you can use to access projects.
         """
-        newclient = LuminosoClient(self.session.auth, self.root_url)
+        newclient = self.__class__(self.session, self.root_url)
         account_info = newclient.get('/accounts/')
         if account_info['default_account'] is not None:
             return account_info['default_account']
@@ -401,7 +402,7 @@ class LuminosoClient(object):
         """
         Get the documentation that the server sends for the API.
         """
-        newclient = LuminosoClient(self.session.auth, self.root_url)
+        newclient = self.__class__(self.session, self.root_url)
         return newclient.get_raw('/')
 
     def upload(self, path, docs, **params):
