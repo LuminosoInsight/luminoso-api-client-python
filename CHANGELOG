@@ -1,4 +1,4 @@
-Version 0.4.5 (unreleased)
+Version 0.4.5 (2015-01-23)
 
   * Client changes
 
@@ -6,10 +6,6 @@ Version 0.4.5 (unreleased)
     - New `save_to_file` method allows saving API output directly to a file.
     - Removed ftfy dependency, because ftfy is now run on documents after
       they are uploaded.
-
-  * Server changes
-
-    - Some API endpoints can return xlsx files.
 
 Version 0.4.4 (2014-07-30)
 
