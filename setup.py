@@ -11,12 +11,15 @@ classifiers = [
     'Topic :: Text Processing :: Linguistic'
 ]
 
+GITHUB_URL = 'http://github.com/LuminosoInsight/luminoso-api-client-python'
+
 setup(
     name="luminoso-api",
     version=VERSION,
     maintainer='Luminoso Technologies, Inc.',
     maintainer_email='info@luminoso.com',
-    url='http://github.com/LuminosoInsight/luminoso-api-client-python',
+    url=GITHUB_URL,
+    download_url='%s/tarball/v%s' % (GITHUB_URL, VERSION),
     platforms=["any"],
     description="Python client library for communicating with the Luminoso REST API",
     classifiers=classifiers,
