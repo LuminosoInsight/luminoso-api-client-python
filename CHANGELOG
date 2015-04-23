@@ -1,3 +1,10 @@
+Version 0.4.6 (2015-04-23)
+
+  * Client changes
+
+    - Use `ftfy.guess_bytes` instead of `chardet.detect`, which was frequently
+      detecting valid UTF-8 as ISO-8859-2.
+
 Version 0.4.5 (2015-01-23)
 
   * Client changes
@@ -111,14 +118,14 @@ Version 0.3.5 (2013-01-03)
     - As a principled way of dealing with multiple incompatible versions of
       requests, we now depend on the 'requests-transition' distribution that
       we have put on GitHub.
-      
+
       This lets us explicitly install and import version 0.x without
       conflicting with other code.
 
 Version 0.3.4 (2013-01-02)
 
   * Client changes
-  
+
     - The 'requests' library has made incompatible changes in version 1.0.
       As our API code is a fairly thin wrapper around requests, changing it to
       support requests 1.0 would be a major change. We'll do that in
@@ -131,7 +138,7 @@ Version 0.3.4 (2013-01-02)
 Version 0.3.3 (2012-11-19)
 
   * Client changes
-    
+
     - Initial version of upload.py, a script that runs JSON or CSV data
       through the entire upload process.
 
@@ -165,7 +172,7 @@ API v3. Significant changes since we first made it available on Git are:
       from the project, while leaving it in existence.
 
   * Client changes
-  
+
     - PUT requests (for example, for replacing an exsiting document) work
       correctly.
     - The client has a special `wait_for` function that polls a .../jobs/<id>

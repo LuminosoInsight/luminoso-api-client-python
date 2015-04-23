@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-VERSION = "0.4.5"
+VERSION = "0.4.6"
 
 from setuptools import setup, find_packages
 
@@ -26,7 +26,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'requests >= 1.2.1, < 3.0',
-        'chardet',
+        'ftfy >= 3.3, < 5',
     ],
     entry_points={
         'console_scripts': [

@@ -23,7 +23,7 @@ import json
 import codecs
 import io
 import csv
-import chardet
+import ftfy
 import logging
 import unicodedata
 import sys
@@ -123,55 +123,17 @@ def open_json_or_csv_somehow(filename):
 
 def detect_file_encoding(filename):
     """
-    Use chardet to detect the encoding of a file, based on a sample of its
-    first 64K.
+    Use ftfy to detect the encoding of a file, based on a sample of its
+    first megabyte.
 
-    If chardet tells us it's ISO-8859-2, pretend it said 'macroman' instead.
-    CSV files in MacRoman are something that Excel for Mac tends to produce,
-    and chardet detects them erroneously as ISO-8859-2.
-
-    If your file actually does consist of Eastern European text, please save
-    it in UTF-8. Actually, let me broaden that recommendation: no matter what
-    your file contains, please save it in UTF-8.
+    ftfy's encoding detector is limited. The only encodings it can detect are
+    UTF-8, CESU-8, UTF-16, Windows-1252, and occasionally MacRoman. But it
+    does much better than chardet.
     """
-    opened = open(filename, 'rb')
-    sample = opened.read(2 ** 16)
-
-    detected = chardet.detect(sample)
-    encoding = detected['encoding']
-    confidence = detected['confidence']
-    if encoding is None:
-        encoding = 'utf-8'
-    elif encoding.startswith('ISO'):
-        if b'\r' in sample and b'\n' not in sample:
-            encoding = 'macroman'
-        else:
-            if confidence < .95:
-                logger.warning("This file is in some ISO-like encoding, but "
-                               "we aren't confident about what it is. "
-                               "Guessing it's Windows-1252.")
-                logger.warning("If this is wrong, please re-encode your file "
-                               "as UTF-8.")
-                encoding = 'windows-1252'
-
-    try:
-        codecs.lookup(encoding)
-    except LookupError:
-        # You might find this case unlikely, of Python detecting a codec it
-        # can't read, but it happened when Luminoso-the-Media-Lab-project
-        # got a file from the Taiwanese version of Excel.
-        logger.warning("This file might be encoded as %r, but Python doesn't "
-                       "know how to read that. Falling back on Windows-1252, "
-                       "but it's likely to be wrong." % encoding)
-        encoding = 'windows-1252'
-    opened.close()
-
-    # If it appears to be ASCII, make it strictly more general, so we can try
-    # to handle unexpected characters later
-    if encoding == 'ascii':
-        encoding = 'windows-1252'
-
-    return encoding
+    with open(filename, 'rb') as opened:
+        sample = opened.read(2 ** 20)
+        _, encoding = ftfy.guess_bytes(sample)
+        return encoding
 
 
 def stream_json_lines(file):
