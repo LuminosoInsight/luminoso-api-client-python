@@ -131,7 +131,7 @@ def detect_file_encoding(filename):
     does much better than chardet.
     """
     with open(filename, 'rb') as opened:
-        sample = opened.read(2 ** 10)
+        sample = opened.read(2 ** 20)
         _, encoding = ftfy.guess_bytes(sample)
         return encoding
 
