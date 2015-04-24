@@ -58,7 +58,7 @@ def upload_stream(stream, server, account, projname, reader_dict,
 
 def upload_file(filename, server, account, projname, reader_dict=None,
                 username=None, password=None,
-                append=False, stage=False):
+                append=False, stage=False, date_format=None):
     """
     Upload a file to Luminoso with the given account and project name.
 
@@ -69,7 +69,8 @@ def upload_file(filename, server, account, projname, reader_dict=None,
     if reader_dict is None:
         reader_dict = {}
     stream = transcode_to_stream(filename)
-    upload_stream(stream_json_lines(stream), server, account, projname,
+    upload_stream(stream_json_lines(stream, date_format), 
+                  server, account, projname,
                   reader_dict, username=username, password=password,
                   append=append, stage=stage)
 
@@ -104,6 +105,11 @@ def main():
         help="username (defaults to your username on your computer)")
     parser.add_argument('-p', '--password', default=None,
         help="password (you can leave this out and type it in later)")
+    parser.add_argument('-d', '--date-format', default='iso',
+        help="format string for parsing dates, following http://strftime.org/"
+             "\nDefault is 'iso', which is '%Y-%m-%dT%H:%M:%S+00:00'\n"
+             "Can also pass 'epoch' for epoch time or 'us-standard' for"
+             "'%m/%d/%y'")
     args = parser.parse_args()
     url = args.api_url
     if args.local:
@@ -118,9 +124,18 @@ def main():
             lang, reader_name = item.split('=', 1)
             reader_dict[lang] = reader_name
 
+    date_format = args.date_format.lower()
+    if date_format == 'iso':
+        date_format = '%Y-%m-%dT%H:%M:%S+00:00'
+    elif date_format in ['unix', 'epoch']:
+        date_format = 'epoch'
+    elif date_format == 'us-standard':
+        date_format = '%m/%d/%y'
+
     upload_file(args.filename, url, args.account, args.project_name,
                 reader_dict, username=args.username, password=args.password,
-                append=args.append, stage=args.stage)
+                append=args.append, stage=args.stage, 
+                date_format=date_format)
 
 if __name__ == '__main__':
     main()
