@@ -28,7 +28,7 @@ import logging
 import unicodedata
 import sys
 import tempfile
-import datetime
+from datetime import datetime
 from .compat import PY3, string_type
 logger = logging.getLogger(__name__)
 
@@ -137,21 +137,36 @@ def detect_file_encoding(filename):
         return encoding
 
 
+def _convert_date(date_string, date_format):
+    """
+    Convert a date in a given format to epoch time. Mostly a wrapper for
+    datetime's strptime.
+    """
+    if date_format != 'epoch':
+        return datetime.strptime(date_string, date_format).timestamp()
+    else:
+        return float(date_string)
+
+
 def stream_json_lines(file, date_format):
     """
     Load a JSON stream and return a generator, yielding one object at a time.
     """
     if isinstance(file, string_type):
         file = open(file, 'rb')
-    print('Date format: ', date_format)
     for line in file:
         line = line.strip()
         if line:
             if isinstance(line, bytes):
                 line = line.decode('utf-8')
-            json_line = json.loads(line)
-            json_line['date'] = convert_date(json_line['date'], date_format)
-            yield json_line
+            line = json.loads(line)
+            try:
+                line['date'] = _convert_date(line['date'], date_format)
+            except ValueError:
+                logger.exception('%s does not match the date format %s; '
+                                 'uploading document without date'
+                                 % (line['date'], date_format))
+            yield line
 
 
 def open_csv_somehow(filename):
@@ -241,10 +256,7 @@ def _read_csv(reader, header, encode_fn):
         if row_dict.get('title') == '':
             del row_dict['title']
         if 'date' in row_dict:
-            # We handle dates further in stream_json_lines, but if date_format
-            # is not specified and the dates are not in epoch time, we don't
-            # hold up the upload. We leave it to lumi_api to decide what to do
-            # if the date is in an incorrect format.
+            # We handle dates further in stream_json_lines
             if row_dict['date'] == '':
                 del row_dict['date']
         if 'query' in row_dict or 'subset' in row_dict:
@@ -258,13 +270,6 @@ def _read_csv(reader, header, encode_fn):
             if 'subset' in row_dict:
                 del row_dict['subset']
         yield row_dict
-
-
-def convert_date(date_string, date_format):
-    if date_format != 'epoch':
-        return datetime.datetime.strptime(date_string, date_format).timestamp()
-    else:
-        return int(date)
 
 
 def main():
