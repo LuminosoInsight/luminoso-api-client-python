@@ -124,13 +124,16 @@ def main():
             lang, reader_name = item.split('=', 1)
             reader_dict[lang] = reader_name
 
-    date_format = args.date_format.lower()
-    if date_format == 'iso':
+    # Implement some human-understandable shortcuts for date_format
+    date_format_lower = args.date_format.lower()
+    if date_format_lower == 'iso':
         date_format = '%Y-%m-%dT%H:%M:%S+00:00'
-    elif date_format in ['unix', 'epoch']:
+    elif date_format_lower in ['unix', 'epoch']:
         date_format = 'epoch'
-    elif date_format == 'us-standard':
+    elif date_format_lower == 'us-standard':
         date_format = '%m/%d/%y'
+    else:
+        date_format = args.date_format
 
     upload_file(args.filename, url, args.account, args.project_name,
                 reader_dict, username=args.username, password=args.password,
