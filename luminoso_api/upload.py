@@ -6,7 +6,8 @@ from luminoso_api.json_stream import transcode_to_stream, stream_json_lines
 ROOT_URL = 'https://api.luminoso.com/v4'
 LOCAL_URL = 'http://localhost:5000/v4'
 
-#http://code.activestate.com/recipes/303279-getting-items-in-batches/
+
+# http://code.activestate.com/recipes/303279-getting-items-in-batches/
 def batches(iterable, size):
     """
     Take an iterator and yield its contents in groups of `size` items.
@@ -15,6 +16,7 @@ def batches(iterable, size):
     while True:
         batchiter = islice(sourceiter, size)
         yield chain([next(batchiter)], batchiter)
+
 
 def upload_stream(stream, server, account, projname, reader_dict,
                   username=None, password=None,
@@ -69,10 +71,11 @@ def upload_file(filename, server, account, projname, reader_dict=None,
     if reader_dict is None:
         reader_dict = {}
     stream = transcode_to_stream(filename, date_format)
-    upload_stream(stream_json_lines(stream), 
+    upload_stream(stream_json_lines(stream),
                   server, account, projname,
                   reader_dict, username=username, password=password,
                   append=append, stage=stage)
+
 
 def main():
     """
@@ -99,7 +102,7 @@ def main():
              "(overrides -a)",
         action="store_true")
     parser.add_argument('-r', '--readers', metavar='LANG=READER',
-        help="Custom reader to use, in a form such as 'ja=mecab.ja,"
+        help="Custom reader to use, in a form such as 'ja=mecab.ja, "
              "en=freeling.en'")
     parser.add_argument('-u', '--username', default=None,
         help="username (defaults to your username on your computer)")
@@ -119,7 +122,7 @@ def main():
     if args.readers:
         for item in args.readers.split(','):
             if '=' not in item:
-                raise ValueError("You entered %r as a reader, but it should "\
+                raise ValueError("You entered %r as a reader, but it should "
                                  "have the form 'lang=reader.name'" % item)
             lang, reader_name = item.split('=', 1)
             reader_dict[lang] = reader_name
@@ -137,7 +140,7 @@ def main():
 
     upload_file(args.filename, url, args.account, args.project_name,
                 reader_dict, username=args.username, password=args.password,
-                append=args.append, stage=args.stage, 
+                append=args.append, stage=args.stage,
                 date_format=date_format)
 
 if __name__ == '__main__':

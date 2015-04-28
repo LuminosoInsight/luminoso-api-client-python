@@ -126,7 +126,7 @@ def open_json_or_csv_somehow(filename, date_format=None):
 
 
 def _normalize_data(stream, date_format=None):
-    """ 
+    """
     This function is meant to normalize data for upload to the Luminoso
     Analytics system. Currently it only normalizes dates.
 
@@ -134,7 +134,7 @@ def _normalize_data(stream, date_format=None):
     the the doc is yielded unchanged.
     """
     for doc in stream:
-        if 'date' in doc and date_format is not None:            
+        if 'date' in doc and date_format is not None:
             try:
                 doc['date'] = _convert_date(doc['date'], date_format)
             except ValueError:
