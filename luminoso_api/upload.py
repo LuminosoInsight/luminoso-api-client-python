@@ -68,8 +68,8 @@ def upload_file(filename, server, account, projname, reader_dict=None,
     """
     if reader_dict is None:
         reader_dict = {}
-    stream = transcode_to_stream(filename)
-    upload_stream(stream_json_lines(stream, date_format), 
+    stream = transcode_to_stream(filename, date_format)
+    upload_stream(stream_json_lines(stream), 
                   server, account, projname,
                   reader_dict, username=username, password=password,
                   append=append, stage=stage)
