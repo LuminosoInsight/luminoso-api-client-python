@@ -172,7 +172,7 @@ def detect_file_encoding(filename):
         return encoding
 
 
-def stream_json_lines(file, date_format='epoch'):
+def stream_json_lines(file):
     """
     Load a JSON stream and return a generator, yielding one object at a time.
     """
