@@ -273,7 +273,7 @@ def _read_csv(reader, header, encode_fn):
         if row_dict.get('title') == '':
             del row_dict['title']
         if 'date' in row_dict:
-            # We handle dates further in stream_json_lines
+            # We handle dates further in open_json_or_csv_somehow
             if row_dict['date'] == '':
                 del row_dict['date']
         if 'query' in row_dict or 'subset' in row_dict:
