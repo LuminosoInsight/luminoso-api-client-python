@@ -109,10 +109,10 @@ def main():
     parser.add_argument('-p', '--password', default=None,
         help="password (you can leave this out and type it in later)")
     parser.add_argument('-d', '--date-format', default='iso',
-        help="format string for parsing dates, following http://strftime.org/"
-             "\nDefault is 'iso', which is '%Y-%m-%dT%H:%M:%S+00:00'\n"
-             "Can also pass 'epoch' for epoch time or 'us-standard' for"
-             "'%m/%d/%y'")
+        help="format string for parsing dates, following http://strftime.org/. "
+             "Default is 'iso', which is '%%Y-%%m-%%dT%%H:%%M:%%S+00:00'. "
+             "Other shortcuts are 'epoch' for epoch time or 'us-standard' for "
+             "'%%m/%%d/%%y'")
     args = parser.parse_args()
     url = args.api_url
     if args.local:
