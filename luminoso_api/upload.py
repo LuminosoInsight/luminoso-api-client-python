@@ -6,7 +6,8 @@ from luminoso_api.json_stream import transcode_to_stream, stream_json_lines
 ROOT_URL = 'https://api.luminoso.com/v4'
 LOCAL_URL = 'http://localhost:5000/v4'
 
-#http://code.activestate.com/recipes/303279-getting-items-in-batches/
+
+# http://code.activestate.com/recipes/303279-getting-items-in-batches/
 def batches(iterable, size):
     """
     Take an iterator and yield its contents in groups of `size` items.
@@ -15,6 +16,7 @@ def batches(iterable, size):
     while True:
         batchiter = islice(sourceiter, size)
         yield chain([next(batchiter)], batchiter)
+
 
 def upload_stream(stream, server, account, projname, reader_dict,
                   username=None, password=None,
@@ -58,7 +60,7 @@ def upload_stream(stream, server, account, projname, reader_dict,
 
 def upload_file(filename, server, account, projname, reader_dict=None,
                 username=None, password=None,
-                append=False, stage=False):
+                append=False, stage=False, date_format=None):
     """
     Upload a file to Luminoso with the given account and project name.
 
@@ -68,10 +70,12 @@ def upload_file(filename, server, account, projname, reader_dict=None,
     """
     if reader_dict is None:
         reader_dict = {}
-    stream = transcode_to_stream(filename)
-    upload_stream(stream_json_lines(stream), server, account, projname,
+    stream = transcode_to_stream(filename, date_format)
+    upload_stream(stream_json_lines(stream),
+                  server, account, projname,
                   reader_dict, username=username, password=password,
                   append=append, stage=stage)
+
 
 def main():
     """
@@ -98,12 +102,17 @@ def main():
              "(overrides -a)",
         action="store_true")
     parser.add_argument('-r', '--readers', metavar='LANG=READER',
-        help="Custom reader to use, in a form such as 'ja=mecab.ja,"
+        help="Custom reader to use, in a form such as 'ja=mecab.ja, "
              "en=freeling.en'")
     parser.add_argument('-u', '--username', default=None,
         help="username (defaults to your username on your computer)")
     parser.add_argument('-p', '--password', default=None,
         help="password (you can leave this out and type it in later)")
+    parser.add_argument('-d', '--date-format', default='iso',
+        help="format string for parsing dates, following http://strftime.org/. "
+             "Default is 'iso', which is '%%Y-%%m-%%dT%%H:%%M:%%S+00:00'. "
+             "Other shortcuts are 'epoch' for epoch time or 'us-standard' for "
+             "'%%m/%%d/%%y'")
     args = parser.parse_args()
     url = args.api_url
     if args.local:
@@ -113,14 +122,26 @@ def main():
     if args.readers:
         for item in args.readers.split(','):
             if '=' not in item:
-                raise ValueError("You entered %r as a reader, but it should "\
+                raise ValueError("You entered %r as a reader, but it should "
                                  "have the form 'lang=reader.name'" % item)
             lang, reader_name = item.split('=', 1)
             reader_dict[lang] = reader_name
 
+    # Implement some human-understandable shortcuts for date_format
+    date_format_lower = args.date_format.lower()
+    if date_format_lower == 'iso':
+        date_format = '%Y-%m-%dT%H:%M:%S+00:00'
+    elif date_format_lower in ['unix', 'epoch']:
+        date_format = 'epoch'
+    elif date_format_lower == 'us-standard':
+        date_format = '%m/%d/%y'
+    else:
+        date_format = args.date_format
+
     upload_file(args.filename, url, args.account, args.project_name,
                 reader_dict, username=args.username, password=args.password,
-                append=args.append, stage=args.stage)
+                append=args.append, stage=args.stage,
+                date_format=date_format)
 
 if __name__ == '__main__':
     main()

@@ -28,11 +28,12 @@ import logging
 import unicodedata
 import sys
 import tempfile
+from datetime import datetime
 from .compat import PY3, string_type
 logger = logging.getLogger(__name__)
 
 
-def transcode(input_filename, output_filename=None):
+def transcode(input_filename, output_filename=None, date_format=None):
     """
     Convert a JSON or CSV file of input to a JSON stream (.jsons). This
     kind of file can be easily uploaded using `luminoso_api.upload`.
@@ -48,26 +49,28 @@ def transcode(input_filename, output_filename=None):
             output_filename += 's'
         output = open(output_filename, 'w')
 
-    for entry in open_json_or_csv_somehow(input_filename):
+    for entry in open_json_or_csv_somehow(input_filename,
+                                          date_format=date_format):
         output.write(json.dumps(entry, ensure_ascii=False).encode('utf-8'))
         output.write('\n')
     output.close()
 
 
-def transcode_to_stream(input_filename):
+def transcode_to_stream(input_filename, date_format=None):
     """
     Read a JSON or CSV file and convert it into a JSON stream, which will
     be saved in an anonymous temp file.
     """
     tmp = tempfile.TemporaryFile()
-    for entry in open_json_or_csv_somehow(input_filename):
+    for entry in open_json_or_csv_somehow(input_filename,
+                                          date_format=date_format):
         tmp.write(json.dumps(entry, ensure_ascii=False).encode('utf-8'))
         tmp.write(b'\n')
     tmp.seek(0)
     return tmp
 
 
-def open_json_or_csv_somehow(filename):
+def open_json_or_csv_somehow(filename, date_format=None):
     """
     Deduce the format of a file, within reason.
 
@@ -91,34 +94,67 @@ def open_json_or_csv_somehow(filename):
     elif filename.endswith('.jsons'):
         fileformat = 'jsons'
     else:
-        opened = open(filename)
-        line = opened.readline()
-        if line[0] not in '{[' and not filename.endswith('.json'):
-            fileformat = 'csv'
-        else:
-            if (line.count('{') == line.count('}') and
-                line.count('[') == line.count(']')):
-                # This line contains a complete JSON document. This probably
-                # means it's in linewise JSON ('.jsons') format, unless the
-                # whole file is on one line.
-                char = ' '
-                while char.isspace():
-                    char = opened.read()
-                    if char == '':
-                        fileformat = 'json'
-                        break
-                if fileformat is None:
-                    fileformat = 'jsons'
+        with open(filename) as opened:
+            line = opened.readline()
+            if line[0] not in '{[' and not filename.endswith('.json'):
+                fileformat = 'csv'
             else:
-                fileformat = 'json'
-        opened.close()
+                if (line.count('{') == line.count('}') and
+                    line.count('[') == line.count(']')):
+                    # This line contains a complete JSON document. This probably
+                    # means it's in linewise JSON ('.jsons') format, unless the
+                    # whole file is on one line.
+                    char = ' '
+                    while char.isspace():
+                        char = opened.read()
+                        if char == '':
+                            fileformat = 'json'
+                            break
+                    if fileformat is None:
+                        fileformat = 'jsons'
+                else:
+                    fileformat = 'json'
 
     if fileformat == 'json':
-        return json.load(open(filename), encoding='utf-8')
+        stream = json.load(open(filename), encoding='utf-8')
     elif fileformat == 'csv':
-        return open_csv_somehow(filename)
+        stream = open_csv_somehow(filename)
     else:
-        return stream_json_lines(filename)
+        stream = stream_json_lines(filename)
+
+    return _normalize_data(stream, date_format=date_format)
+
+
+def _normalize_data(stream, date_format=None):
+    """
+    This function is meant to normalize data for upload to the Luminoso
+    Analytics system. Currently it only normalizes dates.
+
+    If date_format is not specified, or if there's no date in a particular doc,
+    the the doc is yielded unchanged.
+    """
+    for doc in stream:
+        if 'date' in doc and date_format is not None:
+            try:
+                doc['date'] = _convert_date(doc['date'], date_format)
+            except ValueError:
+                # ValueErrors cover the cases when date_format does not match
+                # the actual format of the date, both for epoch and non-epoch
+                # times.
+                logger.exception('%s does not match the date format %s;'
+                                 % (doc['date'], date_format))
+        yield doc
+
+
+def _convert_date(date_string, date_format):
+    """
+    Convert a date in a given format to epoch time. Mostly a wrapper for
+    datetime's strptime.
+    """
+    if date_format != 'epoch':
+        return datetime.strptime(date_string, date_format).timestamp()
+    else:
+        return float(date_string)
 
 
 def detect_file_encoding(filename):
@@ -237,10 +273,9 @@ def _read_csv(reader, header, encode_fn):
         if row_dict.get('title') == '':
             del row_dict['title']
         if 'date' in row_dict:
+            # We handle dates further in open_json_or_csv_somehow
             if row_dict['date'] == '':
                 del row_dict['date']
-            else:
-                row_dict['date'] = int(row_dict['date'])
         if 'query' in row_dict or 'subset' in row_dict:
             queries = [cell[1] for cell in row_list
                        if cell[1] != '' and

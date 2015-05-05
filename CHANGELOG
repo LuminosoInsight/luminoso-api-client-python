@@ -1,3 +1,9 @@
+Version 0.4.7 (2015-04-27)
+
+  * Upload script changes
+
+    - Add an option to specify the date format of the uploaded file.
+
 Version 0.4.6 (2015-04-23)
 
   * Client changes
