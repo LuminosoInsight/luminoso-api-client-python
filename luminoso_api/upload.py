@@ -102,8 +102,8 @@ def main():
              "(overrides -a)",
         action="store_true")
     parser.add_argument('-r', '--readers', metavar='LANG=READER',
-        help="Custom reader to use, in a form such as 'ja=mecab.ja, "
-             "en=freeling.en'")
+        help="Custom reader to use, in a form such as "
+             "'ja=mecab.ja,en=freeling.en'")
     parser.add_argument('-u', '--username', default=None,
         help="username (defaults to your username on your computer)")
     parser.add_argument('-p', '--password', default=None,
