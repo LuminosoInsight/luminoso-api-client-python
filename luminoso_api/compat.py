@@ -10,4 +10,4 @@ if PY3:
 else:
     types_not_to_encode = (int, long, basestring)
     string_type = basestring
-    from urllib2 import urlparse
+    from urlparse import urlparse
