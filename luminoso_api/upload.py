@@ -31,6 +31,7 @@ def upload_stream(stream, server, account, projname, reader_dict,
         # If we're not appending to an existing project, create new project.
         info = client.post('/projects/' + account, name=projname)
         project_id = info['project_id']
+        print('New project ID:', project_id)
     else:
         projects = client.get('/projects/' + account, name=projname)
         if len(projects) == 0:
