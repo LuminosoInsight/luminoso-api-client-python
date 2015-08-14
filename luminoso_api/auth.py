@@ -34,8 +34,7 @@ class TokenAuth(requests.auth.AuthBase):
         session = requests.session()
         token_resp = session.post(url.rstrip('/') + '/user/login/',
                                   data={'username': username,
-                                        'password': password,
-                                        'token_auth': True})
+                                        'password': password})
         if token_resp.status_code != 200:
             error = token_resp.text
             try:
