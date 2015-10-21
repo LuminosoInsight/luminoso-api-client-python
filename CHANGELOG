@@ -1,3 +1,9 @@
+Version 0.4.8 (2015-10-20)
+
+  * Client changes
+
+    - In upload script, use "subsets" instead of deprecated "queries".
+
 Version 0.4.7 (2015-04-27)
 
   * Upload script changes
