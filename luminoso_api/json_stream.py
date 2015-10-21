@@ -20,7 +20,6 @@ document properties defined in the documentation at https://api.luminoso.com/v4.
 """
 from __future__ import unicode_literals
 import json
-import codecs
 import io
 import csv
 import ftfy
@@ -276,14 +275,11 @@ def _read_csv(reader, header, encode_fn):
             # We handle dates further in open_json_or_csv_somehow
             if row_dict['date'] == '':
                 del row_dict['date']
-        if 'query' in row_dict or 'subset' in row_dict:
-            queries = [cell[1] for cell in row_list
-                       if cell[1] != '' and
-                       (cell[0] == 'query' or cell[0] == 'subset')]
-            if queries:
-                row_dict['queries'] = queries
-            if 'query' in row_dict:
-                del row_dict['query']
+        if 'subset' in row_dict:
+            subsets = [cell[1] for cell in row_list
+                       if cell[1] != '' and cell[0] == 'subset']
+            if subsets:
+                row_dict['subsets'] = subsets
             if 'subset' in row_dict:
                 del row_dict['subset']
         yield row_dict
