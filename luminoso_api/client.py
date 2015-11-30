@@ -21,14 +21,14 @@ class LuminosoClient(object):
     A tool for making authenticated requests to the Luminoso API version 4.
 
     A LuminosoClient is a thin wrapper around the REST API documented at
-    https://api.luminoso.com/v4. As such, you interact with it by calling its
-    methods that correspond to HTTP methods: `.get(url)`, `.post(url)`,
-    `.put(url)`, `.patch(url)`, and `.delete(url)`.
+    https://analytics.luminoso.com/api/v4/. As such, you interact with it by
+    calling its methods that correspond to HTTP methods: `.get(url)`,
+    `.post(url)`, `.put(url)`, `.patch(url)`, and `.delete(url)`.
 
     These URLs are relative to a 'base URL' for the LuminosoClient. For
     example, you can make requests for a specific account's projects
     by creating a LuminosoClient for
-    `https://api.luminoso.com/v4/projects/<account_id>`,
+    `https://analytics.luminoso.com/api/v4/projects/<account_id>`,
     or you can go deeper to create a client that makes requests for a
     specific project.
 
@@ -42,10 +42,11 @@ class LuminosoClient(object):
     `LuminosoClient.connect()` static method.
 
     In addition to the base URL, the LuminosoClient has a `root_url`,
-    pointing to the root of the API, such as https://api.luminoso.com/v4.
-    This is used, for example, as a starting point for the `change_path`
-    method: when it gets a path starting with `/`, it will go back to the
-    `root_url` instead of adding to the existing URL.
+    pointing to the root of the API, such as
+    https://analytics.luminoso.com/api/v4. This is used, for example, as a
+    starting point for the `change_path` method: when it gets a path starting
+    with `/`, it will go back to the `root_url` instead of adding to the
+    existing URL.
     """
     def __init__(self, session, url):
         """
@@ -76,8 +77,8 @@ class LuminosoClient(object):
             client = LuminosoClient.connect(username=username)
 
         If the URL is simply a path, omitting the scheme and domain, then
-        it will default to https://api.luminoso.com/v4/, which is probably what
-        you want:
+        it will default to https://analytics.luminoso.com/api/v4/, which is
+        probably what you want:
 
             client = LuminosoClient.connect('/projects/public', username=username)
 
@@ -358,9 +359,9 @@ class LuminosoClient(object):
         Return a new LuminosoClient for a subpath of this one.
 
         For example, you might want to start with a LuminosoClient for
-        `https://api.luminoso.com/v4/`, then get a new one for
-        `https://api.luminoso.com/v4/projects/myaccount/myproject_id`. You
-        accomplish that with the following call:
+        `https://analytics.luminoso.com/api/v4/`, then get a new one for
+        `https://analytics.luminoso.com/api/v4/projects/myaccount/myprojectid`.
+        You accomplish that with the following call:
 
             newclient = client.change_path('projects/myaccount/myproject_id')
 
@@ -489,12 +490,19 @@ def get_token_filename():
 
 def get_root_url(url):
     """
-    If we have to guess a root URL, assume it contains the scheme,
-    hostname, and one path component, as in "https://api.luminoso.com/v4".
+    Guessing the root URL is slightly complicated, because the API may be at
+    /v4 or at /api/v4, depending on whether you're accessing the API through
+    its old URL or its new one.
     """
     # make sure it's a complete URL, not a relative one
-    assert ':' in url
-    return '/'.join(url.split('/')[:4])
+    if '://' not in url:
+        raise ValueError('Please supply a full URL, beginning with http:// '
+                         'or https:// .')
+    if 'v4' not in url:
+        # We presumably have just, e.g., https://analytics.luminoso.com/ .
+        # Redirect properly.
+        return ensure_trailing_slash(url) + 'api/v4'
+    return url[:url.find('v4') + 2]
 
 def ensure_trailing_slash(url):
     """
