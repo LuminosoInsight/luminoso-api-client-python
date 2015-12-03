@@ -58,7 +58,8 @@ class LuminosoClient(object):
         """
         self.session = session
         self.url = ensure_trailing_slash(url)
-        self.root_url = get_root_url(url)
+        # Don't warn this time; warning happened in connect()
+        self.root_url = get_root_url(url, warn=False)
 
     def __repr__(self):
         return '<LuminosoClient for %s>' % self.url
@@ -488,21 +489,34 @@ def get_token_filename():
                         '.luminoso',
                         'tokens.json')
 
-def get_root_url(url):
+def get_root_url(url, warn=True):
     """
     Guessing the root URL is slightly complicated, because the API may be at
     /v4 or at /api/v4, depending on whether you're accessing the API through
     its old URL or its new one.
     """
-    # make sure it's a complete URL, not a relative one
-    if '://' not in url:
+    parsed_url = urlparse(url)
+
+    # Make sure it's a complete URL, not a relative one.
+    if not parsed_url.scheme:
         raise ValueError('Please supply a full URL, beginning with http:// '
                          'or https:// .')
-    if 'v4' not in url:
-        # We presumably have just, e.g., https://analytics.luminoso.com/ .
-        # Redirect properly.
-        return ensure_trailing_slash(url) + 'api/v4'
-    return url[:url.find('v4') + 2]
+
+    # If the path starts with v4, use that for the base URL, but issue a
+    # warning about the URL moving.
+    if parsed_url.path.startswith('/v4'):
+        if warn:
+            logger.warning('While the old URL will continue to work, please '
+                           'be aware that the Luminoso API has moved to %s',
+                           URL_BASE)
+        return '%s://%s/v4' % (parsed_url.scheme, parsed_url.netloc)
+
+    # Otherwise, use api/v4 for the base URL, but if the path didn't already
+    # start with that, issue a warning.
+    root_url = '%s://%s/api/v4' % (parsed_url.scheme, parsed_url.netloc)
+    if warn and not parsed_url.path.startswith('/api/v4'):
+        logger.warning('Using %s as the root url' % root_url)
+    return root_url
 
 def ensure_trailing_slash(url):
     """

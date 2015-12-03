@@ -1,10 +1,8 @@
 from __future__ import print_function, unicode_literals
 from itertools import islice, chain
 from luminoso_api import LuminosoClient
+from luminoso_api.constants import URL_BASE
 from luminoso_api.json_stream import transcode_to_stream, stream_json_lines
-
-ROOT_URL = 'https://analytics.luminoso.com/api/v4/'
-LOCAL_URL = 'http://localhost:5000/api/v4'
 
 
 # http://code.activestate.com/recipes/303279-getting-items-in-batches/
@@ -97,11 +95,7 @@ def main():
         action="store_true")
     parser.add_argument('-a', '--api-url',
         help="Specify an alternate API url",
-        default=ROOT_URL)
-    parser.add_argument('-l', '--local',
-        help="Run on localhost:5000 instead of the default API server "
-             "(overrides -a)",
-        action="store_true")
+        default=URL_BASE)
     parser.add_argument('-r', '--readers', metavar='LANG=READER',
         help="Custom reader to use, in a form such as "
              "'ja=mecab.ja,en=freeling.en'")
@@ -115,9 +109,6 @@ def main():
              "Other shortcuts are 'epoch' for epoch time or 'us-standard' for "
              "'%%m/%%d/%%y'")
     args = parser.parse_args()
-    url = args.api_url
-    if args.local:
-        url = LOCAL_URL
 
     reader_dict = {}
     if args.readers:
@@ -139,7 +130,7 @@ def main():
     else:
         date_format = args.date_format
 
-    upload_file(args.filename, url, args.account, args.project_name,
+    upload_file(args.filename, args.api_url, args.account, args.project_name,
                 reader_dict, username=args.username, password=args.password,
                 append=args.append, stage=args.stage,
                 date_format=date_format)
