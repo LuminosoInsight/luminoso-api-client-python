@@ -1,10 +1,8 @@
 from __future__ import print_function, unicode_literals
 from itertools import islice, chain
 from luminoso_api import LuminosoClient
+from luminoso_api.constants import URL_BASE
 from luminoso_api.json_stream import transcode_to_stream, stream_json_lines
-
-ROOT_URL = 'https://api.luminoso.com/v4'
-LOCAL_URL = 'http://localhost:5000/v4'
 
 
 # http://code.activestate.com/recipes/303279-getting-items-in-batches/
@@ -88,36 +86,36 @@ def main():
     parser.add_argument('filename')
     parser.add_argument('account')
     parser.add_argument('project_name')
-    parser.add_argument('--append',
+    parser.add_argument(
+        '--append',
         help=("If append flag is used, upload documents to existing project,"
               "rather than creating a new project."),
         action="store_true")
-    parser.add_argument('-s', '--stage',
+    parser.add_argument(
+        '-s', '--stage',
         help=("If stage flag is used, just upload docs, don't recalculate."),
         action="store_true")
-    parser.add_argument('-a', '--api-url',
+    parser.add_argument(
+        '-a', '--api-url',
         help="Specify an alternate API url",
-        default=ROOT_URL)
-    parser.add_argument('-l', '--local',
-        help="Run on localhost:5000 instead of the default API server "
-             "(overrides -a)",
-        action="store_true")
-    parser.add_argument('-r', '--readers', metavar='LANG=READER',
+        default=URL_BASE)
+    parser.add_argument(
+        '-r', '--readers', metavar='LANG=READER',
         help="Custom reader to use, in a form such as "
              "'ja=mecab.ja,en=freeling.en'")
-    parser.add_argument('-u', '--username', default=None,
+    parser.add_argument(
+        '-u', '--username', default=None,
         help="username (defaults to your username on your computer)")
-    parser.add_argument('-p', '--password', default=None,
+    parser.add_argument(
+        '-p', '--password', default=None,
         help="password (you can leave this out and type it in later)")
-    parser.add_argument('-d', '--date-format', default='iso',
+    parser.add_argument(
+        '-d', '--date-format', default='iso',
         help="format string for parsing dates, following http://strftime.org/. "
              "Default is 'iso', which is '%%Y-%%m-%%dT%%H:%%M:%%S+00:00'. "
              "Other shortcuts are 'epoch' for epoch time or 'us-standard' for "
              "'%%m/%%d/%%y'")
     args = parser.parse_args()
-    url = args.api_url
-    if args.local:
-        url = LOCAL_URL
 
     reader_dict = {}
     if args.readers:
@@ -139,7 +137,7 @@ def main():
     else:
         date_format = args.date_format
 
-    upload_file(args.filename, url, args.account, args.project_name,
+    upload_file(args.filename, args.api_url, args.account, args.project_name,
                 reader_dict, username=args.username, password=args.password,
                 append=args.append, stage=args.stage,
                 date_format=date_format)
