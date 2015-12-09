@@ -489,12 +489,27 @@ def get_token_filename():
 
 def get_root_url(url):
     """
-    If we have to guess a root URL, assume it contains the scheme,
-    hostname, and one path component, as in "https://api.luminoso.com/v4".
+    Guessing the root URL is slightly complicated, because the API may be at
+    /v4 or at /api/v4, depending on whether you're accessing the API through
+    its old URL or its new one.
     """
-    # make sure it's a complete URL, not a relative one
-    assert ':' in url
-    return '/'.join(url.split('/')[:4])
+    parsed_url = urlparse(url)
+
+    # Make sure it's a complete URL, not a relative one.
+    if not parsed_url.scheme:
+        raise ValueError('Please supply a full URL, beginning with http:// '
+                         'or https:// .')
+
+    # If the path starts with api/v4, use that for the base URL
+    if parsed_url.path.startswith('/api/v4'):
+        return '%s://%s/api/v4' % (parsed_url.scheme, parsed_url.netloc)
+
+    # Otherwise, use v4 for the base URL, but if the path didn't already start
+    # with that, issue a warning.
+    root_url = '%s://%s/v4' % (parsed_url.scheme, parsed_url.netloc)
+    if not parsed_url.path.startswith('/v4'):
+        logger.warning('Using %s as the root url' % root_url)
+    return root_url
 
 def ensure_trailing_slash(url):
     """

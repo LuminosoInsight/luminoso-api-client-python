@@ -1,3 +1,11 @@
+Version 0.5a1 (2015-12-09)
+
+  * Client changes
+
+    - In preparation for moving the API from api.luminoso.com/v4 to
+      analytics.luminoso.com/api/v4, change the logic in get_root_url to
+      temporarily support the latter while still preferring the former.
+
 Version 0.4.8 (2015-10-20)
 
   * Client changes
