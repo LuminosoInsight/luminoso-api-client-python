@@ -86,23 +86,31 @@ def main():
     parser.add_argument('filename')
     parser.add_argument('account')
     parser.add_argument('project_name')
-    parser.add_argument('--append',
+    parser.add_argument(
+        '--append',
         help=("If append flag is used, upload documents to existing project,"
               "rather than creating a new project."),
         action="store_true")
-    parser.add_argument('-s', '--stage',
+    parser.add_argument(
+        '-s', '--stage',
         help=("If stage flag is used, just upload docs, don't recalculate."),
         action="store_true")
-    parser.add_argument('-a', '--api-url',
+    parser.add_argument(
+        '-a', '--api-url',
         help="Specify an alternate API url",
-    parser.add_argument('-r', '--readers', metavar='LANG=READER',
+        default=URL_BASE)
+    parser.add_argument(
+        '-r', '--readers', metavar='LANG=READER',
         help="Custom reader to use, in a form such as "
              "'ja=mecab.ja,en=freeling.en'")
-    parser.add_argument('-u', '--username', default=None,
+    parser.add_argument(
+        '-u', '--username', default=None,
         help="username (defaults to your username on your computer)")
-    parser.add_argument('-p', '--password', default=None,
+    parser.add_argument(
+        '-p', '--password', default=None,
         help="password (you can leave this out and type it in later)")
-    parser.add_argument('-d', '--date-format', default='iso',
+    parser.add_argument(
+        '-d', '--date-format', default='iso',
         help="format string for parsing dates, following http://strftime.org/. "
              "Default is 'iso', which is '%%Y-%%m-%%dT%%H:%%M:%%S+00:00'. "
              "Other shortcuts are 'epoch' for epoch time or 'us-standard' for "
