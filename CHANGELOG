@@ -1,6 +1,6 @@
 Version 0.5 (2015-12-10)
 
-These changes correlate with moving the api from https://api.luminoso.com/v4
+These changes correlate with moving the API from https://api.luminoso.com/v4
 to https://analytics.luminoso.com/api/v4.
 
   * Client changes
