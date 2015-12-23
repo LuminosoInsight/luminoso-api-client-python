@@ -46,7 +46,7 @@ def transcode(input_filename, output_filename=None, date_format=None):
                            "outputs a JSON stream format that is not "
                            "technically JSON itself.")
             output_filename += 's'
-        output = open(output_filename, 'w')
+        output = open(output_filename, 'w', encoding='utf-8')
 
     for entry in open_json_or_csv_somehow(input_filename,
                                           date_format=date_format):
@@ -93,7 +93,7 @@ def open_json_or_csv_somehow(filename, date_format=None):
     elif filename.endswith('.jsons'):
         fileformat = 'jsons'
     else:
-        with open(filename) as opened:
+        with open(filename, encoding='utf-8') as opened:
             line = opened.readline()
             if line[0] not in '{[' and not filename.endswith('.json'):
                 fileformat = 'csv'
@@ -219,7 +219,7 @@ def open_csv_somehow_py2(filename):
         csvfile = transcode_to_utf8(filename, encoding)
         encoding = 'UTF-8'
     else:
-        csvfile = open(filename, 'rU')
+        csvfile = open(filename, 'rU', encoding=encoding)
     line = csvfile.readline()
     csvfile.seek(0)
 
