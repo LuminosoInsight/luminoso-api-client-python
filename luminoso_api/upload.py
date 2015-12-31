@@ -16,7 +16,7 @@ def batches(iterable, size):
         yield chain([next(batchiter)], batchiter)
 
 
-def upload_stream(stream, server, account, projname, reader_dict,
+def upload_stream(stream, server, account, projname, language,
                   username=None, password=None,
                   append=False, stage=False):
     """
@@ -47,17 +47,17 @@ def upload_stream(stream, server, account, projname, reader_dict,
     for batch in batches(stream, 1000):
         counter += 1
         documents = list(batch)
-        project.upload('docs', documents, readers=reader_dict)
+        project.upload('docs', documents)
         print('Uploaded batch #%d' % (counter))
 
     if not stage:
         # Calculate the docs into the assoc space.
         print('Calculating.')
-        job_id = project.post('docs/recalculate', readers=reader_dict)
+        job_id = project.post('docs/recalculate', language=language)
         project.wait_for(job_id)
 
 
-def upload_file(filename, server, account, projname, reader_dict=None,
+def upload_file(filename, server, account, projname, language,
                 username=None, password=None,
                 append=False, stage=False, date_format=None):
     """
@@ -67,12 +67,10 @@ def upload_file(filename, server, account, projname, reader_dict=None,
     that we can successfully convert it to a JSON stream, then uploads that
     JSON stream.
     """
-    if reader_dict is None:
-        reader_dict = {}
     stream = transcode_to_stream(filename, date_format)
     upload_stream(stream_json_lines(stream),
-                  server, account, projname,
-                  reader_dict, username=username, password=password,
+                  server, account, projname, language,
+                  username=username, password=password,
                   append=append, stage=stage)
 
 
@@ -103,9 +101,9 @@ def main():
         default=URL_BASE
     )
     parser.add_argument(
-        '-r', '--readers', metavar='LANG=READER',
-        help=("Custom reader to use, in a form such as "
-              "'ja=mecab.ja,en=freeling.en'")
+        '-l', '--language', metavar='LANG',
+        help=("Two-letter language code to use when recalculating (e.g. 'en' "
+              "or 'ja')")
     )
     parser.add_argument(
         '-u', '--username', default=None,
@@ -124,15 +122,6 @@ def main():
      )
     args = parser.parse_args()
 
-    reader_dict = {}
-    if args.readers:
-        for item in args.readers.split(','):
-            if '=' not in item:
-                raise ValueError("You entered %r as a reader, but it should "
-                                 "have the form 'lang=reader.name'" % item)
-            lang, reader_name = item.split('=', 1)
-            reader_dict[lang] = reader_name
-
     # Implement some human-understandable shortcuts for date_format
     date_format_lower = args.date_format.lower()
     if date_format_lower == 'iso':
@@ -145,7 +134,7 @@ def main():
         date_format = args.date_format
 
     upload_file(args.filename, args.api_url, args.account, args.project_name,
-                reader_dict, username=args.username, password=args.password,
+                args.language, username=args.username, password=args.password,
                 append=args.append, stage=args.stage,
                 date_format=date_format)
 

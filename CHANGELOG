@@ -1,3 +1,10 @@
+Version 0.5.1 (2015-12-30)
+
+  * Upload script changes
+
+    - Replaced --readers option, which was only useful for internal users, with
+      a more broadly useful --language option.
+
 Version 0.5 (2015-12-10)
 
 These changes correlate with moving the API from https://api.luminoso.com/v4
