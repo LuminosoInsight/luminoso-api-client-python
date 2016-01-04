@@ -101,7 +101,7 @@ def main():
         default=URL_BASE
     )
     parser.add_argument(
-        '-l', '--language', metavar='LANG',
+        '-l', '--language',
         help=("Two-letter language code to use when recalculating (e.g. 'en' "
               "or 'ja')")
     )
