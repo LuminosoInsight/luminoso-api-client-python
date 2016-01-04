@@ -115,7 +115,7 @@ def open_json_or_csv_somehow(filename, date_format=None):
                     fileformat = 'json'
 
     if fileformat == 'json':
-        stream = json.load(open(filename))
+        stream = json.load(open(filename), encoding='utf-8')
     elif fileformat == 'csv':
         stream = open_csv_somehow(filename)
     else:
@@ -237,7 +237,7 @@ def open_csv_somehow_py2(filename):
 
 def open_csv_somehow_py3(filename):
     encoding = detect_file_encoding(filename)
-    csvfile = open(filename, 'rU', newline='')
+    csvfile = open(filename, 'rU', encoding=encoding, newline='')
     line = csvfile.readline()
     csvfile.seek(0)
 

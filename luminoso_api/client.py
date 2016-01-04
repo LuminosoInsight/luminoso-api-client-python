@@ -115,7 +115,7 @@ class LuminosoClient(object):
             # in a local file.
             token_file = token_file or get_token_filename()
             try:
-                token_dict = json.load(open(token_file))
+                token_dict = json.load(open(token_file), encoding='utf-8')
                 token = token_dict.get(urlparse(root_url).netloc)
             except IOError:
                 logger.info('unable to read file %s; not using saved token')
@@ -151,7 +151,7 @@ class LuminosoClient(object):
         token = dic['token']
         token_file = token_file or get_token_filename()
         if os.path.exists(token_file):
-            saved_tokens = json.load(open(token_file))
+            saved_tokens = json.load(open(token_file), encoding='utf-8')
         else:
             saved_tokens = {}
         saved_tokens[urlparse(self.root_url).netloc] = token
