@@ -1,11 +1,4 @@
-Version 0.5.1 (2015-12-30)
-
-  * Upload script changes
-
-    - Replaced --readers option, which was only useful for internal users, with
-      a more broadly useful --language option.
-
-Version 0.5 (2015-12-10)
+Version 0.5 (2016-01-09)
 
 These changes correlate with moving the API from https://api.luminoso.com/v4
 to https://analytics.luminoso.com/api/v4.
@@ -22,6 +15,9 @@ to https://analytics.luminoso.com/api/v4.
   * Upload script changes
 
     - Removed --local as an option, which was only usable internally.
+    - Replaced --readers option, which was only useful for internal users, with
+      a more broadly useful --language option.
+
 
 Version 0.4.9 (2015-12-09)
 
