@@ -1,3 +1,24 @@
+Version 0.5 (2016-01-09)
+
+These changes correlate with moving the API from https://api.luminoso.com/v4
+to https://analytics.luminoso.com/api/v4.
+
+  * Client changes
+
+    - Documentation updated with new URL.
+    - URL_BASE updated in the constants (with API_VERSION and API_HOST being
+      removed as unnecessary)
+    - The logic for getting the "root url" when setting up a client is now
+      different; it uses /api/v4 unless the given URL is using /v4 (in which
+      case it uses /v4 but issues a warning about the new URL).
+
+  * Upload script changes
+
+    - Removed --local as an option, which was only usable internally.
+    - Replaced --readers option, which was only useful for internal users, with
+      a more broadly useful --language option.
+
+
 Version 0.4.9 (2015-12-09)
 
   * Client changes
