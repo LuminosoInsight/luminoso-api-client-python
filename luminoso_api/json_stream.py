@@ -20,10 +20,10 @@ document properties defined in the documentation at
 https://analytics.luminoso.com/api/v4.
 """
 from __future__ import unicode_literals
-import json
-import io
+from io import open
 import csv
 import ftfy
+import json
 import logging
 import unicodedata
 import sys
@@ -47,7 +47,7 @@ def transcode(input_filename, output_filename=None, date_format=None):
                            "outputs a JSON stream format that is not "
                            "technically JSON itself.")
             output_filename += 's'
-        output = open(output_filename, 'w')
+        output = open(output_filename, 'w', encoding='utf-8')
 
     for entry in open_json_or_csv_somehow(input_filename,
                                           date_format=date_format):
@@ -94,7 +94,7 @@ def open_json_or_csv_somehow(filename, date_format=None):
     elif filename.endswith('.jsons'):
         fileformat = 'jsons'
     else:
-        with open(filename) as opened:
+        with open(filename, encoding='utf-8') as opened:
             line = opened.readline()
             if line[0] not in '{[' and not filename.endswith('.json'):
                 fileformat = 'csv'
@@ -116,7 +116,7 @@ def open_json_or_csv_somehow(filename, date_format=None):
                     fileformat = 'json'
 
     if fileformat == 'json':
-        stream = json.load(open(filename), encoding='utf-8')
+        stream = json.load(open(filename, encoding='utf-8'))
     elif fileformat == 'csv':
         stream = open_csv_somehow(filename)
     else:
@@ -203,7 +203,7 @@ def transcode_to_utf8(filename, encoding):
     UTF-8.
     """
     tmp = tempfile.TemporaryFile()
-    for line in io.open(filename, encoding=encoding):
+    for line in open(filename, encoding=encoding):
         tmp.write(line.strip('\uFEFF').encode('utf-8'))
 
     tmp.seek(0)

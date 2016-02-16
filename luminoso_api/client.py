@@ -9,6 +9,7 @@ from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
     LuminosoServerError, LuminosoAPIError)
 from .compat import types_not_to_encode, urlparse
 from getpass import getpass
+from io import open
 import os
 import requests
 import logging
@@ -160,7 +161,7 @@ class LuminosoClient(object):
         directory, filename = os.path.split(token_file)
         if directory and not os.path.exists(directory):
             os.makedirs(directory)
-        with open(token_file, 'w') as f:
+        with open(token_file, 'w', encoding='utf-8') as f:
             json.dump(saved_tokens, f)
         return token
 
