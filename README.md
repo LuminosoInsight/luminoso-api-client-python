@@ -75,13 +75,13 @@ account_id under /projects:
 >>> projects = LuminosoClient.connect(username='testuser')
 Password: ...
 >>> print(projects)
-<LuminosoClient for https://api.luminoso.com/v4/projects/lumi-test/>
+<LuminosoClient for https://analytics.luminoso.com/api/v4/projects/lumi-test/>
 ```
 
 HTTP methods
 ------------
 
-The URLs you can communicate with are documented at https://api.luminoso.com/v4.
+The URLs you can communicate with are documented at https://analytics.luminoso.com/api/v4.
 That documentation is the authoritative source for what you can do with the
 API, and this Python code is just here to help you do it.
 
