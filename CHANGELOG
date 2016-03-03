@@ -1,3 +1,9 @@
+Version 0.5.1 (2016-04-03)
+
+  * Upload script changes
+
+    - Fix a bug that resulted in --language being required.
+
 Version 0.5 (2016-01-09)
 
 These changes correlate with moving the API from https://api.luminoso.com/v4
