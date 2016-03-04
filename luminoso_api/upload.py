@@ -16,7 +16,7 @@ def batches(iterable, size):
         yield chain([next(batchiter)], batchiter)
 
 
-def upload_stream(stream, server, account, projname, language,
+def upload_stream(stream, server, account, projname, language=None,
                   username=None, password=None,
                   append=False, stage=False):
     """
@@ -53,11 +53,14 @@ def upload_stream(stream, server, account, projname, language,
     if not stage:
         # Calculate the docs into the assoc space.
         print('Calculating.')
-        job_id = project.post('docs/recalculate', language=language)
+        kwargs = {}
+        if language is not None:
+            kwargs = {'language': language}
+        job_id = project.post('docs/recalculate', **kwargs)
         project.wait_for(job_id)
 
 
-def upload_file(filename, server, account, projname, language,
+def upload_file(filename, server, account, projname, language=None,
                 username=None, password=None,
                 append=False, stage=False, date_format=None):
     """
@@ -69,7 +72,7 @@ def upload_file(filename, server, account, projname, language,
     """
     stream = transcode_to_stream(filename, date_format)
     upload_stream(stream_json_lines(stream),
-                  server, account, projname, language,
+                  server, account, projname, language=language,
                   username=username, password=password,
                   append=append, stage=stage)
 
@@ -134,7 +137,8 @@ def main():
         date_format = args.date_format
 
     upload_file(args.filename, args.api_url, args.account, args.project_name,
-                args.language, username=args.username, password=args.password,
+                language=args.language,
+                username=args.username, password=args.password,
                 append=args.append, stage=args.stage,
                 date_format=date_format)
 
