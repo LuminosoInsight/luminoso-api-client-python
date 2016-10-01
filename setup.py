@@ -23,7 +23,7 @@ setup(
     platforms=["any"],
     description="Python client library for communicating with the Luminoso REST API",
     classifiers=classifiers,
-    packages=find_packages(),
+    packages=find_packages(exclude=('tests',)),
     install_requires=[
         'requests >= 1.2.1, < 3.0',
         'ftfy >= 3.3, < 5',
