@@ -125,12 +125,11 @@ class LuminosoClient(object):
             if username is None:
                 username = os.environ['USER']
             if password is None:
+                prompt = 'Password for %s: ' % username
                 if encode_getpass:
-                    password = getpass(('Password for %s: ' % username).encode('utf-8'))
-                else:
-                    password = getpass(('Password for %s: ' % username))
-            auth = TokenAuth.from_user_creds(
-                username, password, url=root_url)
+                    prompt = prompt.encode('utf-8')
+                password = getpass(prompt)
+            auth = TokenAuth.from_user_creds(username, password, url=root_url)
         else:
             if username is not None:
                 logger.warning('ignoring "username" argument (using token)')
