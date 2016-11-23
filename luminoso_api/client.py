@@ -7,7 +7,7 @@ from .auth import TokenAuth
 from .constants import URL_BASE
 from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
     LuminosoServerError, LuminosoAPIError)
-from .compat import types_not_to_encode, urlparse
+from .compat import types_not_to_encode, urlparse, encode_getpass
 from getpass import getpass
 import os
 import requests
@@ -125,7 +125,10 @@ class LuminosoClient(object):
             if username is None:
                 username = os.environ['USER']
             if password is None:
-                password = getpass(('Password for %s: ' % username).encode('utf-8'))
+                if encode_getpass:
+                    password = getpass(('Password for %s: ' % username).encode('utf-8'))
+                else:
+                    password = getpass(('Password for %s: ' % username))
             auth = TokenAuth.from_user_creds(
                 username, password, url=root_url)
         else:
