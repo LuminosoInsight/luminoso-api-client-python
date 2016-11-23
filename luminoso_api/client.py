@@ -125,7 +125,7 @@ class LuminosoClient(object):
             if username is None:
                 username = os.environ['USER']
             if password is None:
-                password = getpass(('Password for %s: ' % username).encoding('utf8'))
+                password = getpass(('Password for %s: ' % username).encode('utf-8'))
             auth = TokenAuth.from_user_creds(
                 username, password, url=root_url)
         else:
