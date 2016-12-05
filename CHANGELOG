@@ -1,3 +1,9 @@
+Version 0.5.2 (2016-12-02)
+
+  * Client changes
+
+    - Fix an issue with password prompts on Windows under Python 2
+
 Version 0.5.1 (2016-04-03)
 
   * Upload script changes
