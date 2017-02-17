@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-VERSION = "0.5.2"
+VERSION = "0.5.3"
 
 from setuptools import setup, find_packages
 
