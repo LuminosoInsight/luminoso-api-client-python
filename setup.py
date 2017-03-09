@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-VERSION = "0.5.3"
+VERSION = "0.5.4"
 
 from setuptools import setup, find_packages
+import sys
 
 classifiers = [
     'Intended Audience :: Developers',
@@ -12,6 +13,14 @@ classifiers = [
 ]
 
 GITHUB_URL = 'http://github.com/LuminosoInsight/luminoso-api-client-python'
+
+
+# Choose a version of ftfy to use depending on the version of Python
+if sys.version_info[0] < 3:
+    FTFY_DEP = 'ftfy >= 4.3, < 5'
+else:
+    FTFY_DEP = 'ftfy >= 5'
+
 
 setup(
     name="luminoso-api",
@@ -26,7 +35,7 @@ setup(
     packages=find_packages(exclude=('tests',)),
     install_requires=[
         'requests >= 1.2.1, < 3.0',
-        'ftfy >= 3.3, < 5',
+        FTFY_DEP
     ],
     entry_points={
         'console_scripts': [
