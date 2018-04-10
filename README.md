@@ -34,54 +34,23 @@ You interact with the API using a LuminosoClient object, which sends HTTP
 requests to URLs starting with a given path, and keeps track of your
 authentication information.
 
-You can connect using a username and password:
-
-```python
->>> from luminoso_api import LuminosoClient
->>> proj = LuminosoClient.connect('/projects/account_id/my_project_id',
-                                  username='my_username')
-Password for my_username: [here you enter your password]
->>> proj.get('terms')
-[lots of terms and vectors here]
-```
-
-Or you can connect using an existing API token:
+Before you can connect to an API, you will need to go to the UI on the web and
+get a long-lived API token.  Once you have one, you can use the LuminosoClient
+object to save it to a file, and then you can instantiate a client.
 
 ```python
 from luminoso_api import LuminosoClient
-proj = LuminosoClient.connect('/projects/account_id/my_project_id',
-                              token='my-api-token-here')
-```
+LuminosoClient.save_token('api-token-goes-here')
+proj = LuminosoClient.connect('/projects/my_project_id')
 
-You can even save your API token to a file on your computer and load it
-automatically, so that you don't have to specify any credentials:
-
-```python
-from luminoso_api import LuminosoClient
-client = LuminosoClient.connect(token='my-api-token-here')
-# This will save a non-expiring token, regardless of whether you are currently
-# using that token or some other token.
-client.save_token()
-# Now you can exit Python, restart your computer, etc., and your token will
-# still be saved when you come back.
-proj = LuminosoClient.connect('/projects/account_id/my_project_id')
-```
-
-When you connect without specifying a URL, the URL will be set to your default
-account_id under /projects:
-
-```python
->>> from luminoso_api import LuminosoClient
->>> projects = LuminosoClient.connect(username='testuser')
-Password: ...
->>> print(projects)
-<LuminosoClient for https://analytics.luminoso.com/api/v4/projects/lumi-test/>
+# And then, for instance:
+docs = proj.get('docs', limit=10)
 ```
 
 HTTP methods
 ------------
 
-The URLs you can communicate with are documented at https://analytics.luminoso.com/api/v4.
+The URLs you can communicate with are documented at https://analytics.luminoso.com/api/v5.
 That documentation is the authoritative source for what you can do with the
 API, and this Python code is just here to help you do it.
 
@@ -99,47 +68,38 @@ project (also known as a database), but one case where you don't is to get a lis
 
 ```python
 from luminoso_api import LuminosoClient
-client = LuminosoClient.connect(username='jane', password=MY_SECRET_PASSWORD)
-# this points to the /projects/janeaccount/ endpoint by default,
-# where janeaccount is the account_id of jane's default account
-project_info_list = client.get()
+client = LuminosoClient.connect()
+project_info_list = client.get('/projects/')
 print(project_info_list)
 ```
-
 
 An example of working with a project, including the `upload` method
 that we provide to make it convenient to upload documents in the right format:
 
 ```python
 from luminoso_api import LuminosoClient
-
-projects = LuminosoClient.connect(username='jane')
+client = LuminosoClient.connect()
 
 # Create a new project by POSTing its name
-project_id = projects.post(name='testproject')['project_id']
+project_id = client.post('/projects/', name='testproject', language='en')['_id']
 
 # use that project from here on
-project = projects.change_path(project_id)
+project = projects.change_path('/projects/' + project_id)
 
 docs = [{'title': 'First example', 'text': 'This is an example document.'},
         {'title': 'Second example', 'text': 'Examples are a great source of inspiration.'},
         {'title': 'Third example', 'text': 'Great things come in threes.'}]
-project.upload('docs', docs)
-job_id = project.post('docs/recalculate')
+project.post('docs', docs=docs)
+job_id = project.post('build')
 ```
 
-This starts an asynchronous job, returning us its ID number. We can use
-`wait_for` to block until it's ready:
+This starts an asynchronous job, returning us its ID number.  (There is not yet
+functionality in the v5 API to use this number.)  When the project is ready:
 
 ```python
-project.wait_for(job_id)
-```
-
-When the project is ready:
-
-```python
+# Note: the "terms" endpoint is subject to change.
 response = project.get('terms')
-terms = [(term['text'], term['score']) for term in response]
+terms = [(term['text'], term['score']) for term in response['result']]
 print(terms)
 ```
 
@@ -162,6 +122,9 @@ array([ 0.00046539,  0.00222015, -0.08491898, -0.0014534 , -0.00127411], dtype=f
 
 Uploading from the command line
 -------------------------------
+
+[TODO: verify the accuracy of this section with the v5 client]
+
 Instead of sending your documents as a list of Python dictionaries, you can upload a file
 containing documents in JSON format.
 
