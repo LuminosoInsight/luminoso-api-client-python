@@ -158,8 +158,6 @@ class LuminosoClient(object):
                          (response, response.content))
             raise LuminosoError('Response body contained no JSON. '
                                 'Perhaps you meant to use get_raw?')
-        if json_response.get('error'):
-            raise LuminosoAPIError(json_response.get('error'))
         return json_response
 
     # Simple REST operations
