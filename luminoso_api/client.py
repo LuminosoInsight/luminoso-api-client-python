@@ -3,15 +3,19 @@ Provides the LuminosoClient object, a wrapper for making
 properly-authenticated requests to the Luminoso REST API.
 """
 from __future__ import unicode_literals
+
+import json
+import logging
+import os
+import requests
+import time
+
 from .auth import TokenAuth
 from .constants import URL_BASE
 from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
-    LuminosoServerError, LuminosoAPIError)
+                     LuminosoServerError)
 from .compat import types_not_to_encode, urlparse
-import os
-import requests
-import logging
-import json
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,7 +23,7 @@ class LuminosoClient(object):
     """
     A tool for making authenticated requests to the Luminoso API version 5.
 
-    A LuminosoClient is a thin wrapper around the REST API documented at
+    A LuminosoClient is a thin wrapper around the API documented at
     https://analytics.luminoso.com/api/v5/. As such, you interact with it by
     calling its methods that correspond to HTTP methods: `.get(url)`,
     `.post(url)`, `.put(url)`, `.patch(url)`, and `.delete(url)`.
@@ -245,13 +249,6 @@ class LuminosoClient(object):
             url = self.url + path
         return self.__class__(self.session, url)
 
-    def documentation(self):
-        """
-        Get the documentation that the server sends for the API.
-        """
-        newclient = self.__class__(self.session, self.root_url)
-        return newclient.get_raw('/')
-
     def upload(self, path, docs, **params):
         """
         A deprecated alias for post(path, docs=docs), included only for
@@ -260,12 +257,35 @@ class LuminosoClient(object):
         logger.warning('The upload method is deprecated; use post instead.')
         return self.post(path, docs=docs)
 
-    def wait_for(self, *args, **kwargs):
+    def wait_for_build(self, interval=5, path=None):
         """
-        An endpoint to get the status of a building project is not yet
-        available in v5.
+        A convenience method designed to inform you when a project build has
+        completed.  It polls the API every `interval` seconds until there is
+        not a build running.  At that point, it returns the "last_build_info"
+        field of the project record if the build succeeded, and raises a
+        LuminosoError with the field as its message if the build failed.
+
+        If a `path` is not specified, this method will assume that its URl is
+        the URL for the project.  Otherwise, it will use the specified path
+        (which should be "/projects/<project_id>/").
         """
-        raise NotImplementedError
+        path = path or ''
+        start = time.time()
+        next_log = 0
+        while True:
+            response = self.get(path)['last_build_info']
+            if not response:
+                raise ValueError('This project is not building!')
+            if response['stop_time']:
+                if response['success']:
+                    return response
+                else:
+                    raise LuminosoError(response)
+            elapsed = time.time() - start
+            if elapsed > next_log:
+                logger.info('Still waiting (%d seconds elapsed).', next_log)
+                next_log += 120
+            time.sleep(interval)
 
     def get_raw(self, path, **params):
         """
