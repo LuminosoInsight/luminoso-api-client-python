@@ -2,19 +2,17 @@
 Provides the LuminosoClient object, a wrapper for making
 properly-authenticated requests to the Luminoso REST API.
 """
-from __future__ import unicode_literals
-
 import json
 import logging
 import os
 import requests
 import time
+from urllib.parse import urlparse
 
 from .auth import TokenAuth
 from .constants import URL_BASE
 from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
                      LuminosoServerError)
-from .compat import types_not_to_encode, urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -351,7 +349,7 @@ def jsonify_parameters(params):
     """
     result = {}
     for param, value in params.items():
-        if isinstance(value, types_not_to_encode):
+        if isinstance(value, (int, str)):
             result[param] = value
         else:
             result[param] = json.dumps(value)

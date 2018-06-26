@@ -2,13 +2,12 @@
 Provides the LuminosoClient object, a wrapper for making
 properly-authenticated requests to the Luminoso REST API.
 """
-from __future__ import unicode_literals
 from .v4_auth import TokenAuth
 from .v4_constants import URL_BASE
 from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
     LuminosoServerError, LuminosoAPIError)
-from .compat import types_not_to_encode, urlparse, encode_getpass
 from getpass import getpass
+from urllib.parse import urlparse
 import os
 import requests
 import logging
@@ -126,8 +125,6 @@ class v4LuminosoClient(object):
                 username = os.environ['USER']
             if password is None:
                 prompt = 'Password for %s: ' % username
-                if encode_getpass:
-                    prompt = prompt.encode('utf-8')
                 password = getpass(prompt)
             auth = TokenAuth.from_user_creds(username, password, url=root_url)
         else:
@@ -523,7 +520,7 @@ def jsonify_parameters(params):
     """
     result = {}
     for param, value in params.items():
-        if isinstance(value, types_not_to_encode):
+        if isinstance(value, (int, str)):
             result[param] = value
         else:
             result[param] = json.dumps(value)
