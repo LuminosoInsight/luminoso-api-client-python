@@ -62,10 +62,11 @@ class LuminosoClient(object):
         return '<LuminosoClient for %s>' % self.url
 
     @classmethod
-    def connect(cls, url=None, token_file=None):
+    def connect(cls, url=None, token_file=None, token=None):
         """
         Returns an object that makes requests to the API, authenticated
-        with a saved long-lived token, at URLs beginning with `url`.
+        with a saved or specified long-lived token, at URLs beginning with
+        `url`.
 
         If no URL is specified, or if the specified URL is a path such as
         '/projects' without a scheme and domain, the client will default to
@@ -80,22 +81,18 @@ class LuminosoClient(object):
             url = URL_BASE + '/' + url.lstrip('/')
             root_url = URL_BASE
 
-        auth = cls._get_token_auth(token_file, root_url)
-        session = requests.session()
-        session.auth = auth
-        return cls(session, url)
+        if token is None:
+            token_file = token_file or get_token_filename()
+            with open(token_file) as tf:
+                token_dict = json.load(tf)
+            try:
+                token = token_dict.get(urlparse(root_url).netloc)
+            except KeyError:
+                raise LuminosoAuthError('No token stored for %s' % root_url)
 
-    @staticmethod
-    def _get_token_auth(token_file, root_url):
-        logger.info('creating TokenAuth object')
-        token_file = token_file or get_token_filename()
-        with open(token_file) as tf:
-            token_dict = json.load(tf)
-        try:
-            token = token_dict.get(urlparse(root_url).netloc)
-        except KeyError:
-            raise LuminosoAuthError('No token stored for %s' % root_url)
-        return TokenAuth(token)
+        session = requests.session()
+        session.auth = TokenAuth(token)
+        return cls(session, url)
 
     @staticmethod
     def save_token(token, domain='analytics.luminoso.com', token_file=None):
