@@ -94,20 +94,19 @@ class LuminosoClient(object):
         session.auth = TokenAuth(token)
         return cls(session, url)
 
-    @staticmethod
-    def save_token(token, domain='analytics.luminoso.com', token_file=None):
+    def save_token(self, token_file=None):
         """
-        Take a long-lived API token and store it to a local file.  Long-lived
-        tokens can be retrieved through the UI.  Optional arguments are the
-        domain for which the token is valid and the file in which to store the
-        token.
+        Take the long-lived API token used to create this client, and store it
+        to a local file.
         """
         token_file = token_file or get_token_filename()
+        token = self.session.auth.token
         if os.path.exists(token_file):
             saved_tokens = json.load(open(token_file))
         else:
             saved_tokens = {}
-        saved_tokens[domain] = token
+        saved_tokens[urlparse(self.root_url).netloc] = token
+
         directory, filename = os.path.split(token_file)
         if directory and not os.path.exists(directory):
             os.makedirs(directory)
