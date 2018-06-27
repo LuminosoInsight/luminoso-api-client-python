@@ -10,7 +10,7 @@ and call methods on it that will be properly authenticated.
 
 Installation
 ---------------
-This client API is designed to be used with Python 2.6, 2.7, 3.3, or 3.4.
+This client API is designed to be used with Python 3.
 
 You can download and install it using a Python package manager:
 
@@ -35,16 +35,19 @@ requests to URLs starting with a given path, and keeps track of your
 authentication information.
 
 Before you can connect to an API, you will need to go to the UI on the web and
-get a long-lived API token.  Once you have one, you can use the LuminosoClient
-object to save it to a file, and then you can instantiate a client.
+get a long-lived API token.  Once you have one, you can use it to connect to
+the API; the LuminosoClient can also save it to a file.
 
 ```python
 from luminoso_api import LuminosoClient
-LuminosoClient.save_token('api-token-goes-here')
-proj = LuminosoClient.connect('/projects/my_project_id')
+project = LuminosoClient.connect('/projects/my_project_id', token='my_token')
 
 # And then, for instance:
-docs = proj.get('docs', limit=10)
+docs = project.get('docs', limit=10)
+
+# Once saved, it no longer needs to be given when connecting.
+LuminosoClient.save_token()
+project = LuminosoClient.connect('/projects/my_project_id')
 ```
 
 HTTP methods
@@ -73,34 +76,29 @@ project_info_list = client.get('/projects/')
 print(project_info_list)
 ```
 
-An example of working with a project, including the `upload` method
-that we provide to make it convenient to upload documents in the right format:
+An example of working with a project, including the use of the convenience method `.wait_for_build`:
 
 ```python
 from luminoso_api import LuminosoClient
 client = LuminosoClient.connect()
 
 # Create a new project by POSTing its name
-project_id = client.post('/projects/', name='testproject', language='en')['_id']
+project_id = client.post('/projects/', name='testproject', language='en')['project_id']
 
 # use that project from here on
-project = projects.change_path('/projects/' + project_id)
+project = client.change_path('/projects/' + project_id)
 
 docs = [{'title': 'First example', 'text': 'This is an example document.'},
         {'title': 'Second example', 'text': 'Examples are a great source of inspiration.'},
         {'title': 'Third example', 'text': 'Great things come in threes.'}]
-project.post('docs', docs=docs)
-job_id = project.post('build')
-```
+project.post('upload', docs=docs)
+project.post('build')
+project.wait_for_build()
 
-This starts an asynchronous job, returning us its ID number.  (There is not yet
-functionality in the v5 API to use this number.)  When the project is ready:
-
-```python
-# Note: the "terms" endpoint is subject to change.
-response = project.get('terms')
-terms = [(term['text'], term['score']) for term in response['result']]
-print(terms)
+# When the previous call finishes:
+response = project.get('concepts')
+for concept in response['result']:
+    print('%s - %f' % (concept['texts'][0], concept['relevance']))
 ```
 
 Vectors
