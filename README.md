@@ -36,7 +36,7 @@ authentication information.
 
 Before you can connect to an API, you will need to go to the UI on the web and
 get a long-lived API token.  Once you have one, you can use it to connect to
-the API; the LuminosoClient can also save it to a file.
+the API.
 
 ```python
 from luminoso_api import LuminosoClient
@@ -44,16 +44,38 @@ project = LuminosoClient.connect('/projects/my_project_id', token='my_token')
 
 # And then, for instance:
 docs = project.get('docs', limit=10)
+```
 
-# Once saved, it no longer needs to be given when connecting.
-LuminosoClient.save_token()
+Instead of specifying the token when connecting, you can also use the
+LuminosoClient to save a token to a file, at which point you can connect
+without having to specify a token.
+
+```python
+from luminoso_api import LuminosoClient
+LuminosoClient.save_token(token='my_token')
 project = LuminosoClient.connect('/projects/my_project_id')
+docs = project.get('docs', limit=10)
+```
+
+Note that the LuminosoClient will ensure that slashes are put in the right
+places, so that all of the following calls will go to the endpoint
+`https://analytics.luminoso.com/api/v5/projects/my_project_id/docs/`:
+
+```python
+LuminosoClient.connect('/projects/my_project_id').get('docs')
+LuminosoClient.connect('/projects/my_project_id').get('/docs')
+LuminosoClient.connect('/projects/my_project_id').get('docs/')
+LuminosoClient.connect('/projects/my_project_id').get('/docs/')
+LuminosoClient.connect('/projects/my_project_id/').get('docs')
+LuminosoClient.connect('/projects/my_project_id/').get('/docs')
+LuminosoClient.connect('/projects/my_project_id/').get('docs/')
+LuminosoClient.connect('/projects/my_project_id/').get('/docs/')
 ```
 
 HTTP methods
 ------------
 
-The URLs you can communicate with are documented at https://analytics.luminoso.com/api/v5.
+The URLs you can communicate with are documented at https://analytics.luminoso.com/api/v5/.
 That documentation is the authoritative source for what you can do with the
 API, and this Python code is just here to help you do it.
 
@@ -82,7 +104,7 @@ An example of working with a project, including the use of the convenience metho
 from luminoso_api import LuminosoClient
 client = LuminosoClient.connect()
 
-# Create a new project by POSTing its name
+# Create a new project by POSTing its name and language
 project_id = client.post('/projects/', name='testproject', language='en')['project_id']
 
 # use that project from here on

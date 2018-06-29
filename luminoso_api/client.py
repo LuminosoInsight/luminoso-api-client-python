@@ -9,7 +9,6 @@ import requests
 import time
 from urllib.parse import urlparse
 
-from .auth import TokenAuth
 from .constants import URL_BASE
 from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
                      LuminosoServerError)
@@ -48,7 +47,7 @@ class LuminosoClient(object):
     def __init__(self, session, url):
         """
         Create a LuminosoClient given an existing Session object that has a
-        TokenAuth object as its .auth attribute.
+        _TokenAuth object as its .auth attribute.
 
         It is probably easier to call LuminosoClient.connect() to handle
         the authentication for you.
@@ -91,22 +90,23 @@ class LuminosoClient(object):
                 raise LuminosoAuthError('No token stored for %s' % root_url)
 
         session = requests.session()
-        session.auth = TokenAuth(token)
+        session.auth = _TokenAuth(token)
         return cls(session, url)
 
-    def save_token(self, token_file=None):
+    @staticmethod
+    def save_token(token, domain='analytics.luminoso.com', token_file=None):
         """
-        Take the long-lived API token used to create this client, and store it
-        to a local file.
+        Take a long-lived API token and store it to a local file.  Long-lived
+        tokens can be retrieved through the UI.  Optional arguments are the
+        domain for which the token is valid and the file in which to store the
+        token.
         """
         token_file = token_file or get_token_filename()
-        token = self.session.auth.token
         if os.path.exists(token_file):
             saved_tokens = json.load(open(token_file))
         else:
             saved_tokens = {}
-        saved_tokens[urlparse(self.root_url).netloc] = token
-
+        saved_tokens[domain] = token
         directory, filename = os.path.split(token_file)
         if directory and not os.path.exists(directory):
             os.makedirs(directory)
@@ -259,7 +259,7 @@ class LuminosoClient(object):
         field of the project record if the build succeeded, and raises a
         LuminosoError with the field as its message if the build failed.
 
-        If a `path` is not specified, this method will assume that its URl is
+        If a `path` is not specified, this method will assume that its URL is
         the URL for the project.  Otherwise, it will use the specified path
         (which should be "/projects/<project_id>/").
         """
@@ -302,6 +302,19 @@ class LuminosoClient(object):
         content = self._request('get', url, params=params).content
         with open(filename, 'wb') as f:
             f.write(content)
+
+
+class _TokenAuth(requests.auth.AuthBase):
+    """
+    An object designed to attach to a requests.Session object to handle
+    Luminoso API authentication.
+    """
+    def __init__(self, token):
+        self.token = token
+
+    def __call__(self, request):
+        request.headers['Authorization'] = 'Token ' + self.token
+        return request
 
 
 def get_token_filename():
