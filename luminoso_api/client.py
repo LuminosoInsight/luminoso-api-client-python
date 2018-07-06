@@ -70,6 +70,11 @@ class LuminosoClient(object):
         If no URL is specified, or if the specified URL is a path such as
         '/projects' without a scheme and domain, the client will default to
         https://analytics.luminoso.com/api/v5/.
+
+        If neither token nor token_file are specified, the client will look
+        for a token in $HOME/.luminoso/tokens.json. The file should contain
+        a single json dictionary of the format
+        `{'root_url': 'token', 'root_url2': 'token2', ...}`.
         """
         if url is None:
             url = '/'
@@ -85,7 +90,7 @@ class LuminosoClient(object):
             with open(token_file) as tf:
                 token_dict = json.load(tf)
             try:
-                token = token_dict.get(urlparse(root_url).netloc)
+                token = token_dict[root_url]
             except KeyError:
                 raise LuminosoAuthError('No token stored for %s' % root_url)
 
