@@ -15,22 +15,22 @@ def batches(iterable, size):
         yield chain([next(batchiter)], batchiter)
 
 
-def upload_stream(stream, server, account, projname, language=None,
-                  username=None, password=None,
-                  append=False, stage=False):
+def upload_stream(stream, server, projname, language=None,
+                  token=None, token_file=None, append=False, stage=False):
     """
     Given a file-like object containing a JSON stream, upload it to
-    Luminoso with the given account name and project name.
+    Luminoso with the given project name.
     """
-    client = LuminosoClient.connect(server,
-                                    username=username, password=password)
+    client = LuminosoClient.connect(server, token=token, token_file=token_file)
     if not append:
         # If we're not appending to an existing project, create new project.
-        info = client.post('/projects/' + account, name=projname)
+        info = client.post('/projects/', name=projname, language=language)
         project_id = info['project_id']
         print('New project ID:', project_id)
     else:
-        projects = client.get('/projects/' + account, name=projname)
+        projects = [p for p in client.get('/projects/', fields=('name',
+                                                                'project_id'))
+                    if p['name'] == projname]
         if len(projects) == 0:
             print('No such project exists!')
             return
@@ -40,30 +40,27 @@ def upload_stream(stream, server, account, projname, language=None,
         project_id = projects[0]['project_id']
         print('Using existing project with id %s.' % project_id)
 
-    project = client.change_path('/projects/' + account + '/' + project_id)
+    project = client.change_path('/projects/' + project_id)
 
     counter = 0
     for batch in batches(stream, 1000):
         counter += 1
         documents = list(batch)
-        project.upload('docs', documents)
+        project.post('/upload/', docs=documents)
         print('Uploaded batch #%d' % (counter))
 
     if not stage:
         # Calculate the docs into the assoc space.
         print('Calculating.')
-        kwargs = {}
-        if language is not None:
-            kwargs = {'language': language}
-        job_id = project.post('docs/recalculate', **kwargs)
-        project.wait_for(job_id)
+        project.post('build')
+        project.wait_for_build()
 
 
-def upload_file(filename, server, account, projname, language=None,
-                username=None, password=None,
-                append=False, stage=False, date_format=None):
+def upload_file(filename, server, projname, language=None,
+                token=None, token_file=None,
+                append=False, stage=False,date_format=None):
     """
-    Upload a file to Luminoso with the given account and project name.
+    Upload a file to Luminoso with the given project name.
 
     Given a file containing JSON, JSON stream, or CSV data, this verifies
     that we can successfully convert it to a JSON stream, then uploads that
@@ -71,8 +68,8 @@ def upload_file(filename, server, account, projname, language=None,
     """
     stream = transcode_to_stream(filename, date_format)
     upload_stream(stream_json_lines(stream),
-                  server, account, projname, language=language,
-                  username=username, password=password,
+                  server, projname, language=language,
+                  token=token, token_file=token_file,
                   append=append, stage=stage)
 
 
@@ -84,7 +81,6 @@ def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('filename')
-    parser.add_argument('account')
     parser.add_argument('project_name')
     parser.add_argument(
         '--append',
@@ -108,12 +104,12 @@ def main():
               "or 'ja')")
     )
     parser.add_argument(
-        '-u', '--username', default=None,
-        help="username (defaults to your username on your computer)"
+        '-t', '--token', default=None,
+        help='token (see API client documentation)'
     )
     parser.add_argument(
-        '-p', '--password', default=None,
-        help="password (you can leave this out and type it in later)"
+        '-T', '--token-file', default=None,
+        help='token file (see API client documentation)'
     )
     parser.add_argument(
         '-d', '--date-format', default='iso',
@@ -135,9 +131,9 @@ def main():
     else:
         date_format = args.date_format
 
-    upload_file(args.filename, args.api_url, args.account, args.project_name,
-                language=args.language,
-                username=args.username, password=args.password,
+    upload_file(args.filename, args.api_url, args.project_name,
+                language=args.language, token=args.token,
+                token_file=args.token_file,
                 append=args.append, stage=args.stage,
                 date_format=date_format)
 
