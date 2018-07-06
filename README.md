@@ -35,8 +35,9 @@ requests to URLs starting with a given path, and keeps track of your
 authentication information.
 
 Before you can connect to an API, you will need to go to the UI on the web and
-get a long-lived API token.  Once you have one, you can use it to connect to
-the API.
+get a long-lived API token.  (To get a token, go to the "User settings" option
+in the upper right dropdown menu, and click the "API tokens" button.)  Once you
+have one, you can use it to connect to the API.
 
 ```python
 from luminoso_api import LuminosoClient
