@@ -37,8 +37,4 @@ setup(
         'requests >= 1.2.1, < 3.0',
         FTFY_DEP
     ],
-    entry_points={
-        'console_scripts': [
-            'lumi-json-stream = luminoso_api.json_stream:main',
-        ]},
 )
