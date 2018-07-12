@@ -39,7 +39,6 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'lumi-upload = luminoso_api.upload:main',
             'lumi-json-stream = luminoso_api.json_stream:main',
         ]},
 )
