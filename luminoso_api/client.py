@@ -239,14 +239,13 @@ class LuminosoClient(object):
     # Useful abstractions
     def change_path(self, path):
         """
-        Return a new LuminosoClient for a subpath of this one.  Effectively, a
-        shortcut for instantiating a new LuminosoClient for that path.
+        Change the client's path for a subpath of this one.
         """
         if path.startswith('/'):
-            url = self.root_url + path
+            self.url = self.root_url + path
         else:
-            url = self.url + path
-        return self.__class__(self.session, url)
+            self.url = self.url + path
+        return self
 
     def upload(self, path, docs, **params):
         """
