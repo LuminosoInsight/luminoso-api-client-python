@@ -19,9 +19,7 @@ The dictionary keys in JSON, or the column labels in CSV, should be the
 document properties defined in the documentation at
 https://analytics.luminoso.com/api/v4.
 """
-from __future__ import unicode_literals
 import json
-import io
 import csv
 import ftfy
 import logging
@@ -29,7 +27,7 @@ import unicodedata
 import sys
 import tempfile
 from datetime import datetime
-from .compat import PY3, string_type
+
 logger = logging.getLogger(__name__)
 
 
@@ -176,7 +174,7 @@ def stream_json_lines(file):
     """
     Load a JSON stream and return a generator, yielding one object at a time.
     """
-    if isinstance(file, string_type):
+    if isinstance(file, str):
         file = open(file, 'rb')
     for line in file:
         line = line.strip()
@@ -191,52 +189,6 @@ def open_csv_somehow(filename):
     Given a filename that we're told is a CSV file, detect its encoding,
     parse its header, and return a generator yielding its rows as dictionaries.
     """
-    if PY3:
-        return open_csv_somehow_py3(filename)
-    else:
-        return open_csv_somehow_py2(filename)
-
-
-def transcode_to_utf8(filename, encoding):
-    """
-    Convert a file in some other encoding into a temporary file that's in
-    UTF-8.
-    """
-    tmp = tempfile.TemporaryFile()
-    for line in io.open(filename, encoding=encoding):
-        tmp.write(line.strip('\uFEFF').encode('utf-8'))
-
-    tmp.seek(0)
-    return tmp
-
-
-def open_csv_somehow_py2(filename):
-    """
-    Open a CSV file using Python 2's CSV module, working around the deficiency
-    where it can't handle the null bytes of UTF-16.
-    """
-    encoding = detect_file_encoding(filename)
-    if encoding.startswith('UTF-16'):
-        csvfile = transcode_to_utf8(filename, encoding)
-        encoding = 'UTF-8'
-    else:
-        csvfile = open(filename, 'rU')
-    line = csvfile.readline()
-    csvfile.seek(0)
-
-    if '\t' in line:
-        # tab-separated
-        reader = csv.reader(csvfile, delimiter='\t')
-    else:
-        reader = csv.reader(csvfile, dialect='excel')
-
-    header = reader.next()
-    header = [cell.decode(encoding).lower().strip() for cell in header]
-    encode_fn = lambda x: x.decode(encoding, 'replace')
-    return _read_csv(reader, header, encode_fn)
-
-
-def open_csv_somehow_py3(filename):
     encoding = detect_file_encoding(filename)
     csvfile = open(filename, 'rU', encoding=encoding, newline='')
     line = csvfile.readline()
