@@ -239,7 +239,9 @@ class LuminosoClient(object):
     # Useful abstractions
     def change_path(self, path):
         """
-        Change the client's path for a subpath of this one.
+        Change the client's path. Paths with leading slashes are appended to
+        the root url, otherwise paths are set relative to the current path.
+        Returns a copy of the client to avoid breaking old code.
         """
         if path.startswith('/'):
             self.url = self.root_url + path
