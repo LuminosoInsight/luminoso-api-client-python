@@ -70,6 +70,11 @@ class LuminosoClient(object):
         If no URL is specified, or if the specified URL is a path such as
         '/projects' without a scheme and domain, the client will default to
         https://analytics.luminoso.com/api/v5/.
+
+        If neither token nor token_file are specified, the client will look
+        for a token in $HOME/.luminoso/tokens.json. The file should contain
+        a single json dictionary of the format
+        `{'root_url': 'token', 'root_url2': 'token2', ...}`.
         """
         if url is None:
             url = '/'
@@ -85,7 +90,7 @@ class LuminosoClient(object):
             with open(token_file) as tf:
                 token_dict = json.load(tf)
             try:
-                token = token_dict.get(urlparse(root_url).netloc)
+                token = token_dict[urlparse(root_url).netloc]
             except KeyError:
                 raise LuminosoAuthError('No token stored for %s' % root_url)
 
@@ -234,14 +239,15 @@ class LuminosoClient(object):
     # Useful abstractions
     def change_path(self, path):
         """
-        Return a new LuminosoClient for a subpath of this one.  Effectively, a
-        shortcut for instantiating a new LuminosoClient for that path.
+        Change the client's path. Paths with leading slashes are appended to
+        the root url, otherwise paths are set relative to the current path.
+        Returns a copy of the client to avoid breaking old code.
         """
         if path.startswith('/'):
-            url = self.root_url + path
+            self.url = self.root_url + path
         else:
-            url = self.url + path
-        return self.__class__(self.session, url)
+            self.url = self.url + path
+        return self
 
     def upload(self, path, docs, **params):
         """

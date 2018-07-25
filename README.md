@@ -109,17 +109,17 @@ client = LuminosoClient.connect()
 project_id = client.post('/projects/', name='testproject', language='en')['project_id']
 
 # use that project from here on
-project = client.change_path('/projects/' + project_id)
+client.change_path('/projects/' + project_id)
 
 docs = [{'title': 'First example', 'text': 'This is an example document.'},
         {'title': 'Second example', 'text': 'Examples are a great source of inspiration.'},
         {'title': 'Third example', 'text': 'Great things come in threes.'}]
-project.post('upload', docs=docs)
-project.post('build')
-project.wait_for_build()
+client.post('upload', docs=docs)
+client.post('build')
+client.wait_for_build()
 
 # When the previous call finishes:
-response = project.get('concepts')
+response = client.get('concepts')
 for concept in response['result']:
     print('%s - %f' % (concept['texts'][0], concept['relevance']))
 ```

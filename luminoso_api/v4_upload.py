@@ -1,7 +1,7 @@
 from itertools import islice, chain
-from luminoso_api import LuminosoClient
-from luminoso_api.constants import URL_BASE
-from luminoso_api.json_stream import transcode_to_stream, stream_json_lines
+from luminoso_api.v4_client import LuminosoClient
+from luminoso_api.v4_constants import URL_BASE
+from luminoso_api.v4_json_stream import transcode_to_stream, stream_json_lines
 
 
 # http://code.activestate.com/recipes/303279-getting-items-in-batches/
