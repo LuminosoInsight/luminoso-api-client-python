@@ -244,9 +244,9 @@ class LuminosoClient(object):
         Returns a copy of the client to avoid breaking old code.
         """
         if path.startswith('/'):
-            self.url = self.root_url + path
+            self.url = ensure_trailing_slash(self.root_url + path)
         else:
-            self.url = self.url + path
+            self.url = ensure_trailing_slash(self.url + path)
         return self
 
     def upload(self, path, docs, **params):
