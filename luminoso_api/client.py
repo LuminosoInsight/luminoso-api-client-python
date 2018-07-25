@@ -90,7 +90,7 @@ class LuminosoClient(object):
             with open(token_file) as tf:
                 token_dict = json.load(tf)
             try:
-                token = token_dict[root_url]
+                token = token_dict[urlparse(root_url).netloc]
             except KeyError:
                 raise LuminosoAuthError('No token stored for %s' % root_url)
 
