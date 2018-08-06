@@ -3,6 +3,7 @@ import json
 import os
 import sys
 from signal import signal, SIGPIPE, SIG_DFL
+from urllib.parse import urlparse
 
 from .client import LuminosoClient
 from .constants import URL_BASE
@@ -13,7 +14,30 @@ from .errors import LuminosoError
 signal(SIGPIPE, SIG_DFL)
 
 
-DESCRIPTION = "I kinda suspected that they thought I was a hacker"
+DESCRIPTION = "Access the luminoso api via the command line."
+
+USAGE = """
+Supply an http verb and a path, with optional parameters.
+Output is returned as json, or an error message.
+
+Parameters may be specified in one of three ways:
+
+A user-friendly key=value parameter list:
+    -p 'key="value"' -p 'key2="value"'
+
+A json object from the command line:
+    -j '{"key": "value", "key2": "value"}'
+
+A file containing a json object:
+    filename.json
+
+Parameter options may be combined. A json object on the command line is merged
+over one in a file, and -p options are merged over both.
+
+GET and DELETE requests append the parameters to the URL.
+POST, PUT, and PATCH send the given parameters as the body of the
+request with Content-Type set to 'application/json'.
+"""
 
 URL_BASE = 'http://master-staging/api/v5' # testing only
 
@@ -46,22 +70,32 @@ def _read_params(input_file, json_body, p_params):
 
 
 def _main():
-    parser = argparse.ArgumentParser(description=DESCRIPTION)
-    parser.add_argument('-b', '--base-url', default=URL_BASE)
-    parser.add_argument('-t', '--token')
-    parser.add_argument('-p', '--param', action='append', default=[])
-    parser.add_argument('-j', '--json-body')
-    parser.add_argument('-c', '--csv', action='store_true')
-    parser.add_argument('-s', '--save-token', help="save token for --base-url and exit")
-    parser.add_argument('method', choices=['get', 'post', 'put', 'patch', 'delete'])
+    parser = argparse.ArgumentParser(
+        description=DESCRIPTION, epilog=USAGE,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('-b', '--base-url', default=URL_BASE,
+                        help="api root url, default: %s" % URL_BASE)
+    parser.add_argument('-t', '--token', help="api authentication token")
+    parser.add_argument('-s', '--save-token', action='store_true',
+                        help="save --token for --base-url to"
+                             " ~/.luminoso/tokens.json")
+    parser.add_argument('-p', '--param', action='append', default=[],
+                        help="key=value parameters")
+    parser.add_argument('-j', '--json-body', help="json object parameter")
+    parser.add_argument('-c', '--csv', action='store_true',
+                        help="print output in csv format")
+    parser.add_argument('method',
+                        choices=['get', 'post', 'put', 'patch', 'delete'])
     parser.add_argument('path')
     parser.add_argument('input_file', nargs='?')
 
     args = parser.parse_args()
 
     if args.save_token:
-        print("saving your token: %s ... psych" % args.save_token)
-        sys.exit(os.EX_OK)
+        if not args.token:
+            raise Exception("error: no token provided")
+        LuminosoClient.save_token(args.token,
+                                  domain=urlparse(args.base_url).netloc)
 
     client = LuminosoClient.connect(url=args.base_url, token=args.token)
 
