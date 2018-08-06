@@ -39,8 +39,6 @@ POST, PUT, and PATCH send the given parameters as the body of the
 request with Content-Type set to 'application/json'.
 """
 
-URL_BASE = 'http://master-staging/api/v5' # testing only
-
 
 def _print_csv(result):
     """ print a json list of json objects in csv format """
