@@ -293,6 +293,7 @@ class LuminosoClient(object):
 
         This is only generally useful for specific URLs, such as documentation.
         """
+        params = jsonify_parameters(params)
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('get', url, params=params).text
 
