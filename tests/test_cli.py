@@ -53,6 +53,7 @@ def test_parameter_merging(MockedClient):
     MockedClient.connect().get.return_value = {}
     f = io.StringIO()
     f.write(json.dumps({"one": 1, "two": 2, "three": 3}))
+    f.seek(0)
     with patch('builtins.open', return_value=f):
         with patch.object(sys, 'argv', ['lumi-api', 'get', 'projects',
                           'filename.json', '-p', 'one="won"',
