@@ -18,7 +18,7 @@ DESCRIPTION = "Access the luminoso api via the command line."
 
 USAGE = """
 Supply an http verb and a path, with optional parameters.
-Output is returned as json, or an error message.
+Output is returned as json, csv, or an error message.
 
 Parameters may be specified in one of three ways:
 
