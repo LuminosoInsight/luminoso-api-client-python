@@ -86,7 +86,6 @@ def test_csv_output(MockedClient):
         main()
     assert MockedClient.connect.called
     assert not MockedClient.connect().delete.called
-    buf = sys.stdout.getvalue()
     eq_(sys.stdout.getvalue(),
         "one,two\n"
         "x,y\n"
