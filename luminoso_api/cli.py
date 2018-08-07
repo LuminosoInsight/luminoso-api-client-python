@@ -9,7 +9,7 @@ from .client import LuminosoClient
 from .constants import URL_BASE
 from .errors import LuminosoError
 
-# python raises IOError when reading process (such as `head` closes a pipe).
+# python raises IOError when reading process (such as `head`) closes a pipe.
 # setting SIG_DFL as the SIGPIPE handler restores behaviour to UNIX default.
 signal(SIGPIPE, SIG_DFL)
 
