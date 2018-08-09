@@ -9,29 +9,29 @@ from .client import LuminosoClient
 from .constants import URL_BASE
 from .errors import LuminosoError
 
-# python raises IOError when reading process (such as `head`) closes a pipe.
-# setting SIG_DFL as the SIGPIPE handler restores behaviour to UNIX default.
+# Python raises IOError when reading process (such as `head`) closes a pipe.
+# Setting SIG_DFL as the SIGPIPE handler prevents this program from crashing.
 signal(SIGPIPE, SIG_DFL)
 
 
 DESCRIPTION = "Access the luminoso api via the command line."
 
 USAGE = """
-Supply an http verb and a path, with optional parameters.
-Output is returned as json, csv, or an error message.
+Supply an HTTP verb and a path, with optional parameters.
+Output is returned as JSON, CSV, or an error message.
 
 Parameters may be specified in one of three ways:
 
 A user-friendly key=value parameter list:
-    -p 'key="value"' -p 'key2="value"'
+    -p 'key=value' -p 'key2=value'
 
-A json object from the command line:
+A JSON object from the command line:
     -j '{"key": "value", "key2": "value"}'
 
-A file containing a json object:
+A file containing a JSON object:
     filename.json
 
-Parameter options may be combined. A json object on the command line is merged
+Parameter options may be combined. A JSON object on the command line is merged
 over one in a file, and -p options are merged over both.
 
 GET and DELETE requests append the parameters to the URL.
@@ -41,16 +41,16 @@ request with Content-Type set to 'application/json'.
 
 
 def _print_csv(result):
-    """ print a json list of json objects in csv format """
+    """Print a JSON list of JSON objects in csv format."""
     first_line = result[0]
-    keys = sorted(list(first_line.keys()))
+    keys = sorted(first_line.keys())
     print(','.join(keys))
     for line in result:
         print(','.join([str(line[key]) for key in keys]))
 
 
 def _read_params(input_file, json_body, p_params):
-    """ read parameters from input file, -j, and -p arguments, in that order """
+    """Read parameters from input file, -j, and -p arguments, in that order."""
     params = {}
     try:
         if input_file:
@@ -59,7 +59,7 @@ def _read_params(input_file, json_body, p_params):
         if json_body is not None:
                 params.update(json.loads(json_body))
     except ValueError as e:
-        raise ValueError("input is not valid json: %s" % e)
+        raise ValueError("input is not valid JSON: %s" % e)
     try:
         params.update({p.split('=', 1)[0]: p.split('=', 1)[1] for p in p_params})
     except IndexError:
@@ -79,7 +79,7 @@ def _main():
                              " ~/.luminoso/tokens.json")
     parser.add_argument('-p', '--param', action='append', default=[],
                         help="key=value parameters")
-    parser.add_argument('-j', '--json-body', help="json object parameter")
+    parser.add_argument('-j', '--json-body', help="JSON object parameter")
     parser.add_argument('-c', '--csv', action='store_true',
                         help="print output in csv format")
     parser.add_argument('method',
@@ -112,7 +112,7 @@ def _main():
         except TypeError as e:
             raise ValueError("output not able to be displayed as csv. %s" % e)
     else:
-        print(json.dumps(result))
+        print(json.dumps(result, sort_keys=True, indent=4))
 
 
 def main():
