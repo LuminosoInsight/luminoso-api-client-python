@@ -1,4 +1,5 @@
 import argparse
+import csv
 import json
 import os
 import sys
@@ -41,12 +42,12 @@ request with Content-Type set to 'application/json'.
 
 
 def _print_csv(result):
-    """Print a JSON list of JSON objects in csv format."""
+    """Print a JSON list of JSON objects in CSV format."""
     first_line = result[0]
-    keys = sorted(first_line.keys())
-    print(','.join(keys))
+    w = csv.DictWriter(sys.stdout, fieldnames=sorted(first_line.keys()))
+    w.writeheader()
     for line in result:
-        print(','.join([str(line[key]) for key in keys]))
+        w.writerow(line)
 
 
 def _read_params(input_file, json_body, p_params):
@@ -80,7 +81,7 @@ def _main():
                         help="key=value parameters")
     parser.add_argument('-j', '--json-body', help="JSON object parameter")
     parser.add_argument('-c', '--csv', action='store_true',
-                        help="print output in csv format")
+                        help="print output in CSV format")
     parser.add_argument('method',
                         choices=['get', 'post', 'put', 'patch', 'delete'])
     parser.add_argument('path')
@@ -109,7 +110,7 @@ def _main():
         try:
             _print_csv(result)
         except TypeError as e:
-            raise ValueError("output not able to be displayed as csv. %s" % e)
+            raise ValueError("output not able to be displayed as CSV. %s" % e)
     else:
         print(json.dumps(result, sort_keys=True, indent=4))
 
