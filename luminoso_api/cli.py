@@ -54,10 +54,9 @@ def _read_params(input_file, json_body, p_params):
     params = {}
     try:
         if input_file:
-            with open(input_file) as f:
-                params.update(json.load(f))
+            params.update(json.load(input_file))
         if json_body is not None:
-                params.update(json.loads(json_body))
+            params.update(json.loads(json_body))
     except ValueError as e:
         raise ValueError("input is not valid JSON: %s" % e)
     try:
@@ -85,7 +84,7 @@ def _main():
     parser.add_argument('method',
                         choices=['get', 'post', 'put', 'patch', 'delete'])
     parser.add_argument('path')
-    parser.add_argument('input_file', nargs='?')
+    parser.add_argument('input_file', nargs='?', type=open)
 
     args = parser.parse_args()
 
