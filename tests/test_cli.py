@@ -87,6 +87,6 @@ def test_csv_output(MockedClient):
     assert MockedClient.connect.called
     assert not MockedClient.connect().delete.called
     eq_(sys.stdout.getvalue(),
-        "one,two\n"
-        "x,y\n"
-        "z,a\n")
+        "one,two\r\n"
+        "x,y\r\n"
+        "z,a\r\n")
