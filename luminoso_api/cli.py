@@ -15,7 +15,7 @@ from .errors import LuminosoError
 signal(SIGPIPE, SIG_DFL)
 
 
-DESCRIPTION = "Access the luminoso API via the command line."
+DESCRIPTION = "Access the Luminoso API via the command line."
 
 USAGE = """
 Supply an HTTP verb and a path, with optional parameters.
