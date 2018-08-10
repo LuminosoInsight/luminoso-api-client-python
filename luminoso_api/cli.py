@@ -15,7 +15,7 @@ from .errors import LuminosoError
 signal(SIGPIPE, SIG_DFL)
 
 
-DESCRIPTION = "Access the luminoso api via the command line."
+DESCRIPTION = "Access the luminoso API via the command line."
 
 USAGE = """
 Supply an HTTP verb and a path, with optional parameters.
@@ -72,8 +72,8 @@ def _main():
         description=DESCRIPTION, epilog=USAGE,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-b', '--base-url', default=URL_BASE,
-                        help="api root url, default: %s" % URL_BASE)
-    parser.add_argument('-t', '--token', help="api authentication token")
+                        help="API root url, default: %s" % URL_BASE)
+    parser.add_argument('-t', '--token', help="API authentication token")
     parser.add_argument('-s', '--save-token', action='store_true',
                         help="save --token for --base-url to"
                              " ~/.luminoso/tokens.json")
