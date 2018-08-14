@@ -67,7 +67,7 @@ def _read_params(input_file, json_body, p_params):
     return params
 
 
-def _main():
+def _main(*vargs):
     parser = argparse.ArgumentParser(
         description=DESCRIPTION, epilog=USAGE,
         formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -87,7 +87,7 @@ def _main():
     parser.add_argument('path')
     parser.add_argument('input_file', nargs='?', type=open)
 
-    args = parser.parse_args()
+    args = parser.parse_args(vargs)
 
     if args.save_token:
         if not args.token:
@@ -117,7 +117,7 @@ def _main():
 
 def main():
     try:
-        _main()
+        _main(*sys.argv[1:])
     except (Exception, LuminosoError) as e:
         print("lumi-api: %s" % e, file=sys.stderr)
         sys.exit(1)
