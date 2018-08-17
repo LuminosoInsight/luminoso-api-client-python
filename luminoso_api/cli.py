@@ -43,6 +43,8 @@ request with Content-Type set to 'application/json'.
 
 def _print_csv(result):
     """Print a JSON list of JSON objects in CSV format."""
+    if type(result) is not list:
+        raise TypeError
     first_line = result[0]
     w = csv.DictWriter(sys.stdout, fieldnames=sorted(first_line.keys()))
     w.writeheader()
