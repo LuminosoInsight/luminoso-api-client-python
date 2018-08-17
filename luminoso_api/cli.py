@@ -116,6 +116,6 @@ def _main(*vargs):
 def main():
     try:
         _main(*sys.argv[1:])
-    except (Exception) as e:
+    except Exception as e:
         print("lumi-api: %s" % e, file=sys.stderr)
         sys.exit(1)
