@@ -8,7 +8,6 @@ from urllib.parse import urlparse
 
 from .client import LuminosoClient
 from .constants import URL_BASE
-from .errors import LuminosoError
 
 # Python raises IOError when reading process (such as `head`) closes a pipe.
 # Setting SIG_DFL as the SIGPIPE handler prevents this program from crashing.
@@ -43,6 +42,8 @@ request with Content-Type set to 'application/json'.
 
 def _print_csv(result):
     """Print a JSON list of JSON objects in CSV format."""
+    if type(result) is not list:
+        raise TypeError("output not able to be displayed as CSV.")
     first_line = result[0]
     w = csv.DictWriter(sys.stdout, fieldnames=sorted(first_line.keys()))
     w.writeheader()
@@ -67,7 +68,7 @@ def _read_params(input_file, json_body, p_params):
     return params
 
 
-def _main():
+def _main(*vargs):
     parser = argparse.ArgumentParser(
         description=DESCRIPTION, epilog=USAGE,
         formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -87,7 +88,7 @@ def _main():
     parser.add_argument('path')
     parser.add_argument('input_file', nargs='?', type=open)
 
-    args = parser.parse_args()
+    args = parser.parse_args(vargs)
 
     if args.save_token:
         if not args.token:
@@ -107,17 +108,14 @@ def _main():
     result = func(args.path, **params)
 
     if args.csv:
-        try:
-            _print_csv(result)
-        except TypeError as e:
-            raise ValueError("output not able to be displayed as CSV. %s" % e)
+        _print_csv(result)
     else:
         print(json.dumps(result, sort_keys=True, indent=4))
 
 
 def main():
     try:
-        _main()
-    except (Exception, LuminosoError) as e:
+        _main(*sys.argv[1:])
+    except Exception as e:
         print("lumi-api: %s" % e, file=sys.stderr)
         sys.exit(1)
