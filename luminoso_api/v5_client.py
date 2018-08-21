@@ -9,7 +9,7 @@ import requests
 import time
 from urllib.parse import urlparse
 
-from .constants import URL_BASE
+from .v5_constants import URL_BASE
 from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
                      LuminosoServerError)
 

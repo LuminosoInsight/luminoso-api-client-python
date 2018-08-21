@@ -2,12 +2,13 @@
 Provides the LuminosoClient object, a wrapper for making
 properly-authenticated requests to the Luminoso REST API.
 """
+from __future__ import unicode_literals
 from .v4_auth import TokenAuth
 from .v4_constants import URL_BASE
 from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
     LuminosoServerError, LuminosoAPIError)
+from .compat import types_not_to_encode, urlparse, encode_getpass
 from getpass import getpass
-from urllib.parse import urlparse
 import os
 import requests
 import logging
@@ -15,7 +16,7 @@ import json
 import time
 logger = logging.getLogger(__name__)
 
-class v4LuminosoClient(object):
+class LuminosoClient(object):
     """
     A tool for making authenticated requests to the Luminoso API version 4.
 
@@ -61,7 +62,7 @@ class v4LuminosoClient(object):
         self.root_url = get_root_url(url, warn=False)
 
     def __repr__(self):
-        return '<v4LuminosoClient for %s>' % self.url
+        return '<LuminosoClient for %s>' % self.url
 
     @classmethod
     def connect(cls, url=None, username=None, password=None, token=None,
@@ -125,6 +126,8 @@ class v4LuminosoClient(object):
                 username = os.environ['USER']
             if password is None:
                 prompt = 'Password for %s: ' % username
+                if encode_getpass:
+                    prompt = prompt.encode('utf-8')
                 password = getpass(prompt)
             auth = TokenAuth.from_user_creds(username, password, url=root_url)
         else:
@@ -520,7 +523,7 @@ def jsonify_parameters(params):
     """
     result = {}
     for param, value in params.items():
-        if isinstance(value, (int, str)):
+        if isinstance(value, types_not_to_encode):
             result[param] = value
         else:
             result[param] = json.dumps(value)

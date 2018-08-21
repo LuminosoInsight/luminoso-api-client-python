@@ -6,8 +6,8 @@ import sys
 from signal import signal, SIGPIPE, SIG_DFL
 from urllib.parse import urlparse
 
-from .client import LuminosoClient
-from .constants import URL_BASE
+from .v5_client import LuminosoClient
+from .v5_constants import URL_BASE
 
 # Python raises IOError when reading process (such as `head`) closes a pipe.
 # Setting SIG_DFL as the SIGPIPE handler prevents this program from crashing.

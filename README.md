@@ -4,13 +4,30 @@ Python bindings for the Luminoso client API
 This package contains Python code for interacting with a Luminoso text
 processing server through its REST API.
 
+Important note: API version and client version
+----------------------------------------------
+
+This page covers the client that connects to the v4 API; this client is the
+object named `luminoso_api.LuminosoClient`, which is an alias for
+`luminoso_api.v4_client.LuminosoClient`.
+
+However, the v5 API is now available, as is a client for using it.  That client
+can be accessed as `luminoso_api.V5LuminosoClient` (or directly at
+`luminoso_api.v5_client.LuminosoClient`).  Documentation for the new client can
+be found [here](V5_README.md).  When the sunset period for the v4 API ends on
+January 3, 2019, we will remove the v4 version of the client, and
+`luminoso_api.LuminosoClient` will become an alias for the v5 client.
+
+Using this client
+=================
+
 In this code, instead of having to authenticate each request separately,
 you make a "session" object that keeps track of your login information,
 and call methods on it that will be properly authenticated.
 
 Installation
 ---------------
-This client API is designed to be used with Python 3.
+This client API is designed to be used with Python 2.6, 2.7, 3.3, or 3.4.
 
 You can download and install it using a Python package manager:
 
@@ -34,49 +51,54 @@ You interact with the API using a LuminosoClient object, which sends HTTP
 requests to URLs starting with a given path, and keeps track of your
 authentication information.
 
-Before you can connect to an API, you will need to go to the UI on the web and
-get a long-lived API token.  (To get a token, go to the "User settings" option
-in the upper right dropdown menu, and click the "API tokens" button.)  Once you
-have one, you can use it to connect to the API.
+You can connect using a username and password:
+
+```python
+>>> from luminoso_api import LuminosoClient
+>>> proj = LuminosoClient.connect('/projects/account_id/my_project_id',
+                                  username='my_username')
+Password for my_username: [here you enter your password]
+>>> proj.get('terms')
+[lots of terms and vectors here]
+```
+
+Or you can connect using an existing API token:
 
 ```python
 from luminoso_api import LuminosoClient
-project = LuminosoClient.connect('/projects/my_project_id', token='my_token')
-
-# And then, for instance:
-docs = project.get('docs', limit=10)
+proj = LuminosoClient.connect('/projects/account_id/my_project_id',
+                              token='my-api-token-here')
 ```
 
-Instead of specifying the token when connecting, you can also use the
-LuminosoClient to save a token to a file, at which point you can connect
-without having to specify a token.
+You can even save your API token to a file on your computer and load it
+automatically, so that you don't have to specify any credentials:
 
 ```python
 from luminoso_api import LuminosoClient
-LuminosoClient.save_token(token='my_token')
-project = LuminosoClient.connect('/projects/my_project_id')
-docs = project.get('docs', limit=10)
+client = LuminosoClient.connect(token='my-api-token-here')
+# This will save a non-expiring token, regardless of whether you are currently
+# using that token or some other token.
+client.save_token()
+# Now you can exit Python, restart your computer, etc., and your token will
+# still be saved when you come back.
+proj = LuminosoClient.connect('/projects/account_id/my_project_id')
 ```
 
-Note that the LuminosoClient will ensure that slashes are put in the right
-places, so that all of the following calls will go to the endpoint
-`https://analytics.luminoso.com/api/v5/projects/my_project_id/docs/`:
+When you connect without specifying a URL, the URL will be set to your default
+account_id under /projects:
 
 ```python
-LuminosoClient.connect('/projects/my_project_id').get('docs')
-LuminosoClient.connect('/projects/my_project_id').get('/docs')
-LuminosoClient.connect('/projects/my_project_id').get('docs/')
-LuminosoClient.connect('/projects/my_project_id').get('/docs/')
-LuminosoClient.connect('/projects/my_project_id/').get('docs')
-LuminosoClient.connect('/projects/my_project_id/').get('/docs')
-LuminosoClient.connect('/projects/my_project_id/').get('docs/')
-LuminosoClient.connect('/projects/my_project_id/').get('/docs/')
+>>> from luminoso_api import LuminosoClient
+>>> projects = LuminosoClient.connect(username='testuser')
+Password: ...
+>>> print(projects)
+<LuminosoClient for https://analytics.luminoso.com/api/v4/projects/lumi-test/>
 ```
 
 HTTP methods
 ------------
 
-The URLs you can communicate with are documented at https://analytics.luminoso.com/api/v5/.
+The URLs you can communicate with are documented at https://analytics.luminoso.com/api/v4.
 That documentation is the authoritative source for what you can do with the
 API, and this Python code is just here to help you do it.
 
@@ -94,34 +116,48 @@ project (also known as a database), but one case where you don't is to get a lis
 
 ```python
 from luminoso_api import LuminosoClient
-client = LuminosoClient.connect()
-project_info_list = client.get('/projects/')
+client = LuminosoClient.connect(username='jane', password=MY_SECRET_PASSWORD)
+# this points to the /projects/janeaccount/ endpoint by default,
+# where janeaccount is the account_id of jane's default account
+project_info_list = client.get()
 print(project_info_list)
 ```
 
-An example of working with a project, including the use of the convenience method `.wait_for_build`:
+
+An example of working with a project, including the `upload` method
+that we provide to make it convenient to upload documents in the right format:
 
 ```python
 from luminoso_api import LuminosoClient
-client = LuminosoClient.connect()
 
-# Create a new project by POSTing its name and language
-project_id = client.post('/projects/', name='testproject', language='en')['project_id']
+projects = LuminosoClient.connect(username='jane')
+
+# Create a new project by POSTing its name
+project_id = projects.post(name='testproject')['project_id']
 
 # use that project from here on
-client.change_path('/projects/' + project_id)
+project = projects.change_path(project_id)
 
 docs = [{'title': 'First example', 'text': 'This is an example document.'},
         {'title': 'Second example', 'text': 'Examples are a great source of inspiration.'},
         {'title': 'Third example', 'text': 'Great things come in threes.'}]
-client.post('upload', docs=docs)
-client.post('build')
-client.wait_for_build()
+project.upload('docs', docs)
+job_id = project.post('docs/recalculate')
+```
 
-# When the previous call finishes:
-response = client.get('concepts')
-for concept in response['result']:
-    print('%s - %f' % (concept['texts'][0], concept['relevance']))
+This starts an asynchronous job, returning us its ID number. We can use
+`wait_for` to block until it's ready:
+
+```python
+project.wait_for(job_id)
+```
+
+When the project is ready:
+
+```python
+response = project.get('terms')
+terms = [(term['text'], term['score']) for term in response]
+print(terms)
 ```
 
 Vectors
@@ -143,9 +179,6 @@ array([ 0.00046539,  0.00222015, -0.08491898, -0.0014534 , -0.00127411], dtype=f
 
 Uploading from the command line
 -------------------------------
-
-[TODO: verify the accuracy of this section with the v5 client]
-
 Instead of sending your documents as a list of Python dictionaries, you can upload a file
 containing documents in JSON format.
 

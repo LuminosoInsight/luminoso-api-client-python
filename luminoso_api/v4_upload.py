@@ -1,5 +1,6 @@
+from __future__ import print_function, unicode_literals
 from itertools import islice, chain
-from luminoso_api.v4_client import v4LuminosoClient
+from luminoso_api.v4_client import LuminosoClient
 from luminoso_api.v4_constants import URL_BASE
 from luminoso_api.v4_json_stream import transcode_to_stream, stream_json_lines
 
@@ -22,8 +23,8 @@ def upload_stream(stream, server, account, projname, language=None,
     Given a file-like object containing a JSON stream, upload it to
     Luminoso with the given account name and project name.
     """
-    client = v4LuminosoClient.connect(server,
-                                      username=username, password=password)
+    client = LuminosoClient.connect(server,
+                                    username=username, password=password)
     if not append:
         # If we're not appending to an existing project, create new project.
         info = client.post('/projects/' + account, name=projname)

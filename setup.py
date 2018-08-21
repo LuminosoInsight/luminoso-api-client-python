@@ -39,7 +39,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'lumi-api = luminoso_api.cli:main',
+            'lumi-api = luminoso_api.v5_cli:main',
             'lumi-upload = luminoso_api.v4_upload:main',
             'lumi-json-stream = luminoso_api.v4_json_stream:main',
         ]},
