@@ -87,8 +87,11 @@ class LuminosoClient(object):
 
         if token is None:
             token_file = token_file or get_token_filename()
-            with open(token_file) as tf:
-                token_dict = json.load(tf)
+            try:
+                with open(token_file) as tf:
+                    token_dict = json.load(tf)
+            except FileNotFoundError:
+                raise LuminosoAuthError('No token file at %s' % token_file)
             try:
                 token = token_dict[urlparse(root_url).netloc]
             except KeyError:
