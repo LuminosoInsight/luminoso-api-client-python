@@ -109,7 +109,7 @@ client = V5LuminosoClient.connect()
 project_id = client.post('/projects/', name='testproject', language='en')['project_id']
 
 # use that project from here on
-project = client.change_path('/projects/' + project_id)
+project = client.client_for_path('/projects/' + project_id)
 
 docs = [{'title': 'First example', 'text': 'This is an example document.'},
         {'title': 'Second example', 'text': 'Examples are a great source of inspiration.'},

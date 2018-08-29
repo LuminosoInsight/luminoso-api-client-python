@@ -238,15 +238,15 @@ class LuminosoClient(object):
         return self._json_request('delete', url, params=params)
 
     # Useful abstractions
-    def copy_client(self, path):
+    def client_for_path(self, path):
         """
         Returns a new client with the same root URL and authentication, but
         a different specific URL.  For instance, if you have a client pointed
         at https://analytics.luminoso.com/api/v5/, and you want new ones for
         Project A and Project B, you would call:
 
-            client_a = client.copy_client('projects/<project_id_a>')
-            client_b = client.copy_client('projects/<project_id_b>')
+            client_a = client.client_for_path('projects/<project_id_a>')
+            client_b = client.client_for_path('projects/<project_id_b>')
 
         and your base client would remian unchanged.
 
