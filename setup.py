@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-VERSION = "0.5.4"
+VERSION = "1.0"
 
 from setuptools import setup, find_packages
 import sys
@@ -39,7 +39,8 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'lumi-upload = luminoso_api.upload:main',
-            'lumi-json-stream = luminoso_api.json_stream:main',
+            'lumi-api = luminoso_api.v5_cli:main',
+            'lumi-upload = luminoso_api.v4_upload:main',
+            'lumi-json-stream = luminoso_api.v4_json_stream:main',
         ]},
 )

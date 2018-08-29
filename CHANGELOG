@@ -1,3 +1,10 @@
+Version 1.0 (2018-08-21)
+
+  * Client overhaul to interface with the v5 API.
+
+    - A client for the v4 API is still available, and is the default client,
+      but there is a sunset period for the v4 API.
+
 Version 0.5.3 (2017-02-17)
 
   * Client changes

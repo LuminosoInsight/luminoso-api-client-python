@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 import json
 import requests
 
-from .constants import URL_BASE
+from .v4_constants import URL_BASE
 from .errors import LuminosoLoginError
 
 import logging
