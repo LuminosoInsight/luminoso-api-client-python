@@ -127,8 +127,7 @@ class LuminosoClient(object):
         error status, convert that to a Python exception.
         """
         logger.debug('%s %s' % (req_type, url))
-        func = getattr(self.session, req_type)
-        result = func(url, **kwargs)
+        result = self.session.request(req_type, url, **kwargs)
         try:
             result.raise_for_status()
         except requests.HTTPError:
@@ -162,8 +161,7 @@ class LuminosoClient(object):
         except ValueError:
             logger.error("Received response with no JSON: %s %s" %
                          (response, response.content))
-            raise LuminosoError('Response body contained no JSON. '
-                                'Perhaps you meant to use get_raw?')
+            raise LuminosoError('Response body contained no JSON.')
         return json_response
 
     # Simple REST operations
@@ -289,16 +287,6 @@ class LuminosoClient(object):
                 logger.info('Still waiting (%d seconds elapsed).', next_log)
                 next_log += 120
             time.sleep(interval)
-
-    def get_raw(self, path, **params):
-        """
-        Get the raw text of a response.
-
-        This is only generally useful for specific URLs, such as documentation.
-        """
-        params = jsonify_parameters(params)
-        url = ensure_trailing_slash(self.url + path.lstrip('/'))
-        return self._request('get', url, params=params).text
 
     def save_to_file(self, path, filename, **params):
         """
