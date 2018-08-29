@@ -109,17 +109,17 @@ client = V5LuminosoClient.connect()
 project_id = client.post('/projects/', name='testproject', language='en')['project_id']
 
 # use that project from here on
-client.change_path('/projects/' + project_id)
+project = client.change_path('/projects/' + project_id)
 
 docs = [{'title': 'First example', 'text': 'This is an example document.'},
         {'title': 'Second example', 'text': 'Examples are a great source of inspiration.'},
         {'title': 'Third example', 'text': 'Great things come in threes.'}]
-client.post('upload', docs=docs)
-client.post('build')
-client.wait_for_build()
+project.post('upload', docs=docs)
+project.post('build')
+project.wait_for_build()
 
 # When the previous call finishes:
-response = client.get('concepts')
+response = project.get('concepts')
 for concept in response['result']:
     print('%s - %f' % (concept['texts'][0], concept['relevance']))
 ```

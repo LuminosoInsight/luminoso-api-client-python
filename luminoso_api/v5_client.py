@@ -238,17 +238,26 @@ class LuminosoClient(object):
         return self._json_request('delete', url, params=params)
 
     # Useful abstractions
-    def change_path(self, path):
+    def copy_client(self, path):
         """
-        Change the client's path. Paths with leading slashes are appended to
-        the root url, otherwise paths are set relative to the current path.
-        Returns a copy of the client to avoid breaking old code.
+        Returns a new client with the same root URL and authentication, but
+        a different specific URL.  For instance, if you have a client pointed
+        at https://analytics.luminoso.com/api/v5/, and you want new ones for
+        Project A and Project B, you would call:
+
+            client_a = client.copy_client('projects/<project_id_a>')
+            client_b = client.copy_client('projects/<project_id_b>')
+
+        and your base client would remian unchanged.
+
+        Paths with leading slashes are appended to the root url; otherwise,
+        paths are set relative to the current path.
         """
         if path.startswith('/'):
-            self.url = ensure_trailing_slash(self.root_url + path)
+            url = self.root_url + path
         else:
-            self.url = ensure_trailing_slash(self.url + path)
-        return self
+            url = self.url + path
+        return self.__class__(self.session, url)
 
     def upload(self, path, docs, **params):
         """
