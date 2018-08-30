@@ -21,6 +21,8 @@ if sys.version_info[0] < 3:
 else:
     FTFY_DEP = 'ftfy >= 5'
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
 setup(
     name="luminoso-api",
@@ -31,6 +33,8 @@ setup(
     download_url='%s/tarball/v%s' % (GITHUB_URL, VERSION),
     platforms=["any"],
     description="Python client library for communicating with the Luminoso REST API",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     classifiers=classifiers,
     packages=find_packages(exclude=('tests',)),
     install_requires=[
