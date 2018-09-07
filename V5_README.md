@@ -90,7 +90,8 @@ Examples
 --------
 
 Most of the time, you'll want your LuminosoClient to refer to a particular
-project (also known as a database), but one case where you don't is to get a list of projects in the first place:
+project, but one case where you don't is to get a list of projects in the first
+place:
 
 ```python
 from luminoso_api import V5LuminosoClient
