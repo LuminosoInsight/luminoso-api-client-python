@@ -1,3 +1,15 @@
+Version 1.0.2 (2018-09-07)
+
+  * Small documentation fixes
+
+  * Added change_path() to the v5 client as a deprecated alias for
+    client_for_path(), analogous to the upload() alias.
+
+Version 1.0.1 (2018-08-31)
+
+  * Minor change to turn the README.md into the documentation that appears on
+    PyPI.
+
 Version 1.0 (2018-08-21)
 
   * Client overhaul to interface with the v5 API.
