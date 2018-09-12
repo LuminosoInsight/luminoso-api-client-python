@@ -59,12 +59,13 @@ def _read_params(input_file, json_body, p_params):
             params.update(json.load(input_file))
         if json_body is not None:
             params.update(json.loads(json_body))
+        try:
+            params.update({p.split('=', 1)[0]: json.loads(p.split('=', 1)[1])
+                           for p in p_params})
+        except IndexError:
+            raise ValueError("--param arguments must have key=value format")
     except ValueError as e:
         raise ValueError("input is not valid JSON: %s" % e)
-    try:
-        params.update({p.split('=', 1)[0]: p.split('=', 1)[1] for p in p_params})
-    except IndexError:
-        raise ValueError("--param arguments must have key=value format")
     return params
 
 
