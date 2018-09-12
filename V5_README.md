@@ -148,3 +148,10 @@ Uploading from the command line
 While there is no dedicated command to upload documents, this library does
 include the command `lumi-api`, which can be used to access the API in general
 and to upload documents in particular.  Run `lumi-api -h` for more information.
+
+Examples:
+```
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token get /projects
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token get /projects/my_project_id/concepts/match_counts
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token post /projects/my_project_id/concepts/saved -j '{"concepts": [{"texts": ["My new concept text"]}]}'
+```
