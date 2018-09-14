@@ -164,7 +164,7 @@ lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token -s get /projects 
 lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token post /projects/ -p 'name=project name' -p 'language=en'
 
 # upload documents
-# my_data.json format: {"docs":[{"text": "document 1 text"}, {"text": "document 2 text"}]}
+# my_data.json format: {"docs":[{"text": "..", "title": "..", "metadata": [..]}, {"text": "..", "title": "..", "metadata": [..]}]}
 lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_tokens post /projects/my_project_id/upload my_data.json
 
 # build project
