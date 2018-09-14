@@ -150,8 +150,33 @@ include the command `lumi-api`, which can be used to access the API in general
 and to upload documents in particular.  Run `lumi-api -h` for more information.
 
 Examples:
-```
+```python
+# get a project list
 lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token get /projects
+
+# get a project list in CSV format
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token get /projects -c
+
+# get a project list and save the token so the next call wouldn't need "-t my_token" parameter
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token -s get /projects -c
+
+# create a project
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token post /projects/ -p 'name=project name' -p 'language=en'
+
+# upload documents
+# my_data.json format: {"docs":[{"text": "document 1 text"}, {"text": "document 2 text"}]}
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_tokens post /projects/my_project_id/upload my_data.json
+
+# build project
+# this takes time, if you want to be notified via email when the build is done, add -j '{"notify": true}' parameter
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_tokens post /projects/my_project_id/build
+
+# get concepts from project
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_tokens get /projects/my_project_id/concepts
+
+# get project's match counts
 lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token get /projects/my_project_id/concepts/match_counts
+
+# create a saved concept
 lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token post /projects/my_project_id/concepts/saved -j '{"concepts": [{"texts": ["My new concept text"]}]}'
 ```
