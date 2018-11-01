@@ -42,6 +42,7 @@ setup(
         'tqdm',
         FTFY_DEP
     ],
+    tests_require=['pytest', 'requests-mock'],
     entry_points={
         'console_scripts': [
             'lumi-api = luminoso_api.v5_cli:main',
