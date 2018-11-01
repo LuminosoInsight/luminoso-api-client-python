@@ -25,6 +25,8 @@ CONCISE_DOCS = [
     {'title': 'Document 2', 'text': 'hello', 'metadata': []},
 ]
 
+REPETITIVE_DOC = {'title': 'Yadda', 'text': 'yadda yadda', 'metadata': []}
+
 
 def test_iteration(requests_mock):
     """
@@ -38,6 +40,22 @@ def test_iteration(requests_mock):
 
     docs = list(iterate_docs(client, progress=False, expanded=True))
     assert docs == EXPANDED_DOCS
+
+
+def test_pagination(requests_mock):
+    """
+    Test iterating over 1002 documents that come in two pages.
+    """
+    client = LuminosoClient.connect(BASE_URL + 'projects/projid', token='fake')
+    page1 = [REPETITIVE_DOC for i in range(1000)]
+    page2 = [REPETITIVE_DOC for i in range(2)]
+
+    requests_mock.get(BASE_URL + 'projects/projid/docs/?limit=1', json={'result': [REPETITIVE_DOC], 'total_count': 1002})
+    requests_mock.get(BASE_URL + 'projects/projid/docs/?limit=1000', json={'result': page1})
+    requests_mock.get(BASE_URL + 'projects/projid/docs/?offset=1000&limit=1000', json={'result': page2})
+
+    docs = list(iterate_docs(client, progress=False))
+    assert docs == [REPETITIVE_DOC] * 1002
 
 
 def test_writing(requests_mock):
