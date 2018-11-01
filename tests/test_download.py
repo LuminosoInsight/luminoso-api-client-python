@@ -9,15 +9,41 @@ import json
 BASE_URL = 'http://mock-api.localhost/api/v5/'
 RESPONSE = {
     'result': [
-        {'title': 'Document 1', 'text': 'hello', 'tokens': [{'term_id': 'hello|en'}], 'metadata': [], 'vector': 'AAAA', 'doc_id': 'uuid-0'},
-        {'title': 'Document 2', 'text': 'hello', 'tokens': [{'term_id': 'hello|en'}], 'metadata': [], 'vector': 'AAAA', 'doc_id': 'uuid-1'},
+        {
+            'title': 'Document 1',
+            'text': 'hello',
+            'tokens': [{'term_id': 'hello|en'}],
+            'metadata': [],
+            'vector': 'AAAA',
+            'doc_id': 'uuid-0',
+        },
+        {
+            'title': 'Document 2',
+            'text': 'hello',
+            'tokens': [{'term_id': 'hello|en'}],
+            'metadata': [],
+            'vector': 'AAAA',
+            'doc_id': 'uuid-1',
+        },
     ],
-    'total_count': 2
+    'total_count': 2,
 }
 
 EXPANDED_DOCS = [
-    {'title': 'Document 1', 'text': 'hello', 'tokens': [{'term_id': 'hello|en'}], 'metadata': [], 'vector': 'AAAA'},
-    {'title': 'Document 2', 'text': 'hello', 'tokens': [{'term_id': 'hello|en'}], 'metadata': [], 'vector': 'AAAA'},
+    {
+        'title': 'Document 1',
+        'text': 'hello',
+        'tokens': [{'term_id': 'hello|en'}],
+        'metadata': [],
+        'vector': 'AAAA',
+    },
+    {
+        'title': 'Document 2',
+        'text': 'hello',
+        'tokens': [{'term_id': 'hello|en'}],
+        'metadata': [],
+        'vector': 'AAAA',
+    },
 ]
 
 CONCISE_DOCS = [
@@ -47,12 +73,20 @@ def test_pagination(requests_mock):
     Test iterating over 1002 documents that come in two pages.
     """
     client = LuminosoClient.connect(BASE_URL + 'projects/projid', token='fake')
-    page1 = [REPETITIVE_DOC for i in range(1000)]
-    page2 = [REPETITIVE_DOC for i in range(2)]
+    page1 = [REPETITIVE_DOC] * 1000
+    page2 = [REPETITIVE_DOC] * 2
 
-    requests_mock.get(BASE_URL + 'projects/projid/docs/?limit=1', json={'result': [REPETITIVE_DOC], 'total_count': 1002})
-    requests_mock.get(BASE_URL + 'projects/projid/docs/?limit=1000', json={'result': page1})
-    requests_mock.get(BASE_URL + 'projects/projid/docs/?offset=1000&limit=1000', json={'result': page2})
+    requests_mock.get(
+        BASE_URL + 'projects/projid/docs/?limit=1',
+        json={'result': [REPETITIVE_DOC], 'total_count': 1002},
+    )
+    requests_mock.get(
+        BASE_URL + 'projects/projid/docs/?limit=1000', json={'result': page1}
+    )
+    requests_mock.get(
+        BASE_URL + 'projects/projid/docs/?offset=1000&limit=1000',
+        json={'result': page2},
+    )
 
     docs = list(iterate_docs(client, progress=False))
     assert docs == [REPETITIVE_DOC] * 1002
@@ -77,4 +111,3 @@ def test_writing(requests_mock):
             read_docs.append(obj)
 
         assert read_docs == CONCISE_DOCS
-

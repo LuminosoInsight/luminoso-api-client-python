@@ -19,15 +19,27 @@ def test_paths():
 
     # Paths are relative to the client's URL; paths with slashes in front are
     # absolute.
-    assert client_copy.client_for_path('subpath').url == BASE_URL + 'first_path/subpath/'
-    assert client_copy.client_for_path('/second_path').url == BASE_URL + 'second_path/'
+    assert (
+        client_copy.client_for_path('subpath').url
+        == BASE_URL + 'first_path/subpath/'
+    )
+    assert (
+        client_copy.client_for_path('/second_path').url
+        == BASE_URL + 'second_path/'
+    )
 
     # Similarly, test get_root_url
     with pytest.raises(ValueError):
         get_root_url('not.good.enough/api/v5')
 
-    assert get_root_url('https://analytics.luminoso.com/', warn=False) == 'https://analytics.luminoso.com/api/v5'
-    assert get_root_url('http://analytics.luminoso.com/api/v5/who/cares?blaah') == 'http://analytics.luminoso.com/api/v5'
+    assert (
+        get_root_url('https://analytics.luminoso.com/', warn=False)
+        == 'https://analytics.luminoso.com/api/v5'
+    )
+    assert (
+        get_root_url('http://analytics.luminoso.com/api/v5/who/cares?blaah')
+        == 'http://analytics.luminoso.com/api/v5'
+    )
 
 
 def test_mock_requests(requests_mock):
@@ -46,7 +58,7 @@ def test_mock_requests(requests_mock):
     client = LuminosoClient.connect(BASE_URL, token='fake')
     response = client.get('projects')
     assert response == project_list
-    
+
     # Check that we sent the auth token in the request headers
     assert requests_mock.last_request.headers['Authorization'] == 'Token fake'
 
