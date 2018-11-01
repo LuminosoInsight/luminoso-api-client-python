@@ -8,6 +8,9 @@ BASE_URL = 'http://mock-api.localhost/api/v5/'
 
 
 def test_paths():
+    """
+    Test creating a client and navigating to various paths with sub-clients.
+    """
     client = LuminosoClient.connect(BASE_URL, token='fake')
 
     client_copy = client.client_for_path('first_path')
@@ -28,6 +31,10 @@ def test_paths():
 
 
 def test_mock_requests(requests_mock):
+    """
+    Test the way that we make GET, POST, PUT, and DELETE requests using the
+    correspondingly-named methods of the client.
+    """
     project_list = [{'name': 'Example project'}]
     requests_mock.get(BASE_URL + 'projects/', json=project_list)
     requests_mock.post(BASE_URL + 'projects/', json={})
@@ -39,8 +46,12 @@ def test_mock_requests(requests_mock):
     assert response == project_list
 
     client2 = client.client_for_path('projects')
-    result = client2.get()
+    response = client2.get()
     assert response == project_list
+
+    response = client2.get(param='value')
+    assert response == project_list
+    assert requests_mock.last_request.qs == {'param': ['value']}
 
     response = client2.post(param='value')
     assert response == {}
