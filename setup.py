@@ -46,6 +46,10 @@ setup(
     entry_points={
         'console_scripts': [
             'lumi-api = luminoso_api.v5_cli:main',
+
+            # TODO: reconcile the fact that lumi-upload and lumi-download use
+            # different API versions
+            'lumi-upload = luminoso_api.v4_upload:main',
             'lumi-download = luminoso_api.v5_download:main',
         ]},
 )
