@@ -36,6 +36,8 @@ def test_mock_requests(requests_mock):
     correspondingly-named methods of the client.
     """
     project_list = [{'name': 'Example project'}]
+
+    # Set up the mock URLs that should respond
     requests_mock.get(BASE_URL + 'projects/', json=project_list)
     requests_mock.post(BASE_URL + 'projects/', json={})
     requests_mock.put(BASE_URL + 'projects/projid/', json={})
@@ -44,11 +46,17 @@ def test_mock_requests(requests_mock):
     client = LuminosoClient.connect(BASE_URL, token='fake')
     response = client.get('projects')
     assert response == project_list
+    
+    # Check that we sent the auth token in the request headers
+    assert requests_mock.last_request.headers['Authorization'] == 'Token fake'
 
     client2 = client.client_for_path('projects')
     response = client2.get()
     assert response == project_list
+    assert requests_mock.last_request.headers['Authorization'] == 'Token fake'
+    # Okay, that's enough testing of the auth header
 
+    # Test different kinds of requests with parameters
     response = client2.get(param='value')
     assert response == project_list
     assert requests_mock.last_request.qs == {'param': ['value']}
