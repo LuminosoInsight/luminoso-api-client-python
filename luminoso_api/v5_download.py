@@ -1,7 +1,6 @@
 import argparse
 import json
 import os
-from signal import signal, SIGPIPE, SIG_DFL
 from urllib.parse import urlparse
 from tqdm import tqdm
 
@@ -34,7 +33,7 @@ def iterate_docs(client, expanded=False, progress=False):
 
     If expanded=True, it will include additional fields that Luminoso added in
     its analysis, such as 'tokens' and 'vector'.
-    
+
     Otherwise, it will contain only the fields necessary to reconstruct the
     document: 'title', 'text', and 'metadata'.
 
@@ -45,7 +44,7 @@ def iterate_docs(client, expanded=False, progress=False):
     try:
         if progress:
             progress_bar = tqdm(desc='Downloading documents', total=num_docs)
-        
+
         for offset in range(0, num_docs, DOCS_PER_BATCH):
             response = client.get('docs', offset=offset, limit=DOCS_PER_BATCH)
             docs = response['result']
@@ -58,11 +57,11 @@ def iterate_docs(client, expanded=False, progress=False):
                 else:
                     concise_doc = {field: doc[field] for field in CONCISE_FIELDS}
                     doc = concise_doc
-                
+
                 if progress:
                     progress_bar.update()
                 yield doc
-    
+
     finally:
         if progress:
             progress_bar.close()
