@@ -39,12 +39,17 @@ setup(
     packages=find_packages(exclude=('tests',)),
     install_requires=[
         'requests >= 1.2.1, < 3.0',
+        'tqdm',
         FTFY_DEP
     ],
+    tests_require=['pytest', 'requests-mock'],
     entry_points={
         'console_scripts': [
             'lumi-api = luminoso_api.v5_cli:main',
+
+            # TODO: reconcile the fact that lumi-upload and lumi-download use
+            # different API versions
             'lumi-upload = luminoso_api.v4_upload:main',
-            'lumi-json-stream = luminoso_api.v4_json_stream:main',
+            'lumi-download = luminoso_api.v5_download:main',
         ]},
 )
