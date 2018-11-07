@@ -42,6 +42,14 @@ def test_paths():
     )
 
 
+# The test cases that mock HTTP responses depend on the 'requests-mock' pytest
+# plugin, which can be installed with 'pip install requests-mock', or by using
+# a Python packaging mechanism for installing the test dependencies of a package.
+# (No such mechanism is standardized as of November 2018.)
+#
+# pytest plugins are passed in as an argument to the test function, and which
+# plugin to use is specified by the name of the argument.
+
 def test_mock_requests(requests_mock):
     """
     Test the way that we make GET, POST, PUT, and DELETE requests using the
