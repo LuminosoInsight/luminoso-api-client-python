@@ -1,10 +1,8 @@
 from luminoso_api.v5_client import LuminosoClient
 from luminoso_api.v5_download import iterate_docs, download_docs
+from luminoso_api.v5_upload import iterate_json_lines
 
-import pytest
-import requests
 import tempfile
-import json
 
 BASE_URL = 'http://mock-api.localhost/api/v5/'
 RESPONSE = {
@@ -103,11 +101,5 @@ def test_writing(requests_mock):
         output_file = tempdir + '/test.jsons'
         download_docs(client, output_file)
 
-        # TODO: if we add a .jsons reader helper function to the client, use
-        # it here
-        read_docs = []
-        for line in open(output_file, encoding='utf-8'):
-            obj = json.loads(line)
-            read_docs.append(obj)
-
+        read_docs = list(iterate_json_lines(output_file))
         assert read_docs == CONCISE_DOCS

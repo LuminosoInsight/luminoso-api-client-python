@@ -1,9 +1,11 @@
 import argparse
 import json
 import time
+from urllib.parse import urlparse
 from itertools import islice, chain
 from tqdm import tqdm
 
+from .v5_cli import connect_with_token_args
 from .v5_client import LuminosoClient
 from .errors import LuminosoServerError
 from .v5_constants import URL_BASE
@@ -16,28 +18,35 @@ UPLOAD_FIELDS = ['title', 'text', 'metadata']
 BATCH_SIZE = 1000
 
 # http://code.activestate.com/recipes/303279-getting-items-in-batches/
+# Updated for Python 3.5+ by catching StopIteration
 def _batches(iterable, size):
     """
     Take an iterator and yield its contents in groups of `size` items.
     """
     sourceiter = iter(iterable)
     while True:
-        batchiter = islice(sourceiter, size)
-        yield chain([next(batchiter)], batchiter)
+        try:
+            batchiter = islice(sourceiter, size)
+            yield chain([next(batchiter)], batchiter)
+        except StopIteration:
+            return
 
 
 def _simplify_doc(doc):
     """
     Limit a document to just the three fields we should upload.
     """
+    # Mutate a copy of the document to fill in missing fields
+    doc = dict(doc)
     simplified = {}
+    if 'text' not in doc:
+        raise ValueError("The document {!r} has no text field".format(doc))
+    if 'metadata' not in doc:
+        doc['metadata'] = []
+    if 'title' not in doc:
+        doc['title'] = ""
+
     for field in UPLOAD_FIELDS:
-        if field not in doc:
-            raise ValueError(
-                "The document {!r} didn't contain the field {!r}".format(
-                    doc, field
-                )
-            )
         simplified[field] = doc[field]
 
     return simplified
@@ -51,20 +60,31 @@ def iterate_json_lines(filename):
         yield json.loads(line)
 
 
-def create_project_with_docs(client, docs, language, name, progress=False):
+def create_project_with_docs(
+    client, docs, language, name, account=None, progress=False
+):
     description = 'Uploaded using lumi-upload at {}'.format(time.asctime())
-    proj_record = client.post(
-        'projects', name=name, language=language, description=description
-    )
+    if account is not None:
+        proj_record = client.post(
+            'projects',
+            name=name,
+            language=language,
+            description=description,
+            account_id=account,
+        )
+    else:
+        proj_record = client.post(
+            'projects', name=name, language=language, description=description
+        )
     proj_id = proj_record['project_id']
-    proj_client = client.client_for_path(proj_id)
+    proj_client = client.client_for_path('projects/' + proj_id)
     try:
         if progress:
             progress_bar = tqdm(desc='Uploading documents')
         else:
             progress_bar = None
 
-        for batch in batches(docs, BATCH_SIZE):
+        for batch in _batches(docs, BATCH_SIZE):
             docs_to_upload = [_simplify_doc(doc) for doc in batch]
             proj_client.post('upload', docs=docs_to_upload)
             if progress:
@@ -80,22 +100,24 @@ def create_project_with_docs(client, docs, language, name, progress=False):
 
     while True:
         time.sleep(10)
-        build_info = proj_client.get()['last_build_info']
+        proj_status = proj_client.get()
+        build_info = proj_status['last_build_info']
         if 'success' in build_info:
             if not build_info['success']:
                 raise LuminosoServerError(build_info['reason'])
+            return proj_status
 
-    return proj_client.get()
 
-
-def upload_docs(client, input_filename, language, name, progress=False):
+def upload_docs(
+    client, input_filename, language, name, account=None, progress=False
+):
     """
     Given a LuminosoClient pointing to the root of the API, and a filename to
     read JSON lines from, create a project from the documents in that file.
     """
     docs = iterate_json_lines(input_filename)
     return create_project_with_docs(
-        client, docs, language, name, progress=progress
+        client, docs, language, name, account, progress=progress
     )
 
 
@@ -112,6 +134,12 @@ def main():
         '--base-url',
         default=URL_BASE,
         help='API root url, default: %s' % URL_BASE,
+    )
+    parser.add_argument(
+        '-a',
+        '--account-id',
+        default=None,
+        help='Account ID that should own the project, if not the default',
     )
     parser.add_argument('-t', '--token', help='API authentication token')
     parser.add_argument(
@@ -137,16 +165,8 @@ def main():
         help='What the project should be called',
     )
     args = parser.parse_args()
+    client = connect_with_token_args(args)
 
-    if args.save_token:
-        if not args.token:
-            raise ValueError('error: no token provided')
-        LuminosoClient.save_token(
-            args.token, domain=urlparse(args.base_url).netloc
-        )
-
-    # Get a name, interactively if necessary, and make sure it's not the empty
-    # string
     name = args.project_name
     if name is None:
         name = input('Enter a name for the project: ')
@@ -154,9 +174,13 @@ def main():
             print('Aborting because no name was provided.')
             return
 
-    client = LuminosoClient.connect(url=args.base_url, token=args.token)
     result = upload_docs(
-        client, args.input_filename, args.language, name, progress=True
+        client,
+        args.input_filename,
+        args.language,
+        name,
+        account=args.account_id,
+        progress=True,
     )
     print(
         'Project {!r} created with {} documents'.format(

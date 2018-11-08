@@ -4,11 +4,14 @@ import os
 from urllib.parse import urlparse
 from tqdm import tqdm
 
+from .v5_cli import connect_with_token_args
 from .v5_client import LuminosoClient
 from .v5_constants import URL_BASE
 
 
-DESCRIPTION = 'Download documents from a Luminoso project via the command line.'
+DESCRIPTION = (
+    'Download documents from a Luminoso project via the command line.'
+)
 DOCS_PER_BATCH = 1000
 
 # If we aren't being asked for "expanded" results, we only output these fields.
@@ -55,7 +58,9 @@ def iterate_docs(client, expanded=False, progress=False):
                         if field in doc:
                             doc.pop(field, None)
                 else:
-                    concise_doc = {field: doc[field] for field in CONCISE_FIELDS}
+                    concise_doc = {
+                        field: doc[field] for field in CONCISE_FIELDS
+                    }
                     doc = concise_doc
 
                 if progress:
@@ -97,7 +102,8 @@ def main():
     Handle arguments for the 'lumi-download' command.
     """
     parser = argparse.ArgumentParser(
-        description=DESCRIPTION, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=DESCRIPTION,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         '-b',
@@ -118,17 +124,16 @@ def main():
         action='store_true',
         help='save --token for --base-url to ~/.luminoso/tokens.json',
     )
-    parser.add_argument('project_id', help='The ID of the project in the Daylight API')
     parser.add_argument(
-        'output_file', help='The JSON lines (.jsons) file to write to', nargs='?', default=None
+        'project_id', help='The ID of the project in the Daylight API'
+    )
+    parser.add_argument(
+        'output_file',
+        help='The JSON lines (.jsons) file to write to',
+        nargs='?',
+        default=None,
     )
     args = parser.parse_args()
-
-    if args.save_token:
-        if not args.token:
-            raise ValueError('error: no token provided')
-        LuminosoClient.save_token(args.token, domain=urlparse(args.base_url).netloc)
-
-    client = LuminosoClient.connect(url=args.base_url, token=args.token)
+    client = connect_with_token_args(args)
     proj_client = client.client_for_path('projects/{}'.format(args.project_id))
     download_docs(proj_client, args.output_file, args.expanded)
