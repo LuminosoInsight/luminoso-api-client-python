@@ -40,7 +40,7 @@ def iterate_docs(client, expanded=False, progress=False):
     Shows a progress bar if progress=True.
     """
     # Get total number of docs from the project record
-    num_docs = client.get()['counts']['__all__']
+    num_docs = client.get()['document_count']
     progress_bar = None
     try:
         if progress:
@@ -96,7 +96,7 @@ def main():
     Handle arguments for the 'lumi-download' command.
     """
     parser = argparse.ArgumentParser(
-        description=DESCRIPTION, 
+        description=DESCRIPTION,
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
@@ -130,7 +130,7 @@ def main():
     if args.save_token:
         if not args.token:
             raise ValueError('error: no token provided')
-        LuminosoClient.save_token(args.token, 
+        LuminosoClient.save_token(args.token,
                                   domain=urlparse(args.base_url).netloc)
 
     client = LuminosoClient.connect(url=args.base_url, token=args.token)
