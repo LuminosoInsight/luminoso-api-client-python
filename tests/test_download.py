@@ -1,5 +1,5 @@
 from luminoso_api.v5_client import LuminosoClient
-from luminoso_api.v5_download import  (
+from luminoso_api.v5_download import (
     iterate_docs, download_docs, DOCS_PER_BATCH
 )
 
@@ -100,16 +100,16 @@ def test_pagination(requests_mock):
     page2 = [REPETITIVE_DOC] * 2
 
     requests_mock.get(
-        BASE_URL + 'projects/projid/', 
+        BASE_URL + 'projects/projid/',
         json=dict(PROJECT_RECORD, document_count=DOCS_PER_BATCH + 2),
     )
     requests_mock.get(
-        BASE_URL + 'projects/projid/docs/?limit=%d' % DOCS_PER_BATCH, 
+        BASE_URL + 'projects/projid/docs/?limit=%d' % DOCS_PER_BATCH,
         json={'result': page1}
     )
     requests_mock.get(
-        BASE_URL + 'projects/projid/docs/?offset=%d&limit=%d' % 
-            (DOCS_PER_BATCH, DOCS_PER_BATCH),
+        BASE_URL + ('projects/projid/docs/?offset=%d&limit=%d' %
+                    (DOCS_PER_BATCH, DOCS_PER_BATCH)),
         json={'result': page2},
     )
 
