@@ -1,8 +1,8 @@
 from luminoso_api.v5_client import LuminosoClient
-from luminoso_api.v5_download import iterate_docs, download_docs
+from luminoso_api.v5_download import (
+    iterate_docs, download_docs, DOCS_PER_BATCH
+)
 
-import pytest
-import requests
 import tempfile
 import json
 
@@ -12,35 +12,58 @@ RESPONSE = {
         {
             'title': 'Document 1',
             'text': 'hello',
-            'tokens': [{'term_id': 'hello|en'}],
+            'terms': [{'term_id': 'hello|en', 'start': 0, 'end': 5}],
+            'fragments': [],
             'metadata': [],
             'vector': 'AAAA',
             'doc_id': 'uuid-0',
+            'match_score': None
         },
         {
             'title': 'Document 2',
             'text': 'hello',
-            'tokens': [{'term_id': 'hello|en'}],
+            'terms': [{'term_id': 'hello|en', 'start': 0, 'end': 5}],
+            'fragments': [],
             'metadata': [],
             'vector': 'AAAA',
             'doc_id': 'uuid-1',
+            'match_score': None
         },
     ],
     'total_count': 2,
+    'filter_count': 2,
+    'search': None
+}
+
+PROJECT_RECORD = {
+    'name': 'Test Project',
+    'description': 'Project Description',
+    'language': 'en',
+    'creator': 'user',
+    'creation_date': 1541777234,
+    'last_successful_build_time': None,
+    'last_metaupdate': None,
+    'last_build_info': {},
+    'project_id': 'projid',
+    'account_id': 'account',
+    'document_count': 2,
+    'permissions': ['*']
 }
 
 EXPANDED_DOCS = [
     {
         'title': 'Document 1',
         'text': 'hello',
-        'tokens': [{'term_id': 'hello|en'}],
+        'terms': [{'term_id': 'hello|en', 'start': 0, 'end': 5}],
+        'fragments': [],
         'metadata': [],
         'vector': 'AAAA',
     },
     {
         'title': 'Document 2',
         'text': 'hello',
-        'tokens': [{'term_id': 'hello|en'}],
+        'terms': [{'term_id': 'hello|en', 'start': 0, 'end': 5}],
+        'fragments': [],
         'metadata': [],
         'vector': 'AAAA',
     },
@@ -58,6 +81,7 @@ def test_iteration(requests_mock):
     """
     Test iterating over the documents in a project.
     """
+    requests_mock.get(BASE_URL + 'projects/projid/', json=PROJECT_RECORD)
     requests_mock.get(BASE_URL + 'projects/projid/docs/', json=RESPONSE)
     client = LuminosoClient.connect(BASE_URL + 'projects/projid', token='fake')
 
@@ -72,30 +96,33 @@ def test_pagination(requests_mock):
     """
     Test iterating over 1002 documents that come in two pages.
     """
-    client = LuminosoClient.connect(BASE_URL + 'projects/projid', token='fake')
-    page1 = [REPETITIVE_DOC] * 1000
+    page1 = [REPETITIVE_DOC] * DOCS_PER_BATCH
     page2 = [REPETITIVE_DOC] * 2
 
     requests_mock.get(
-        BASE_URL + 'projects/projid/docs/?limit=1',
-        json={'result': [REPETITIVE_DOC], 'total_count': 1002},
+        BASE_URL + 'projects/projid/',
+        json=dict(PROJECT_RECORD, document_count=DOCS_PER_BATCH + 2),
     )
     requests_mock.get(
-        BASE_URL + 'projects/projid/docs/?limit=1000', json={'result': page1}
+        BASE_URL + 'projects/projid/docs/?limit=%d' % DOCS_PER_BATCH,
+        json={'result': page1}
     )
     requests_mock.get(
-        BASE_URL + 'projects/projid/docs/?offset=1000&limit=1000',
+        BASE_URL + ('projects/projid/docs/?offset=%d&limit=%d' %
+                    (DOCS_PER_BATCH, DOCS_PER_BATCH)),
         json={'result': page2},
     )
 
+    client = LuminosoClient.connect(BASE_URL + 'projects/projid', token='fake')
     docs = list(iterate_docs(client, progress=False))
-    assert docs == [REPETITIVE_DOC] * 1002
+    assert docs == [REPETITIVE_DOC] * (DOCS_PER_BATCH + 2)
 
 
 def test_writing(requests_mock):
     """
     Test writing downloaded documents to a JSON-lines file.
     """
+    requests_mock.get(BASE_URL + 'projects/projid/', json=PROJECT_RECORD)
     requests_mock.get(BASE_URL + 'projects/projid/docs/', json=RESPONSE)
     client = LuminosoClient.connect(BASE_URL + 'projects/projid', token='fake')
 
