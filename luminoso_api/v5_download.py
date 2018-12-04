@@ -36,14 +36,15 @@ def iterate_docs(client, expanded=False, progress=False):
     URL points to a project.
 
     If expanded=True, it will include additional fields that Luminoso added in
-    its analysis, such as 'tokens' and 'vector'.
+    its analysis, such as 'terms' and 'vector'.
 
     Otherwise, it will contain only the fields necessary to reconstruct the
     document: 'title', 'text', and 'metadata'.
 
     Shows a progress bar if progress=True.
     """
-    num_docs = client.get('docs', limit=1)['total_count']
+    # Get total number of docs from the project record
+    num_docs = client.get()['document_count']
     progress_bar = None
     try:
         if progress:
@@ -56,13 +57,9 @@ def iterate_docs(client, expanded=False, progress=False):
                 # Get the appropriate set of fields for each document
                 if expanded:
                     for field in UNNECESSARY_FIELDS:
-                        if field in doc:
-                            doc.pop(field, None)
+                        doc.pop(field, None)
                 else:
-                    concise_doc = {
-                        field: doc[field] for field in CONCISE_FIELDS
-                    }
-                    doc = concise_doc
+                    doc = {field: doc[field] for field in CONCISE_FIELDS}
 
                 if progress:
                     progress_bar.update()
@@ -104,7 +101,7 @@ def _main(argv):
     """
     parser = argparse.ArgumentParser(
         description=DESCRIPTION,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
         '-b',
@@ -113,9 +110,9 @@ def _main(argv):
         help='API root url, default: %s' % URL_BASE,
     )
     parser.add_argument(
-        '-e',
-        '--expanded',
-        help="Include Luminoso's analysis of each document, such as tokens and document vectors",
+        '-e', '--expanded',
+        help="Include Luminoso's analysis of each document, such as terms and"
+             ' document vectors',
         action='store_true',
     )
     parser.add_argument('-t', '--token', help='API authentication token')
@@ -129,10 +126,8 @@ def _main(argv):
         'project_id', help='The ID of the project in the Daylight API'
     )
     parser.add_argument(
-        'output_file',
-        help='The JSON lines (.jsons) file to write to',
-        nargs='?',
-        default=None,
+        'output_file', nargs='?', default=None,
+        help='The JSON lines (.jsons) file to write to'
     )
     args = parser.parse_args(argv)
     client = connect_with_token_args(args)

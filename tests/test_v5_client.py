@@ -81,18 +81,15 @@ def test_mock_requests(requests_mock):
     assert response == project_list
     assert requests_mock.last_request.qs == {'param': ['value']}
 
-    response = client2.post(param='value')
-    assert response == {}
+    client2.post(param='value')
     assert requests_mock.last_request.method == 'POST'
     assert requests_mock.last_request.json() == {'param': 'value'}
 
-    response = client2.put('projid', param='value')
-    assert response == {}
+    client2.put('projid', param='value')
     assert requests_mock.last_request.method == 'PUT'
     assert requests_mock.last_request.json() == {'param': 'value'}
 
-    response = client2.delete('projid')
-    assert response == {}
+    client2.delete('projid')
     assert requests_mock.last_request.method == 'DELETE'
 
 
