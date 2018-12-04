@@ -1,5 +1,6 @@
 import argparse
 import json
+import sys
 import os
 from urllib.parse import urlparse
 from tqdm import tqdm
@@ -97,7 +98,7 @@ def download_docs(client, output_filename=None, expanded=False):
             print(json.dumps(doc, ensure_ascii=False), file=out)
 
 
-def main():
+def _main(argv):
     """
     Handle arguments for the 'lumi-download' command.
     """
@@ -133,7 +134,14 @@ def main():
         nargs='?',
         default=None,
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     client = connect_with_token_args(args)
     proj_client = client.client_for_path('projects/{}'.format(args.project_id))
     download_docs(proj_client, args.output_file, args.expanded)
+
+
+def main():
+    """
+    The setuptools entry point.
+    """
+    _main(sys.argv[1:])

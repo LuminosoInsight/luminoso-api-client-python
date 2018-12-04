@@ -113,8 +113,11 @@ def connect_with_token_args(args):
                 else:
                     print('Not saving the token.')
 
-    if token and save_token:
-        LuminosoClient.save_token(token, domain=urlparse(args.base_url).netloc)
+    if save_token:
+        if token:
+            LuminosoClient.save_token(token, domain=urlparse(args.base_url).netloc)
+        else:
+            raise LuminosoAuthError("You asked to save the token, but provided no token.")
     return LuminosoClient.connect(args.base_url, token=token)
 
 

@@ -1,6 +1,7 @@
 import argparse
 import json
 import time
+import sys
 from urllib.parse import urlparse
 from itertools import islice, chain
 from tqdm import tqdm
@@ -121,7 +122,7 @@ def upload_docs(
     )
 
 
-def main():
+def _main(argv):
     """
     Handle arguments for the 'lumi-download' command.
     """
@@ -164,7 +165,7 @@ def main():
         default=None,
         help='What the project should be called',
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     client = connect_with_token_args(args)
 
     name = args.project_name
@@ -187,3 +188,10 @@ def main():
             result['project_id'], result['document_count']
         )
     )
+
+
+def main():
+    """
+    The setuptools entry point.
+    """
+    _main(sys.argv[1:])
