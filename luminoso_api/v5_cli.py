@@ -63,9 +63,7 @@ def _read_params(input_file, json_body, p_params):
     except ValueError as e:
         raise ValueError("input is not valid JSON: %s" % e)
     try:
-        params.update(
-            {p.split('=', 1)[0]: p.split('=', 1)[1] for p in p_params}
-        )
+        params.update({p.split('=', 1)[0]: p.split('=', 1)[1] for p in p_params})
     except IndexError:
         raise ValueError("--param arguments must have key=value format")
     return params
@@ -117,45 +115,34 @@ def connect_with_token_args(args):
 
     if save_token:
         if token:
-            LuminosoClient.save_token(token, domain=urlparse(args.base_url).netloc)
+            LuminosoClient.save_token(
+                token, domain=urlparse(args.base_url).netloc
+            )
         else:
-            raise LuminosoAuthError("You asked to save the token, but provided no token.")
+            raise LuminosoAuthError(
+                "You asked to save the token, but provided no token."
+            )
     return LuminosoClient.connect(args.base_url, token=token)
 
 
 def _main(*vargs):
     parser = argparse.ArgumentParser(
-        description=DESCRIPTION,
-        epilog=USAGE,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=DESCRIPTION, epilog=USAGE,
+        formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    parser.add_argument(
-        '-b',
-        '--base-url',
-        default=URL_BASE,
-        help="API root url, default: %s" % URL_BASE,
-    )
+    parser.add_argument('-b', '--base-url', default=URL_BASE,
+                        help="API root url, default: %s" % URL_BASE)
     parser.add_argument('-t', '--token', help="API authentication token")
-    parser.add_argument(
-        '-s',
-        '--save-token',
-        action='store_true',
-        help="save --token for --base-url to" " ~/.luminoso/tokens.json",
-    )
-    parser.add_argument(
-        '-p',
-        '--param',
-        action='append',
-        default=[],
-        help="key=value parameters",
-    )
+    parser.add_argument('-s', '--save-token', action='store_true',
+                        help="save --token for --base-url to"
+                             " ~/.luminoso/tokens.json")
+    parser.add_argument('-p', '--param', action='append', default=[],
+                        help="key=value parameters")
     parser.add_argument('-j', '--json-body', help="JSON object parameter")
-    parser.add_argument(
-        '-c', '--csv', action='store_true', help="print output in CSV format"
-    )
-    parser.add_argument(
-        'method', choices=['get', 'post', 'put', 'patch', 'delete']
-    )
+    parser.add_argument('-c', '--csv', action='store_true',
+                        help="print output in CSV format")
+    parser.add_argument('method',
+                        choices=['get', 'post', 'put', 'patch', 'delete'])
     parser.add_argument('path')
     parser.add_argument('input_file', nargs='?', type=open)
 
