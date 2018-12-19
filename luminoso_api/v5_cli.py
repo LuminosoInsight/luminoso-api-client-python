@@ -95,8 +95,9 @@ def connect_with_token_args(args):
         else:
             url_parsed = urlparse(args.base_url)
             print(
-                "You should be able to obtain an API token by going to {scheme}://{netloc}/user.html and clicking "
-                "the 'API tokens' button.".format(
+                "You should be able to obtain an API token by going to "
+                "{scheme}://{netloc}/user.html and clicking the "
+                "'API tokens' button.".format(
                     scheme=url_parsed.scheme, netloc=url_parsed.netloc
                 )
             )
@@ -106,7 +107,8 @@ def connect_with_token_args(args):
                 raise SystemExit
             if not save_token:
                 save_response = input(
-                    'Save this token to ~/.luminoso/tokens.json for future use? [Y/n] '
+                    'Save this token to ~/.luminoso/tokens.json for future '
+                    'use? [Y/n] '
                 )
                 if save_response in ('', 'y', 'Y'):
                     save_token = True
