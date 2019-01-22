@@ -127,7 +127,7 @@ def upload_docs(
 
 def _main(argv):
     """
-    Handle arguments for the 'lumi-download' command.
+    Handle arguments for the 'lumi-upload' command.
     """
     parser = argparse.ArgumentParser(
         description=DESCRIPTION,

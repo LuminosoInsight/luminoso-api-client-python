@@ -120,10 +120,10 @@ def test_pagination(requests_mock):
     requests_mock.post(BASE_URL + 'projects/projid/upload/', json={})
     requests_mock.post(BASE_URL + 'projects/projid/build/', json={})
 
-    ndocs = BATCH_SIZE + 1
+    ndocs = BATCH_SIZE + 2
 
-    # Build status response, which isn't done yet the first time it's checked,
-    # and is done the second time
+    # Build status response, which isn't done yet the first or second time
+    # it's checked, and is done the third time
     requests_mock.get(
         BASE_URL + 'projects/projid/',
         [
