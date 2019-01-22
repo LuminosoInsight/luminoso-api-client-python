@@ -10,9 +10,7 @@ from .v5_client import LuminosoClient
 from .v5_constants import URL_BASE
 
 
-DESCRIPTION = (
-    'Download documents from a Luminoso project via the command line.'
-)
+DESCRIPTION = 'Download documents from a Luminoso project via the command line.'
 DOCS_PER_BATCH = 1000
 
 # If we aren't being asked for "expanded" results, we only output these fields.

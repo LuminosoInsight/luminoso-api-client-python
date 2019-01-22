@@ -64,6 +64,9 @@ def iterate_json_lines(filename):
 def create_project_with_docs(
     client, docs, language, name, account=None, progress=False
 ):
+    """
+    Given an iterator of documents, upload them as a Luminoso project.
+    """
     description = 'Uploaded using lumi-upload at {}'.format(time.asctime())
     if account is not None:
         proj_record = client.post(
