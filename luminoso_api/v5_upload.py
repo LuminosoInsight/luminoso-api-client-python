@@ -42,15 +42,11 @@ def _simplify_doc(doc):
     simplified = {}
     if 'text' not in doc:
         raise ValueError("The document {!r} has no text field".format(doc))
-    if 'metadata' not in doc:
-        doc['metadata'] = []
-    if 'title' not in doc:
-        doc['title'] = ""
-
-    for field in UPLOAD_FIELDS:
-        simplified[field] = doc[field]
-
-    return simplified
+    return {
+        'text': doc['text'],
+        'metadata': doc.get('metadata', []),
+        'title': doc.get('title', '')
+    }
 
 
 def iterate_json_lines(filename):
