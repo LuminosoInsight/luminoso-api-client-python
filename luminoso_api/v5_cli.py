@@ -81,7 +81,7 @@ def connect_with_token_args(args):
     token_error = None
 
     try:
-        client = LuminosoClient.connect(args.base_url, token=token)
+        client = LuminosoClient.connect(url=args.base_url, token=token)
         # Make an authenticated request to test that the token is valid
         client.get('/projects')
     except LuminosoAuthError as e:
@@ -118,7 +118,7 @@ def connect_with_token_args(args):
             LuminosoClient.save_token(token, domain=urlparse(args.base_url).netloc)
         else:
             raise LuminosoAuthError("You asked to save the token, but provided no token.")
-    return LuminosoClient.connect(args.base_url, token=token)
+    return LuminosoClient.connect(url=args.base_url, token=token)
 
 
 def _main(*vargs):
