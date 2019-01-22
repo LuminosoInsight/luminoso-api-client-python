@@ -2,6 +2,8 @@ from luminoso_api.v5_client import LuminosoClient
 from luminoso_api.v5_upload import create_project_with_docs, BATCH_SIZE
 
 from unittest.mock import patch
+import pytest
+
 
 BASE_URL = 'http://mock-api.localhost/api/v5/'
 DOCS_TO_UPLOAD = [
@@ -41,6 +43,9 @@ def _build_info_response(ndocs, language, done):
 
 
 def test_project_creation(requests_mock):
+    """
+    Test creating a project by mocking what happens when it is successful.
+    """
     # First, configure what the mock responses should be:
 
     # The initial response from creating the project
@@ -105,7 +110,39 @@ def test_project_creation(requests_mock):
     assert response['last_build_info']['success']
 
 
+def test_missing_text(requests_mock):
+    """
+    Test a project that fails to be created, on the client side, because a bad
+    document is supplied.
+    """
+    # The initial response from creating the project
+    requests_mock.post(
+        BASE_URL + 'projects/',
+        json={
+            'project_id': 'projid',
+            'document_count': 0,
+            'language': 'en',
+            'last_build_info': None,
+        },
+    )
+
+    with pytest.raises(ValueError):
+        client = LuminosoClient.connect(BASE_URL, token='fake')
+        create_project_with_docs(
+            client,
+            [{'bad': 'document'}],
+            language='en',
+            name='Bad project test',
+            progress=False,
+        )
+
+
 def test_pagination(requests_mock):
+    """
+    Test that we can create a project whose documents would be broken into
+    multiple pages, and when we iterate over its documents, we correctly
+    request all the pages.
+    """
     # The initial response from creating the project
     requests_mock.post(
         BASE_URL + 'projects/',
