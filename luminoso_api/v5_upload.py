@@ -94,8 +94,7 @@ def create_project_with_docs(
         if progress:
             progress_bar.close()
 
-    if progress:
-        print('The server is building project {!r}.'.format(proj_id))
+    print('The server is building project {!r}.'.format(proj_id))
     proj_client.post('build')
 
     while True:
