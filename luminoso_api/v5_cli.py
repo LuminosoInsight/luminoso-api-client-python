@@ -92,7 +92,7 @@ def _main(*vargs):
     args = parser.parse_args(vargs)
     if args.save_token:
         if not args.token:
-            raise Exception("error: no token provided")
+            raise ValueError("error: no token provided")
         LuminosoClient.save_token(args.token,
                                   domain=urlparse(args.base_url).netloc)
 
