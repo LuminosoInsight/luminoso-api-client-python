@@ -5,7 +5,6 @@ import os
 from urllib.parse import urlparse
 from tqdm import tqdm
 
-from .v5_cli import connect_with_token_args
 from .v5_client import LuminosoClient
 from .v5_constants import URL_BASE
 
@@ -128,7 +127,13 @@ def _main(argv):
         help='The JSON lines (.jsons) file to write to'
     )
     args = parser.parse_args(argv)
-    client = connect_with_token_args(args)
+    if args.save_token:
+        if not args.token:
+            raise Exception("error: no token provided")
+        LuminosoClient.save_token(args.token,
+                                  domain=urlparse(args.base_url).netloc)
+
+    client = LuminosoClient.connect(url=args.base_url, token=args.token)
     proj_client = client.client_for_path('projects/{}'.format(args.project_id))
     download_docs(proj_client, args.output_file, args.expanded)
 

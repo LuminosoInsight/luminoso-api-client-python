@@ -6,7 +6,6 @@ from urllib.parse import urlparse
 from itertools import islice, chain
 from tqdm import tqdm
 
-from .v5_cli import connect_with_token_args
 from .v5_client import LuminosoClient
 from .errors import LuminosoServerError
 from .v5_constants import URL_BASE
@@ -140,13 +139,13 @@ def _main(argv):
         default=None,
         help='Account ID that should own the project, if not the default',
     )
-    parser.add_argument('-t', '--token', help='API authentication token')
     parser.add_argument(
         '-l',
         '--language',
         default='en',
         help='The language code for the language the text is in. Default: en',
     )
+    parser.add_argument('-t', '--token', help="API authentication token")
     parser.add_argument(
         '-s',
         '--save-token',
@@ -164,7 +163,13 @@ def _main(argv):
         help='What the project should be called',
     )
     args = parser.parse_args(argv)
-    client = connect_with_token_args(args)
+    if args.save_token:
+        if not args.token:
+            raise Exception("error: no token provided")
+        LuminosoClient.save_token(args.token,
+                                  domain=urlparse(args.base_url).netloc)
+
+    client = LuminosoClient.connect(url=args.base_url, token=args.token)
 
     name = args.project_name
     if name is None:

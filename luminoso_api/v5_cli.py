@@ -69,62 +69,6 @@ def _read_params(input_file, json_body, p_params):
     return params
 
 
-def connect_with_token_args(args):
-    """
-    A shared function for working with Luminoso auth tokens in command line
-    utilities, interactively if necessary.
-    """
-    token = args.token
-    save_token = args.save_token
-    token_error = None
-
-    try:
-        client = LuminosoClient.connect(url=args.base_url, token=token)
-        # Make an authenticated request to test that the token is valid
-        client.get('/projects')
-    except LuminosoAuthError as e:
-        token_error = e
-
-    if token_error:
-        if token is not None:
-            # We were explicitly given a token that doesn't work, so re-raise
-            # the error
-            raise token_error
-        else:
-            url_parsed = urlparse(args.base_url)
-            print(
-                "You should be able to obtain an API token by going to "
-                "{scheme}://{netloc}/user.html and clicking the "
-                "'API tokens' button.".format(
-                    scheme=url_parsed.scheme, netloc=url_parsed.netloc
-                )
-            )
-            token = input('Enter your Luminoso API token: ')
-            if not token:
-                print("Cancelling because no token is available.")
-                raise SystemExit
-            if not save_token:
-                save_response = input(
-                    'Save this token to ~/.luminoso/tokens.json for future '
-                    'use? [Y/n] '
-                )
-                if save_response in ('', 'y', 'Y'):
-                    save_token = True
-                else:
-                    print('Not saving the token.')
-
-    if save_token:
-        if token:
-            LuminosoClient.save_token(
-                token, domain=urlparse(args.base_url).netloc
-            )
-        else:
-            raise LuminosoAuthError(
-                "You asked to save the token, but provided no token."
-            )
-    return LuminosoClient.connect(url=args.base_url, token=token)
-
-
 def _main(*vargs):
     parser = argparse.ArgumentParser(
         description=DESCRIPTION, epilog=USAGE,
@@ -147,7 +91,13 @@ def _main(*vargs):
     parser.add_argument('input_file', nargs='?', type=open)
 
     args = parser.parse_args(vargs)
-    client = connect_with_token_args(args)
+    if args.save_token:
+        if not args.token:
+            raise Exception("error: no token provided")
+        LuminosoClient.save_token(args.token,
+                                  domain=urlparse(args.base_url).netloc)
+
+    client = LuminosoClient.connect(url=args.base_url, token=args.token)
 
     if args.method == 'delete':
         confirm = input('confirm %s %s? [Y/n] ' % (args.method, args.path))
