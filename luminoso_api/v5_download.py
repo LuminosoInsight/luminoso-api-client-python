@@ -1,5 +1,6 @@
 import argparse
 import json
+import sys
 import os
 from urllib.parse import urlparse
 from tqdm import tqdm
@@ -91,7 +92,7 @@ def download_docs(client, output_filename=None, expanded=False):
             print(json.dumps(doc, ensure_ascii=False), file=out)
 
 
-def main():
+def _main(argv):
     """
     Handle arguments for the 'lumi-download' command.
     """
@@ -125,14 +126,20 @@ def main():
         'output_file', nargs='?', default=None,
         help='The JSON lines (.jsons) file to write to'
     )
-    args = parser.parse_args()
-
+    args = parser.parse_args(argv)
     if args.save_token:
         if not args.token:
-            raise ValueError('error: no token provided')
+            raise ValueError("error: no token provided")
         LuminosoClient.save_token(args.token,
                                   domain=urlparse(args.base_url).netloc)
 
     client = LuminosoClient.connect(url=args.base_url, token=args.token)
     proj_client = client.client_for_path('projects/{}'.format(args.project_id))
     download_docs(proj_client, args.output_file, args.expanded)
+
+
+def main():
+    """
+    The setuptools entry point.
+    """
+    _main(sys.argv[1:])

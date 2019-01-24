@@ -71,7 +71,8 @@ def _read_params(input_file, json_body, p_params):
 def _main(*vargs):
     parser = argparse.ArgumentParser(
         description=DESCRIPTION, epilog=USAGE,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument('-b', '--base-url', default=URL_BASE,
                         help="API root url, default: %s" % URL_BASE)
     parser.add_argument('-t', '--token', help="API authentication token")
@@ -89,10 +90,9 @@ def _main(*vargs):
     parser.add_argument('input_file', nargs='?', type=open)
 
     args = parser.parse_args(vargs)
-
     if args.save_token:
         if not args.token:
-            raise Exception("error: no token provided")
+            raise ValueError("error: no token provided")
         LuminosoClient.save_token(args.token,
                                   domain=urlparse(args.base_url).netloc)
 
