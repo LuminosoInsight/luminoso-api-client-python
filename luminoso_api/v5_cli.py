@@ -8,7 +8,6 @@ from urllib.parse import urlparse
 
 from .v5_client import LuminosoClient
 from .v5_constants import URL_BASE
-from .errors import LuminosoAuthError
 
 # Python raises IOError when reading process (such as `head`) closes a pipe.
 # Setting SIG_DFL as the SIGPIPE handler prevents this program from crashing.

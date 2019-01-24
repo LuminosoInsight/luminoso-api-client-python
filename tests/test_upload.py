@@ -149,7 +149,7 @@ def test_pagination(requests_mock):
         json={
             'project_id': 'projid',
             'document_count': 0,
-            'language': 'en',
+            'language': 'fr',
             'last_build_info': None,
         },
     )
@@ -164,9 +164,9 @@ def test_pagination(requests_mock):
     requests_mock.get(
         BASE_URL + 'projects/projid/',
         [
-            _build_info_response(ndocs, 'en', done=False),
-            _build_info_response(ndocs, 'en', done=False),
-            _build_info_response(ndocs, 'en', done=True),
+            _build_info_response(ndocs, 'fr', done=False),
+            _build_info_response(ndocs, 'fr', done=False),
+            _build_info_response(ndocs, 'fr', done=True),
         ],
     )
     # Now run the main uploader function and get the result

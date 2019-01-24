@@ -38,7 +38,6 @@ def _simplify_doc(doc):
     """
     # Mutate a copy of the document to fill in missing fields
     doc = dict(doc)
-    simplified = {}
     if 'text' not in doc:
         raise ValueError("The document {!r} has no text field".format(doc))
     return {
