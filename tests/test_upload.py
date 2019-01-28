@@ -7,7 +7,7 @@ import pytest
 
 BASE_URL = 'http://mock-api.localhost/api/v5/'
 DOCS_TO_UPLOAD = [
-    {'title': 'Document 1', 'text': 'Bonjour'},
+    {'title': 'Document 1', 'text': 'Bonjour', 'extra': 'field'},
     {'title': 'Document 2', 'text': 'Au revoir'},
 ]
 
