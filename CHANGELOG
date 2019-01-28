@@ -1,3 +1,13 @@
+Version 1.1 (2019-01-28)
+
+  * Client changes
+
+    - The commands `lumi-upload` and `lumi-download` now use the v5 API.
+      You can upload a JSON-lines file (a file in which each line is a JSON
+      document) as a Luminoso v5 project, and download the resulting project
+      in the same form.
+
+
 Version 1.0 (2018-08-21)
 
   * Client overhaul to interface with the v5 API.
