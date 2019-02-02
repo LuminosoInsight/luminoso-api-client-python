@@ -1,4 +1,5 @@
 wheelJob(
     test: 'pytest',
-    upstream: [ 'python-ftfy' ]
+    upstream: [ 'python-ftfy' ],
+    slackChannel: '#dev-analytics-notify',
 )
