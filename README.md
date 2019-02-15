@@ -16,7 +16,7 @@ can be accessed as `luminoso_api.V5LuminosoClient` (or directly at
 `luminoso_api.v5_client.LuminosoClient`).  Documentation for the new client can
 be found
 [here](https://github.com/LuminosoInsight/luminoso-api-client-python/blob/master/V5_README.md).
-When the sunset period for the v4 API ends on January 3, 2019, we will remove
+When the sunset period for the v4 API ends on March 3, 2019, we will remove
 the v4 version of the client, and `luminoso_api.LuminosoClient` will become an
 alias for the v5 client.
 
