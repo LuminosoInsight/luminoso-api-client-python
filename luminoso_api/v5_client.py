@@ -40,9 +40,9 @@ class LuminosoClient(object):
     In addition to the base URL, the LuminosoClient has a `root_url`,
     pointing to the root of the API, such as
     https://analytics.luminoso.com/api/v5. This is used, for example, as a
-    starting point for the `change_path` method: when it gets a path starting
-    with `/`, it will go back to the `root_url` instead of adding to the
-    existing URL.
+    starting point for the `client_for_path` method: when it gets a path
+    starting with `/`, it will go back to the `root_url` instead of adding to
+    the existing URL.
     """
     def __init__(self, session, url):
         """
@@ -258,6 +258,15 @@ class LuminosoClient(object):
         else:
             url = self.url + path
         return self.__class__(self.session, url)
+
+    def change_path(self, path):
+        """
+        A deprecated alias for client_for_path(path), included only for
+        backward compatibility.
+        """
+        logger.warning('The change_path method has been renamed to'
+                       ' client_for_path.')
+        return self.client_for_path(path)
 
     def upload(self, path, docs, **params):
         """
