@@ -90,7 +90,8 @@ Examples
 --------
 
 Most of the time, you'll want your LuminosoClient to refer to a particular
-project (also known as a database), but one case where you don't is to get a list of projects in the first place:
+project, but one case where you don't is to get a list of projects in the first
+place:
 
 ```python
 from luminoso_api import V5LuminosoClient
@@ -141,9 +142,42 @@ will turn these into NumPy vectors, so it requires NumPy.
 array([ 0.00046539,  0.00222015, -0.08491898, -0.0014534 , -0.00127411], dtype=float32)
 ```
 
-Uploading from the command line
--------------------------------
+Using the API from the command line
+-----------------------------------
 
-While there is no dedicated command to upload documents, this library does
-include the command `lumi-api`, which can be used to access the API in general
-and to upload documents in particular.  Run `lumi-api -h` for more information.
+This library includes three experimental tools usable from the command line: 
+`lumi-api`, `lumi-upload`, and `lumi-download`.  Running them with `-h` will 
+provide more detailed documentation on available parameters.  In addition, the 
+following examples may provide some guidance on using `lumi-api` to access the 
+API:
+
+```python
+# get a project list
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token get /projects
+
+# get a project list in CSV format
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token get /projects -c
+
+# get a project list and save the token so the next call wouldn't need "-t my_token" parameter
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token -s get /projects -c
+
+# create a project
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token post /projects/ -p 'name=project name' -p 'language=en'
+
+# upload documents
+# my_data.json format: {"docs":[{"text": "..", "title": "..", "metadata": [..]}, {"text": "..", "title": "..", "metadata": [..]}]}
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_tokens post /projects/my_project_id/upload my_data.json
+
+# build project
+# this takes time, if you want to be notified via email when the build is done, add -j '{"notify": true}' parameter
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_tokens post /projects/my_project_id/build
+
+# get concepts from project
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_tokens get /projects/my_project_id/concepts
+
+# get project's match counts
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token get /projects/my_project_id/concepts/match_counts
+
+# create a saved concept
+lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token post /projects/my_project_id/concepts/saved -j '{"concepts": [{"texts": ["My new concept text"]}]}'
+```

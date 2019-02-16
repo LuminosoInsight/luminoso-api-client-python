@@ -1,3 +1,22 @@
+Version 1.1 (2019-01-28)
+
+  * Client changes
+
+    - The commands `lumi-upload` and `lumi-download` now use the v5 API.
+      You can upload a JSON-lines file (a file in which each line is a JSON
+      document) as a Luminoso v5 project, and download the resulting project
+      in the same form.
+
+  * Small documentation fixes
+
+  * Added change_path() to the v5 client as a deprecated alias for
+    client_for_path(), analogous to the upload() alias.
+
+Version 1.0.1 (2018-08-31)
+
+  * Minor change to turn the README.md into the documentation that appears on
+    PyPI.
+
 Version 1.0 (2018-08-21)
 
   * Client overhaul to interface with the v5 API.
