@@ -179,32 +179,3 @@ will turn these into NumPy vectors, so it requires NumPy.
 >>> unpack64('WAB6AJG6kL_6D_6y')
 array([ 0.00046539,  0.00222015, -0.08491898, -0.0014534 , -0.00127411], dtype=float32)
 ```
-
-Uploading from the command line
--------------------------------
-Instead of sending your documents as a list of Python dictionaries, you can upload a file
-containing documents in JSON format.
-
-The file should contain one JSON object per line (we suggest using the extension `.jsons`
-to indicate that the entire file is not a single JSON object). It will look like this:
-
-```json
-{"title": "First example", "text": "This is an example document."}
-{"title": "Second example", "text": "Examples are a great source of inspiration."}
-{"title": "Third example", "text": "Great things come in threes."}
-```
-
-It can also be a CSV file (which can be created by Excel, for example) with columns named
-`title` and `text`:
-
-```
-title   text
-First example   This is an example document.
-Second example  Examples are a great source of inspiration.
-Third example   Great things come in threes.
-```
-
-This library installs a script called `lumi-upload` for uploading files in one of these formats.
-For example, you would type at the command line:
-
-    lumi-upload example.jsons ACCOUNT_NAME example_project_name
