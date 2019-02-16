@@ -142,14 +142,17 @@ will turn these into NumPy vectors, so it requires NumPy.
 array([ 0.00046539,  0.00222015, -0.08491898, -0.0014534 , -0.00127411], dtype=float32)
 ```
 
-Uploading from the command line
--------------------------------
+Using the API from the command line
+-----------------------------------
 
-While there is no dedicated command to upload documents, this library does
-include the command `lumi-api`, which can be used to access the API in general
-and to upload documents in particular.  Run `lumi-api -h` for more information.
+This library includes an experimental `lumi-api` command, which can be used to 
+browse the API from the command-line.  Run `lumi-api -h` for more detailed
+documentation on available parameters, or see the examples below for details.
 
-Examples:
+There are also `lumi-upload` and `lumi-download` commands, which are currently
+experimental and therefore undocumented.
+
+Examples of `lumi-api` usage:
 ```python
 # get a project list
 lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token get /projects
