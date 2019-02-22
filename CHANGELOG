@@ -1,3 +1,8 @@
+Version 1.1.1 (2019-02-22)
+
+  * Added connect_with_username_and_password() to the v5 client to ease the
+    transition from v4 to v5.
+
 Version 1.1 (2019-01-28)
 
   * Client changes

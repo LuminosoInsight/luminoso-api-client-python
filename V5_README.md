@@ -58,6 +58,14 @@ project = V5LuminosoClient.connect('/projects/my_project_id')
 docs = project.get('docs', limit=10)
 ```
 
+There is also a method, provided temporarily to ease the transition from the v4
+API, that allows you to connect with a username and password:
+
+```python
+from luminoso_api import V5LuminosoClient
+project = V5LuminosoClient.connect_with_username_and_password('/projects/my_project_id', username='my_username')
+```
+
 Note that the LuminosoClient will ensure that slashes are put in the right
 places, so that all of the following calls will go to the endpoint
 `https://analytics.luminoso.com/api/v5/projects/my_project_id/docs/`:
