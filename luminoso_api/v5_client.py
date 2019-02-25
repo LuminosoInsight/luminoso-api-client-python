@@ -121,6 +121,37 @@ class LuminosoClient(object):
         with open(token_file, 'w') as f:
             json.dump(saved_tokens, f)
 
+    @classmethod
+    def connect_with_username_and_password(cls, url=None, username=None,
+                                           password=None):
+        """
+        Returns an object that makes requests to the API, authenticated with
+        a short-lived token retrieved from username and password.  If username
+        or password is not supplied, the method will prompt for a username
+        and/or password to be entered interactively.
+
+        See the connect method for more details about the `url` argument.
+
+        PLEASE NOTE: This method is being provided as a temporary measure.  We
+        strongly encourage users of the Luminoso API to use a long-lived token
+        instead, as explained in the V5_README file.
+        """
+        from .v4_client import LuminosoClient as v4LC
+        if username is None:
+            username = input('Username: ')
+        v4client = v4LC.connect(url=url, username=username, password=password)
+
+        if url is None:
+            url = '/'
+
+        if url.startswith('http'):
+            root_url = get_root_url(url)
+        else:
+            url = URL_BASE + '/' + url.lstrip('/')
+            root_url = URL_BASE
+
+        return cls(v4client.session, root_url)
+
     def _request(self, req_type, url, **kwargs):
         """
         Make a request via the `requests` module. If the result has an HTTP
