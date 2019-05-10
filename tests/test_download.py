@@ -47,7 +47,7 @@ PROJECT_RECORD = {
     'project_id': 'projid',
     'account_id': 'account',
     'document_count': 2,
-    'permissions': ['*']
+    'permissions': ['read', 'write', 'create']
 }
 
 EXPANDED_DOCS = [
