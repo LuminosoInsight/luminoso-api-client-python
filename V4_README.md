@@ -13,7 +13,7 @@ object named `luminoso_api.V4LuminosoClient`, which is an alias for
 
 Please note that the v4 client can only be used to connect to v4 endpoints,
 which do not include any science endpoints for building or interacting with
-projects.  This client can only be used for user and account management. 
+projects.  This client can only be used for user and account management.
 
 Using this client
 =================

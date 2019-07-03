@@ -71,7 +71,7 @@ without having to specify a token.
 
 ```python
 from luminoso_api import LuminosoClient
-LuminosoClient.save_token(token='my_token')
+LuminosoClient.save_token('my_token')
 project = LuminosoClient.connect('/projects/my_project_id')
 docs = project.get('docs', limit=10)
 ```
@@ -171,10 +171,10 @@ array([ 0.00046539,  0.00222015, -0.08491898, -0.0014534 , -0.00127411], dtype=f
 Using the API from the command line
 -----------------------------------
 
-This library includes three experimental tools usable from the command line: 
-`lumi-api`, `lumi-upload`, and `lumi-download`.  Running them with `-h` will 
-provide more detailed documentation on available parameters.  In addition, the 
-following examples may provide some guidance on using `lumi-api` to access the 
+This library includes three experimental tools usable from the command line:
+`lumi-api`, `lumi-upload`, and `lumi-download`.  Running them with `-h` will
+provide more detailed documentation on available parameters.  In addition, the
+following examples may provide some guidance on using `lumi-api` to access the
 API:
 
 ```
