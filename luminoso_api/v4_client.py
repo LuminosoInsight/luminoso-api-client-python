@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 from .v4_auth import TokenAuth
 from .v4_constants import URL_BASE
 from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
-    LuminosoServerError, LuminosoAPIError)
+                     LuminosoServerError, LuminosoAPIError)
 from .compat import types_not_to_encode, urlparse, encode_getpass
 from getpass import getpass
 import os
@@ -15,6 +15,7 @@ import logging
 import json
 import time
 logger = logging.getLogger(__name__)
+
 
 class LuminosoClient(object):
     """
@@ -118,9 +119,21 @@ class LuminosoClient(object):
             token_file = token_file or get_token_filename()
             try:
                 token_dict = json.load(open(token_file))
-                token = token_dict.get(urlparse(root_url).netloc)
             except IOError:
-                logger.info('unable to read file %s; not using saved token')
+                logger.info('unable to read file %s; not using saved token',
+                            token_file)
+                token_dict = {}
+            netloc = urlparse(root_url).netloc
+            token = token_dict.get(netloc)
+            # Some code to help people transition from using URLs with
+            # "analytics" to URLs with "daylight" by looking for a token
+            # with the old URL and using it if it exists
+            if token is None:
+                legacy_netloc = netloc.replace('daylight', 'analytics')
+                if legacy_netloc in token_dict:
+                    logger.warning('Using token for legacy domain %s',
+                                   legacy_netloc)
+                    token = token_dict[legacy_netloc]
         if token is None:
             if username is None:
                 username = os.environ['USER']

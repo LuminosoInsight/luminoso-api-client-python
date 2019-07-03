@@ -1,7 +1,10 @@
 Version 1.2 (2019-07-03) - IN PROGRESS
 
   * Updated the default URLs, and URLs in documentation, to the new
-    "daylight.luminoso.com".
+    "daylight.luminoso.com".  Also added code in token authentication in both
+    v4 and v5 clients to look for tokens for a domain with "analytics" in it
+    if a domain with "daylight" was specified but no token was found, to help
+    users transition to the new URLs.
 
 Version 1.1.1 (2019-02-22)
 

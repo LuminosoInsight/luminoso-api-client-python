@@ -92,10 +92,23 @@ class LuminosoClient(object):
                     token_dict = json.load(tf)
             except FileNotFoundError:
                 raise LuminosoAuthError('No token file at %s' % token_file)
+
+            netloc = urlparse(root_url).netloc
             try:
-                token = token_dict[urlparse(root_url).netloc]
+                token = token_dict[netloc]
             except KeyError:
-                raise LuminosoAuthError('No token stored for %s' % root_url)
+                # Some code to help people transition from using URLs with
+                # "analytics" to URLs with "daylight" by looking for a token
+                # with the old URL and using it if it exists
+                legacy_netloc = netloc.replace('daylight', 'analytics')
+                if legacy_netloc in token_dict:
+                    logger.warning('Using token for legacy domain %s; saving it'
+                                   ' for %s', legacy_netloc, netloc)
+                    token = token_dict[legacy_netloc]
+                    cls.save_token(token, domain=netloc,
+                                   token_file=token_file)
+                else:
+                    raise LuminosoAuthError('No token stored for %s' % root_url)
 
         session = requests.session()
         session.auth = _TokenAuth(token)
