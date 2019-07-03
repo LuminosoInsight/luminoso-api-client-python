@@ -1,8 +1,16 @@
-Version 1.2 (2019-07-03) - IN PROGRESS
+Version 1.2 (2019-07-03)
 
   * Changed the default client from the v4 client to the v5 client, as well as
     correspondingly swapping the README files to make the v5 client's README
     the main one.
+
+  * Removed functionality from the v4 client specific to science endpoints
+    (that is, any URL starting with "projects"), including:
+
+    - The logic for setting the client's URL to the user's default account on
+      login
+    - The "upload" method for uploading documents to a project
+    - The "wait_for" method for waiting for a project to build
 
   * Removed "documentation" method from v4 client.  This had been designed to
     download a text version of the API documentation, but for some time the API

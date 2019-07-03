@@ -13,7 +13,6 @@ import os
 import requests
 import logging
 import json
-import time
 logger = logging.getLogger(__name__)
 
 
@@ -27,16 +26,12 @@ class LuminosoClient(object):
     `.post(url)`, `.put(url)`, `.patch(url)`, and `.delete(url)`.
 
     These URLs are relative to a 'base URL' for the LuminosoClient. For
-    example, you can make requests for a specific account's projects
-    by creating a LuminosoClient for
-    `https://daylight.luminoso.com/api/v4/projects/<account_id>`,
-    or you can go deeper to create a client that makes requests for a
-    specific project.
+    example, you can make requests for a specific account by creating a
+    LuminosoClient for
+    `https://daylight.luminoso.com/api/v4/accounts/<account_id>`.
 
-    Some methods are most useful when the client's URL refers to a project.
-
-    These methods take parameters as keyword arguments, and encode them in
-    the appropriate way for the request, which is described in the
+    Methods that make requests take parameters as keyword arguments, and encode
+    them in the appropriate way for the request, which is described in the
     individual documentation for each method.
 
     The easiest way to create a LuminosoClient is using the
@@ -72,26 +67,18 @@ class LuminosoClient(object):
         Returns an object that makes requests to the API, authenticated
         with the provided username/password, at URLs beginning with `url`.
 
-        You can leave out the URL and get your 'default URL', a base path
-        that is probably appropriate for creating projects on your
-        account:
-
-            client = LuminosoClient.connect(username=username)
-
         If the URL is simply a path, omitting the scheme and domain, then
         it will default to https://daylight.luminoso.com/api/v4/, which is
         probably what you want:
 
-            client = LuminosoClient.connect('/projects/public', username=username)
+            client = LuminosoClient.connect('/accounts/', username=username)
 
         If you leave out the username, it will use your system username,
         which is convenient if it matches your Luminoso username:
 
             client = LuminosoClient.connect()
         """
-        auto_account = False
         if url is None:
-            auto_account = True
             url = '/'
 
         if url.startswith('http'):
@@ -104,11 +91,7 @@ class LuminosoClient(object):
                                    root_url)
         session = requests.session()
         session.auth = auth
-        client = cls(session, url)
-        if auto_account:
-            client = client.change_path('/projects/%s' %
-                client._get_default_account())
-        return client
+        return cls(session, url)
 
     @staticmethod
     def _get_token_auth(username, password, token, token_file, root_url):
@@ -376,15 +359,15 @@ class LuminosoClient(object):
 
         For example, you might want to start with a LuminosoClient for
         `https://daylight.luminoso.com/api/v4/`, then get a new one for
-        `https://daylight.luminoso.com/api/v4/projects/myaccount/myprojectid`.
+        `https://daylight.luminoso.com/api/v4/accounts/myaccount/`.
         You accomplish that with the following call:
 
-            newclient = client.change_path('projects/myaccount/myproject_id')
+            newclient = client.change_path('accounts/myaccount')
 
         If you start the path with `/`, it will start from the root_url
         instead of the current url:
 
-            project_area = newclient.change_path('/projects/myaccount')
+            account_area = newclient.change_path('/accounts/myaccount')
 
         The advantage of using `.change_path` is that you will not need to
         re-authenticate like you would if you ran `.connect` again.
@@ -399,73 +382,6 @@ class LuminosoClient(object):
             url = self.url + path
         return self.__class__(self.session, url)
 
-    def _get_default_account(self):
-        """
-        Get the ID of an account you can use to access projects.
-        """
-        newclient = self.__class__(self.session, self.root_url)
-        account_info = newclient.get('/accounts/')
-        if account_info['default_account'] is not None:
-            return account_info['default_account']
-        valid_accounts = [a['account_id'] for a in account_info['accounts']
-                          if a['account_id'] != 'public']
-        if len(valid_accounts) == 0:
-            raise ValueError("Can't determine your default URL. "
-                             "Please request a specific URL or ask "
-                             "Luminoso for support.")
-        return valid_accounts[0]
-
-    def upload(self, path, docs, **params):
-        """
-        A convenience method for uploading a set of dictionaries representing
-        documents. You still need to specify the URL to upload to, which will
-        look like ROOT_URL/projects/myaccount/project_id/docs.
-        """
-        json_data = json.dumps(list(docs))
-        return self.post_data(path, json_data, 'application/json', **params)
-
-    def wait_for(self, job_id, base_path=None, interval=5):
-        """
-        Wait for an asynchronous task to finish.
-
-        Unlike the thin methods elsewhere on this object, this one is actually
-        specific to how the Luminoso API works. This will poll an API
-        endpoint to find out the status of the job numbered `job_id`,
-        repeating every 5 seconds (by default) until the job is done. When
-        the job is done, it will return an object representing the result of
-        that job.
-
-        In the Luminoso API, requests that may take a long time return a
-        job ID instead of a result, so that your code can continue running
-        in the meantime. When it needs the job to be done to proceed, it can
-        use this method to wait.
-
-        The base URL where it looks for that job is by default `jobs/id/`
-        under the current URL, assuming that this LuminosoClient's URL
-        represents a project. You can specify a different URL by changing
-        `base_path`.
-
-        If the job failed, will raise a LuminosoError with the job status
-        as its message.
-        """
-        if base_path is None:
-            base_path = 'jobs/id'
-        path = '%s%d' % (ensure_trailing_slash(base_path), job_id)
-        start = time.time()
-        next_log = 0
-        while True:
-            response = self.get(path)
-            if response['stop_time']:
-                if response['success']:
-                    return response
-                else:
-                    raise LuminosoError(response)
-            elapsed = time.time() - start
-            if elapsed > next_log:
-                logger.info('Still waiting (%d seconds elapsed).', next_log)
-                next_log += 120
-            time.sleep(interval)
-
     def get_raw(self, path, **params):
         """
         Get the raw text of a response.
@@ -478,8 +394,6 @@ class LuminosoClient(object):
         Saves binary content to a file with name filename. filename should
         include the appropriate file extension, such as .xlsx or .txt, e.g.,
         filename = 'sample.xlsx'.
-
-        Useful for downloading .xlsx files.
         """
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         content = self._request('get', url, params=params).content
