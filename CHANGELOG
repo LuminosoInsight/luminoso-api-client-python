@@ -1,5 +1,9 @@
 Version 1.2 (2019-07-03) - IN PROGRESS
 
+  * Changed the default client from the v4 client to the v5 client, as well as
+    correspondingly swapping the README files to make the v5 client's README
+    the main one.
+
   * Removed "documentation" method from v4 client.  This had been designed to
     download a text version of the API documentation, but for some time the API
     has been returning the documentation only as HTML.
