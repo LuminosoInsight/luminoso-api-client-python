@@ -1,3 +1,8 @@
+Version 1.2 (2019-07-03) - IN PROGRESS
+
+  * Updated the default URLs, and URLs in documentation, to the new
+    "daylight.luminoso.com".
+
 Version 1.1.1 (2019-02-22)
 
   * Added connect_with_username_and_password() to the v5 client to ease the

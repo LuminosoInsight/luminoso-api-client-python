@@ -21,14 +21,14 @@ class LuminosoClient(object):
     A tool for making authenticated requests to the Luminoso API version 5.
 
     A LuminosoClient is a thin wrapper around the API documented at
-    https://analytics.luminoso.com/api/v5/. As such, you interact with it by
+    https://daylight.luminoso.com/api/v5/. As such, you interact with it by
     calling its methods that correspond to HTTP methods: `.get(url)`,
     `.post(url)`, `.put(url)`, `.patch(url)`, and `.delete(url)`.
 
     These URLs are relative to a 'base URL' for the LuminosoClient. For
     example, you can make requests for a specific project by creating a
     LuminosoClient for
-    `https://analytics.luminoso.com/api/v5/projects/<project_id>`.
+    `https://daylight.luminoso.com/api/v5/projects/<project_id>`.
 
     Methods take parameters as keyword arguments, and encode them in the
     appropriate way for the request, which is described in the individual
@@ -39,7 +39,7 @@ class LuminosoClient(object):
 
     In addition to the base URL, the LuminosoClient has a `root_url`,
     pointing to the root of the API, such as
-    https://analytics.luminoso.com/api/v5. This is used, for example, as a
+    https://daylight.luminoso.com/api/v5. This is used, for example, as a
     starting point for the `client_for_path` method: when it gets a path
     starting with `/`, it will go back to the `root_url` instead of adding to
     the existing URL.
@@ -69,7 +69,7 @@ class LuminosoClient(object):
 
         If no URL is specified, or if the specified URL is a path such as
         '/projects' without a scheme and domain, the client will default to
-        https://analytics.luminoso.com/api/v5/.
+        https://daylight.luminoso.com/api/v5/.
 
         If neither token nor token_file are specified, the client will look
         for a token in $HOME/.luminoso/tokens.json. The file should contain
@@ -102,7 +102,7 @@ class LuminosoClient(object):
         return cls(session, url)
 
     @staticmethod
-    def save_token(token, domain='analytics.luminoso.com', token_file=None):
+    def save_token(token, domain='daylight.luminoso.com', token_file=None):
         """
         Take a long-lived API token and store it to a local file.  Long-lived
         tokens can be retrieved through the UI.  Optional arguments are the
@@ -273,7 +273,7 @@ class LuminosoClient(object):
         """
         Returns a new client with the same root URL and authentication, but
         a different specific URL.  For instance, if you have a client pointed
-        at https://analytics.luminoso.com/api/v5/, and you want new ones for
+        at https://daylight.luminoso.com/api/v5/, and you want new ones for
         Project A and Project B, you would call:
 
             client_a = client.client_for_path('projects/<project_id_a>')

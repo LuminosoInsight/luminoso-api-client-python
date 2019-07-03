@@ -17,7 +17,7 @@ Its input can be:
 
 The dictionary keys in JSON, or the column labels in CSV, should be the
 document properties defined in the documentation at
-https://analytics.luminoso.com/api/v4.
+https://daylight.luminoso.com/api/v4.
 """
 from __future__ import unicode_literals
 import json
@@ -128,7 +128,7 @@ def open_json_or_csv_somehow(filename, date_format=None):
 def _normalize_data(stream, date_format=None):
     """
     This function is meant to normalize data for upload to the Luminoso
-    Analytics system. Currently it only normalizes dates.
+    Daylight system. Currently it only normalizes dates.
 
     If date_format is not specified, or if there's no date in a particular doc,
     the the doc is yielded unchanged.

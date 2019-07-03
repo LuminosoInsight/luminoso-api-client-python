@@ -68,7 +68,7 @@ project = V5LuminosoClient.connect_with_username_and_password('/projects/my_proj
 
 Note that the LuminosoClient will ensure that slashes are put in the right
 places, so that all of the following calls will go to the endpoint
-`https://analytics.luminoso.com/api/v5/projects/my_project_id/docs/`:
+`https://daylight.luminoso.com/api/v5/projects/my_project_id/docs/`:
 
 ```python
 V5LuminosoClient.connect('/projects/my_project_id').get('docs')
@@ -84,7 +84,7 @@ V5LuminosoClient.connect('/projects/my_project_id/').get('/docs/')
 HTTP methods
 ------------
 
-The URLs you can communicate with are documented at https://analytics.luminoso.com/api/v5/.
+The URLs you can communicate with are documented at https://daylight.luminoso.com/api/v5/.
 That documentation is the authoritative source for what you can do with the
 API, and this Python code is just here to help you do it.
 
@@ -161,31 +161,31 @@ API:
 
 ```python
 # get a project list
-lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token get /projects
+lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_token get /projects
 
 # get a project list in CSV format
-lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token get /projects -c
+lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_token get /projects -c
 
 # get a project list and save the token so the next call wouldn't need "-t my_token" parameter
-lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token -s get /projects -c
+lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_token -s get /projects -c
 
 # create a project
-lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token post /projects/ -p 'name=project name' -p 'language=en'
+lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_token post /projects/ -p 'name=project name' -p 'language=en'
 
 # upload documents
 # my_data.json format: {"docs":[{"text": "..", "title": "..", "metadata": [..]}, {"text": "..", "title": "..", "metadata": [..]}]}
-lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_tokens post /projects/my_project_id/upload my_data.json
+lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_tokens post /projects/my_project_id/upload my_data.json
 
 # build project
 # this takes time, if you want to be notified via email when the build is done, add -j '{"notify": true}' parameter
-lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_tokens post /projects/my_project_id/build
+lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_tokens post /projects/my_project_id/build
 
 # get concepts from project
-lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_tokens get /projects/my_project_id/concepts
+lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_tokens get /projects/my_project_id/concepts
 
 # get project's match counts
-lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token get /projects/my_project_id/concepts/match_counts
+lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_token get /projects/my_project_id/concepts/match_counts
 
 # create a saved concept
-lumi-api -b https://analytics.luminoso.com/api/v5/ -t my_token post /projects/my_project_id/concepts/saved -j '{"concepts": [{"texts": ["My new concept text"]}]}'
+lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_token post /projects/my_project_id/concepts/saved -j '{"concepts": [{"texts": ["My new concept text"]}]}'
 ```

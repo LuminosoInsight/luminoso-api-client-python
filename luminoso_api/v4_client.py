@@ -21,14 +21,14 @@ class LuminosoClient(object):
     A tool for making authenticated requests to the Luminoso API version 4.
 
     A LuminosoClient is a thin wrapper around the REST API documented at
-    https://analytics.luminoso.com/api/v4/. As such, you interact with it by
+    https://daylight.luminoso.com/api/v4/. As such, you interact with it by
     calling its methods that correspond to HTTP methods: `.get(url)`,
     `.post(url)`, `.put(url)`, `.patch(url)`, and `.delete(url)`.
 
     These URLs are relative to a 'base URL' for the LuminosoClient. For
     example, you can make requests for a specific account's projects
     by creating a LuminosoClient for
-    `https://analytics.luminoso.com/api/v4/projects/<account_id>`,
+    `https://daylight.luminoso.com/api/v4/projects/<account_id>`,
     or you can go deeper to create a client that makes requests for a
     specific project.
 
@@ -43,7 +43,7 @@ class LuminosoClient(object):
 
     In addition to the base URL, the LuminosoClient has a `root_url`,
     pointing to the root of the API, such as
-    https://analytics.luminoso.com/api/v4. This is used, for example, as a
+    https://daylight.luminoso.com/api/v4. This is used, for example, as a
     starting point for the `change_path` method: when it gets a path starting
     with `/`, it will go back to the `root_url` instead of adding to the
     existing URL.
@@ -78,7 +78,7 @@ class LuminosoClient(object):
             client = LuminosoClient.connect(username=username)
 
         If the URL is simply a path, omitting the scheme and domain, then
-        it will default to https://analytics.luminoso.com/api/v4/, which is
+        it will default to https://daylight.luminoso.com/api/v4/, which is
         probably what you want:
 
             client = LuminosoClient.connect('/projects/public', username=username)
@@ -362,8 +362,8 @@ class LuminosoClient(object):
         Return a new LuminosoClient for a subpath of this one.
 
         For example, you might want to start with a LuminosoClient for
-        `https://analytics.luminoso.com/api/v4/`, then get a new one for
-        `https://analytics.luminoso.com/api/v4/projects/myaccount/myprojectid`.
+        `https://daylight.luminoso.com/api/v4/`, then get a new one for
+        `https://daylight.luminoso.com/api/v4/projects/myaccount/myprojectid`.
         You accomplish that with the following call:
 
             newclient = client.change_path('projects/myaccount/myproject_id')

@@ -33,12 +33,12 @@ def test_paths():
         get_root_url('not.good.enough/api/v5')
 
     assert (
-        get_root_url('https://analytics.luminoso.com/', warn=False)
-        == 'https://analytics.luminoso.com/api/v5'
+        get_root_url('https://daylight.luminoso.com/', warn=False)
+        == 'https://daylight.luminoso.com/api/v5'
     )
     assert (
-        get_root_url('http://analytics.luminoso.com/api/v5/who/cares?blaah')
-        == 'http://analytics.luminoso.com/api/v5'
+        get_root_url('http://daylight.luminoso.com/api/v5/who/cares?blaah')
+        == 'http://daylight.luminoso.com/api/v5'
     )
 
 
