@@ -1,5 +1,9 @@
 Version 1.2 (2019-07-03) - IN PROGRESS
 
+  * Removed "documentation" method from v4 client.  This had been designed to
+    download a text version of the API documentation, but for some time the API
+    has been returning the documentation only as HTML.
+
   * Updated the default URLs, and URLs in documentation, to the new
     "daylight.luminoso.com".  Also added code in token authentication in both
     v4 and v5 clients to look for tokens for a domain with "analytics" in it

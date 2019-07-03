@@ -415,13 +415,6 @@ class LuminosoClient(object):
                              "Luminoso for support.")
         return valid_accounts[0]
 
-    def documentation(self):
-        """
-        Get the documentation that the server sends for the API.
-        """
-        newclient = self.__class__(self.session, self.root_url)
-        return newclient.get_raw('/')
-
     def upload(self, path, docs, **params):
         """
         A convenience method for uploading a set of dictionaries representing
@@ -476,8 +469,6 @@ class LuminosoClient(object):
     def get_raw(self, path, **params):
         """
         Get the raw text of a response.
-
-        This is only generally useful for specific URLs, such as documentation.
         """
         url = ensure_trailing_slash(self.url + path.lstrip('/'))
         return self._request('get', url, params=params).text
