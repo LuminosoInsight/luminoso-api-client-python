@@ -1,4 +1,4 @@
-Version 1.2 (2019-07-03)
+Version 2.0 (2019-07-03)
 
   * Changed the default client from the v4 client to the v5 client, as well as
     correspondingly swapping the README files to make the v5 client's README
