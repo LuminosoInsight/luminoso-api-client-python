@@ -44,15 +44,15 @@ enter your password, as in `sudo python setup.py install`.
 
 Getting started
 ---------------
-You interact with the API using a LuminosoClient object, which sends HTTP
+You interact with the API using a V4LuminosoClient object, which sends HTTP
 requests to URLs starting with a given path, and keeps track of your
 authentication information.
 
 You can connect using a username and password:
 
 ```python
->>> from luminoso_api import LuminosoClient
->>> client = LuminosoClient.connect('/user/', username='my_username')
+>>> from luminoso_api import V4LuminosoClient
+>>> client = V4LuminosoClient.connect('/user/', username='my_username')
 Password for my_username: [here you enter your password]
 >>> client.get('profile')
 [your user profile here]
@@ -61,22 +61,22 @@ Password for my_username: [here you enter your password]
 Or you can connect using an existing API token:
 
 ```python
-from luminoso_api import LuminosoClient
-proj = LuminosoClient.connect('/user', token='my-api-token-here')
+from luminoso_api import V4LuminosoClient
+proj = V4LuminosoClient.connect('/user', token='my-api-token-here')
 ```
 
 You can even save your API token to a file on your computer and load it
 automatically, so that you don't have to specify any credentials:
 
 ```python
-from luminoso_api import LuminosoClient
-client = LuminosoClient.connect(token='my-api-token-here')
+from luminoso_api import V4LuminosoClient
+client = V4LuminosoClient.connect(token='my-api-token-here')
 # This will save a non-expiring token, regardless of whether you are currently
 # using that token or some other token.
 client.save_token()
 # Now you can exit Python, restart your computer, etc., and your token will
 # still be saved when you come back.
-proj = LuminosoClient.connect('/projects/account_id/my_project_id')
+proj = V4LuminosoClient.connect('/projects/account_id/my_project_id')
 ```
 
 HTTP methods
@@ -86,7 +86,7 @@ The URLs you can communicate with are documented at https://daylight.luminoso.co
 That documentation is the authoritative source for what you can do with the
 API.
 
-A LuminosoClient object has methods such as `.get`, `.post`, and `.put`,
+A V4LuminosoClient object has methods such as `.get`, `.post`, and `.put`,
 which correspond to the corresponding HTTP methods that the API uses. For
 example, `.get` is used for retrieving information without changing anything,
 `.post` is generally used for creating new things or taking actions, and `.put`
