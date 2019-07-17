@@ -84,19 +84,16 @@ from luminoso_api import LuminosoClient
 project = LuminosoClient.connect_with_username_and_password('/projects/my_project_id', username='my_username')
 ```
 
-Note that the LuminosoClient will ensure that slashes are put in the right
-places, so that all of the following calls will go to the endpoint
+Note that all leading and trailing slashes in paths are optional, because the
+LuminosoClient ensures that slashes are put in the right places.  For example,
+all of the following calls will go to the endpoint
 `https://daylight.luminoso.com/api/v5/projects/my_project_id/docs/`:
 
 ```python
 LuminosoClient.connect('/projects/my_project_id').get('docs')
-LuminosoClient.connect('/projects/my_project_id').get('/docs')
-LuminosoClient.connect('/projects/my_project_id').get('docs/')
-LuminosoClient.connect('/projects/my_project_id').get('/docs/')
-LuminosoClient.connect('/projects/my_project_id/').get('docs')
-LuminosoClient.connect('/projects/my_project_id/').get('/docs')
+LuminosoClient.connect('projects/my_project_id/').get('/docs')
 LuminosoClient.connect('/projects/my_project_id/').get('docs/')
-LuminosoClient.connect('/projects/my_project_id/').get('/docs/')
+LuminosoClient.connect('projects/my_project_id').get('/docs/')
 ```
 
 HTTP methods
