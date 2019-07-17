@@ -1,1 +1,1 @@
-URL_BASE = 'https://analytics.luminoso.com/api/v5'
+URL_BASE = 'https://daylight.luminoso.com/api/v5'

@@ -1,2 +1,2 @@
 from __future__ import unicode_literals
-URL_BASE = 'https://analytics.luminoso.com/api/v4'
+URL_BASE = 'https://daylight.luminoso.com/api/v4'
