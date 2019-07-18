@@ -22,6 +22,10 @@ Version 2.0 (2019-07-03)
     if a domain with "daylight" was specified but no token was found, to help
     users transition to the new URLs.
 
+  * Added a custom "user-agent" to the v5 client's headers, along with
+    functionality to allow users (and specifically the CLI scripts) to add a
+    suffix to the user-agent
+
 Version 1.1.1 (2019-02-22)
 
   * Added connect_with_username_and_password() to the v5 client to ease the
