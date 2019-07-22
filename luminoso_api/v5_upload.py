@@ -168,7 +168,9 @@ def _main(argv):
         LuminosoClient.save_token(args.token,
                                   domain=urlparse(args.base_url).netloc)
 
-    client = LuminosoClient.connect(url=args.base_url, token=args.token)
+    client = LuminosoClient.connect(
+        url=args.base_url, token=args.token, user_agent_suffix='lumi-upload'
+    )
 
     name = args.project_name
     if name is None:

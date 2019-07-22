@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 from .v5_constants import URL_BASE
 from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
                      LuminosoServerError)
+from .version import VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ class LuminosoClient(object):
     starting with `/`, it will go back to the `root_url` instead of adding to
     the existing URL.
     """
-    def __init__(self, session, url):
+    def __init__(self, session, url, user_agent_suffix=None):
         """
         Create a LuminosoClient given an existing Session object that has a
         _TokenAuth object as its .auth attribute.
@@ -56,12 +57,19 @@ class LuminosoClient(object):
         self.url = ensure_trailing_slash(url)
         # Don't warn this time; warning happened in connect()
         self.root_url = get_root_url(url, warn=False)
+        # Calculate the full user agent suffix, but also store the suffix so it
+        # can be preserved by client_for_path().
+        self._user_agent_suffix = user_agent_suffix
+        self.user_agent = 'LuminosoClient/' + VERSION
+        if user_agent_suffix is not None:
+            self.user_agent += ' ' + user_agent_suffix
 
     def __repr__(self):
         return '<LuminosoClient for %s>' % self.url
 
     @classmethod
-    def connect(cls, url=None, token_file=None, token=None):
+    def connect(cls, url=None, token_file=None, token=None,
+                user_agent_suffix=None):
         """
         Returns an object that makes requests to the API, authenticated
         with a saved or specified long-lived token, at URLs beginning with
@@ -75,6 +83,11 @@ class LuminosoClient(object):
         for a token in $HOME/.luminoso/tokens.json. The file should contain
         a single json dictionary of the format
         `{'root_url': 'token', 'root_url2': 'token2', ...}`.
+
+        Requests made with this client will have the user agent
+        "LuminosoClient" and the version number.  You can optionally pass a
+        string to be appended to this, though for most uses of the client this
+        is unnecessary.
         """
         if url is None:
             url = '/'
@@ -112,7 +125,7 @@ class LuminosoClient(object):
 
         session = requests.session()
         session.auth = _TokenAuth(token)
-        return cls(session, url)
+        return cls(session, url, user_agent_suffix=user_agent_suffix)
 
     @staticmethod
     def save_token(token, domain='daylight.luminoso.com', token_file=None):
@@ -170,6 +183,7 @@ class LuminosoClient(object):
         Make a request via the `requests` module. If the result has an HTTP
         error status, convert that to a Python exception.
         """
+        kwargs.setdefault('headers', {})['user-agent'] = self.user_agent
         logger.debug('%s %s' % (req_type, url))
         result = self.session.request(req_type, url, **kwargs)
         try:
@@ -301,7 +315,9 @@ class LuminosoClient(object):
             url = self.root_url + path
         else:
             url = self.url + path
-        return self.__class__(self.session, url)
+        return self.__class__(
+            self.session, url, user_agent_suffix=self._user_agent_suffix
+        )
 
     def change_path(self, path):
         """

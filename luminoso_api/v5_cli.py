@@ -96,7 +96,8 @@ def _main(*vargs):
         LuminosoClient.save_token(args.token,
                                   domain=urlparse(args.base_url).netloc)
 
-    client = LuminosoClient.connect(url=args.base_url, token=args.token)
+    client = LuminosoClient.connect(url=args.base_url, token=args.token,
+                                    user_agent_suffix='lumi-cli')
 
     if args.method == 'delete':
         confirm = input('confirm %s %s? [Y/n] ' % (args.method, args.path))
