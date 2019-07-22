@@ -57,7 +57,12 @@ class LuminosoClient(object):
         self.url = ensure_trailing_slash(url)
         # Don't warn this time; warning happened in connect()
         self.root_url = get_root_url(url, warn=False)
+        # Calculate the full user agent suffix, but also store the suffix so it
+        # can be preserved by client_for_path().
         self._user_agent_suffix = user_agent_suffix
+        self.user_agent = 'LuminosoClient/' + VERSION
+        if user_agent_suffix is not None:
+            self.user_agent += ' ' + user_agent_suffix
 
     def __repr__(self):
         return '<LuminosoClient for %s>' % self.url
@@ -178,11 +183,7 @@ class LuminosoClient(object):
         Make a request via the `requests` module. If the result has an HTTP
         error status, convert that to a Python exception.
         """
-        user_agent = 'LuminosoClient/' + VERSION
-        if self._user_agent_suffix is not None:
-            user_agent += ' ' + self._user_agent_suffix
-        kwargs.setdefault('headers', {})['user-agent'] = user_agent
-
+        kwargs.setdefault('headers', {})['user-agent'] = self.user_agent
         logger.debug('%s %s' % (req_type, url))
         result = self.session.request(req_type, url, **kwargs)
         try:
