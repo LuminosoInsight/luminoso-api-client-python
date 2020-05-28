@@ -1,5 +1,7 @@
 from luminoso_api.v5_client import LuminosoClient, get_root_url
-from luminoso_api.errors import LuminosoClientError, LuminosoServerError
+from luminoso_api.errors import (
+    LuminosoClientError, LuminosoServerError, LuminosoError
+)
 
 import pytest
 import requests
@@ -103,3 +105,134 @@ def test_failing_requests(requests_mock):
 
     with pytest.raises(LuminosoServerError):
         client.get('fail')
+
+
+# The logic in wait_for_build() and wait_for_sentiment_build() gets a little
+# complex, so we test that logic more thoroughly here.
+
+def _last_build_infos_to_mock_returns(last_builds):
+    """
+    Helper function for testing waiting for a build.  Turns a series of
+    last_build_info dictionaries into a list suitable for returning
+    sequentially from requests_mock.
+    """
+    return [{'json': {'last_build_info': build_info}}
+            for build_info in last_builds]
+
+
+def test_wait_for_build(requests_mock):
+    project_url = BASE_URL + 'projects/pr123456/'
+    client = LuminosoClient.connect(project_url, token='fake')
+
+    # A somewhat pared-down representation of what a project record's
+    # `last_build_info` field looks like in various states
+    build_running = {'start_time': 1590000000.0, 'stop_time': None,
+                     'sentiment': {}}
+    build_failed = {'start_time': 1590000000.0, 'stop_time': 1590000001.0,
+                    'sentiment': {}, 'success': False}
+    build_succeeded = {'start_time': 1590000000.0, 'stop_time': 1590000001.0,
+                       'sentiment': {}, 'success': True}
+
+    # If there is no build: error
+    requests_mock.get(project_url, json={'last_build_info': {}})
+    with pytest.raises(ValueError, match='not building'):
+        client.wait_for_build()
+
+    # If the build succeeds: the project's last build info
+    requests_mock.get(
+        project_url,
+        _last_build_infos_to_mock_returns(
+            [build_running, build_running, build_succeeded]
+        )
+    )
+    result = client.wait_for_build(interval=.0001)
+    assert result == build_succeeded
+
+    # If the build fails: error with the project's last build info
+    requests_mock.get(
+        project_url,
+        _last_build_infos_to_mock_returns([build_running, build_failed])
+    )
+    with pytest.raises(LuminosoError) as e:
+        client.wait_for_build(interval=.0001)
+    assert e.value.args == (build_failed,)
+
+
+def test_wait_for_sentiment_build(requests_mock):
+    project_url = BASE_URL + 'projects/pr123456/'
+    client = LuminosoClient.connect(project_url, token='fake')
+
+    # A somewhat pared-down representation of what a project record's
+    # `last_build_info` field looks like in various states, including
+    # the sentiment build
+    build_running = {'start_time': 1590000000.0, 'stop_time': None,
+                     'sentiment': {'start_time': None, 'stop_time': None}}
+    build_failed = {'start_time': 1590000000.0, 'stop_time': 1590000001.0,
+                    'sentiment': {'start_time': None, 'stop_time': None},
+                    'success': False}
+    build_succeeded = {'start_time': 1590000000.0,
+                       'stop_time': 1590000001.0,
+                       'sentiment': {'start_time': None, 'stop_time': None},
+                       'success': True}
+    sentiment_running = {'start_time': 1590000000.0, 'stop_time': 1590000001.0,
+                         'sentiment': {'start_time': 1590000002.0,
+                                       'stop_time': None},
+                         'success': True}
+    sentiment_failed = {'start_time': 1590000000.0, 'stop_time': 1590000001.0,
+                        'sentiment': {'start_time': 1590000002.0,
+                                      'stop_time': 1590000003.0,
+                                      'success': False},
+                        'success': True}
+    sentiment_succeeded = {'start_time': 1590000000.0,
+                           'stop_time': 1590000001.0,
+                           'sentiment': {'start_time': 1590000002.0,
+                                         'stop_time': 1590000003.0,
+                                         'success': True},
+                           'success': True}
+
+    # If the base build doesn't exist, or fails: same errors as for regular
+    # wait_for_build
+    requests_mock.get(project_url, json={'last_build_info': {}})
+    with pytest.raises(ValueError, match='not building'):
+        client.wait_for_sentiment_build()
+
+    requests_mock.get(
+        project_url,
+        _last_build_infos_to_mock_returns([build_running, build_failed])
+    )
+    with pytest.raises(LuminosoError) as e:
+        client.wait_for_sentiment_build(interval=.0001)
+    assert e.value.args == (build_failed,)
+
+    # If the base build exists but sentiment is not building: error
+    requests_mock.get(
+        project_url,
+        json={'last_build_info': {
+            'start_time': 1590000000.0, 'stop_time': None, 'sentiment': {}
+        }}
+    )
+    with pytest.raises(ValueError, match='not building sentiment'):
+        client.wait_for_sentiment_build()
+
+    # If the sentiment build succeeds: the project's last build info
+    requests_mock.get(
+        project_url,
+        _last_build_infos_to_mock_returns(
+            [build_running, build_running, build_succeeded,
+             sentiment_running, sentiment_running, sentiment_succeeded]
+        )
+    )
+    result = client.wait_for_sentiment_build(interval=.0001)
+    assert result == sentiment_succeeded
+
+    # If the sentiment build fails: error with the project's last build info
+    requests_mock.get(
+        project_url,
+        _last_build_infos_to_mock_returns(
+            [build_running, build_running, build_succeeded,
+             sentiment_running, sentiment_running, sentiment_failed]
+        )
+    )
+    with pytest.raises(LuminosoError) as e:
+        client.wait_for_sentiment_build(interval=.0001)
+    assert e.value.args == (sentiment_failed,)
