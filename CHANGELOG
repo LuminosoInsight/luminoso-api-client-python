@@ -1,3 +1,11 @@
+Version 2.0.1 (2020-05-28)
+
+  * Added a new method, `wait_for_sentiment_build`, to allow users to wait for
+    the new document-level sentiment build to finish instead of waiting for
+    the main build process (which happens first).  `wait_for_build` remains as
+    a method for users who want to know when non-sentiment API endpoints become
+    ready to use.
+
 Version 2.0 (2019-07-03)
 
   * Changed the default client from the v4 client to the v5 client, as well as
