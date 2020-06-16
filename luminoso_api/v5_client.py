@@ -339,15 +339,30 @@ class LuminosoClient(object):
     def wait_for_build(self, interval=5, path=None):
         """
         A convenience method designed to inform you when a project build has
-        completed.  It polls the API every `interval` seconds until there is
-        not a build running.  At that point, it returns the "last_build_info"
-        field of the project record if the build succeeded, and raises a
-        LuminosoError with the field as its message if the build failed.
+        completed, not counting the post-build sentiment step.  This makes most
+        API calls available, other than those requiring sentiment.
+
+        It polls the API every `interval` seconds until there is not a build
+        running.  At that point, it returns the "last_build_info" field of the
+        project record if the build succeeded, and raises a LuminosoError with
+        the field as its message if the build failed.
 
         If a `path` is not specified, this method will assume that its URL is
         the URL for the project.  Otherwise, it will use the specified path
         (which should be "/projects/<project_id>/").
         """
+        return self._wait_for_build(interval=interval, path=path)
+
+    def wait_for_sentiment_build(self, interval=5, path=None):
+        """
+        A convenience method designed to inform you when a project build has
+        completed, including the sentiment build.  Otherwise identical to
+        `wait_for_build`.
+        """
+        return self._wait_for_build(interval=interval, path=path,
+                                    wait_for_sentiment=True)
+
+    def _wait_for_build(self, interval=5, path=None, wait_for_sentiment=False):
         path = path or ''
         start = time.time()
         next_log = 0
@@ -355,16 +370,35 @@ class LuminosoClient(object):
             response = self.get(path)['last_build_info']
             if not response:
                 raise ValueError('This project is not building!')
-            if response['stop_time']:
-                if response['success']:
+            if wait_for_sentiment and not response['sentiment']:
+                raise ValueError('This project is not building sentiment!')
+
+            # _check_for_completion() raises a LuminosoError if the build
+            # failed; we catch it and raise a new one so that we can include
+            # the entire response, and not just the internal sentiment
+            # response, in the case where it's the sentiment check that fails
+            try:
+                if (self._check_for_completion(response) and
+                    (not wait_for_sentiment or
+                     self._check_for_completion(response['sentiment']))):
                     return response
-                else:
-                    raise LuminosoError(response)
+            except LuminosoError:
+                raise LuminosoError(response)
+
             elapsed = time.time() - start
             if elapsed > next_log:
                 logger.info('Still waiting (%d seconds elapsed).', next_log)
                 next_log += 120
             time.sleep(interval)
+
+    @staticmethod
+    def _check_for_completion(status):
+        if status['stop_time']:
+            if status['success']:
+                return True
+            else:
+                raise LuminosoError
+        return False
 
     def save_to_file(self, path, filename, **params):
         """
