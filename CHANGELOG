@@ -1,3 +1,10 @@
+Version 2.0.2 (2020-06-19)
+
+  * Added a new timeout optional parameter to the v5 client to be able to pass
+    it the the underlying requests object. Without setting it the request can
+    hang forever if the server does not respond in a timely fashion. In case of
+    a timeout the request will not return a LuminosoTimeoutError.
+
 Version 2.0.1 (2020-05-28)
 
   * Added a new method, `wait_for_sentiment_build`, to allow users to wait for

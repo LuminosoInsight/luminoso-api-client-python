@@ -96,6 +96,11 @@ LuminosoClient.connect('/projects/my_project_id/').get('docs/')
 LuminosoClient.connect('projects/my_project_id').get('/docs/')
 ```
 
+Both of the connect methods also provide an optional timeout parameter. This 
+will set both the connect and read timeout used in the underlying request. If 
+this is set and the connection or reading the response on the requests times 
+out then a LuminosoTimeoutError exception will be raised. 
+
 HTTP methods
 ------------
 

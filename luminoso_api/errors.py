@@ -18,3 +18,6 @@ class LuminosoServerError(LuminosoError):
 
 class LuminosoAPIError(LuminosoError):
     pass
+
+class LuminosoTimeoutError(LuminosoError):
+    pass

@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 
 from .v5_constants import URL_BASE
 from .errors import (LuminosoError, LuminosoAuthError, LuminosoClientError,
-                     LuminosoServerError)
+                     LuminosoServerError, LuminosoTimeoutError)
 from .version import VERSION
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ class LuminosoClient(object):
     starting with `/`, it will go back to the `root_url` instead of adding to
     the existing URL.
     """
-    def __init__(self, session, url, user_agent_suffix=None):
+    def __init__(self, session, url, user_agent_suffix=None, timeout=None):
         """
         Create a LuminosoClient given an existing Session object that has a
         _TokenAuth object as its .auth attribute.
@@ -54,6 +54,7 @@ class LuminosoClient(object):
         the authentication for you.
         """
         self.session = session
+        self.timeout = timeout
         self.url = ensure_trailing_slash(url)
         # Don't warn this time; warning happened in connect()
         self.root_url = get_root_url(url, warn=False)
@@ -69,7 +70,7 @@ class LuminosoClient(object):
 
     @classmethod
     def connect(cls, url=None, token_file=None, token=None,
-                user_agent_suffix=None):
+                user_agent_suffix=None, timeout=None):
         """
         Returns an object that makes requests to the API, authenticated
         with a saved or specified long-lived token, at URLs beginning with
@@ -125,7 +126,8 @@ class LuminosoClient(object):
 
         session = requests.session()
         session.auth = _TokenAuth(token)
-        return cls(session, url, user_agent_suffix=user_agent_suffix)
+        return cls(session, url, user_agent_suffix=user_agent_suffix,
+                   timeout=timeout)
 
     @staticmethod
     def save_token(token, domain='daylight.luminoso.com', token_file=None):
@@ -149,7 +151,7 @@ class LuminosoClient(object):
 
     @classmethod
     def connect_with_username_and_password(cls, url=None, username=None,
-                                           password=None):
+                                           password=None, timeout=None):
         """
         Returns an object that makes requests to the API, authenticated with
         a short-lived token retrieved from username and password.  If username
@@ -176,7 +178,7 @@ class LuminosoClient(object):
             url = URL_BASE + '/' + url.lstrip('/')
             root_url = URL_BASE
 
-        return cls(v4client.session, root_url)
+        return cls(v4client.session, root_url, timeout=timeout)
 
     def _request(self, req_type, url, **kwargs):
         """
@@ -184,25 +186,31 @@ class LuminosoClient(object):
         error status, convert that to a Python exception.
         """
         kwargs.setdefault('headers', {})['user-agent'] = self.user_agent
+        if self.timeout is not None:
+            kwargs['timeout'] = self.timeout
         logger.debug('%s %s' % (req_type, url))
-        result = self.session.request(req_type, url, **kwargs)
         try:
-            result.raise_for_status()
-        except requests.HTTPError:
-            error = result.text
+            result = self.session.request(req_type, url, **kwargs)
             try:
-                error = json.loads(error)
-            except ValueError:
-                pass
-            if result.status_code in (401, 403):
-                error_class = LuminosoAuthError
-            elif result.status_code in (400, 404, 405):
-                error_class = LuminosoClientError
-            elif result.status_code >= 500:
-                error_class = LuminosoServerError
-            else:
-                error_class = LuminosoError
-            raise error_class(error)
+                result.raise_for_status()
+            except requests.HTTPError:
+                error = result.text
+                try:
+                    error = json.loads(error)
+                except ValueError:
+                    pass
+                if result.status_code in (401, 403):
+                    error_class = LuminosoAuthError
+                elif result.status_code in (400, 404, 405):
+                    error_class = LuminosoClientError
+                elif result.status_code >= 500:
+                    error_class = LuminosoServerError
+                else:
+                    error_class = LuminosoError
+                raise error_class(error)
+        except (requests.Timeout, requests.exceptions.ConnectTimeout,
+                requests.exceptions.ReadTimeout):
+            raise LuminosoTimeoutError()
         return result
 
     def _json_request(self, req_type, url, **kwargs):
