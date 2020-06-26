@@ -353,7 +353,7 @@ class LuminosoClient(object):
         """
         return self._wait_for_build(interval=interval, path=path)
 
-    def wait_for_sentiment_build(self, interval=5, path=None):
+    def wait_for_sentiment_build(self, interval=30, path=None):
         """
         A convenience method designed to inform you when a project build has
         completed, including the sentiment build.  Otherwise identical to
