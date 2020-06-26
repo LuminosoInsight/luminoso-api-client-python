@@ -1,10 +1,12 @@
 from luminoso_api.v5_client import LuminosoClient, get_root_url
 from luminoso_api.errors import (
-    LuminosoClientError, LuminosoServerError, LuminosoError
+    LuminosoClientError, LuminosoServerError, LuminosoError,
+    LuminosoTimeoutError
 )
 
 import pytest
 import requests
+import sys
 
 BASE_URL = 'http://mock-api.localhost/api/v5/'
 
@@ -106,6 +108,25 @@ def test_failing_requests(requests_mock):
     with pytest.raises(LuminosoServerError):
         client.get('fail')
 
+# Test that passing the timeout value has no impact on a normal request
+def test_timeout_not_timing_out(requests_mock):
+    requests_mock.post(BASE_URL + 'projects/', json={})
+    client = LuminosoClient.connect(BASE_URL, token='fake', timeout=2)
+    client = client.client_for_path('projects')
+    client.post(param='value')
+    assert requests_mock.last_request.method == 'POST'
+    assert requests_mock.last_request.json() == {'param': 'value'}
+
+# Test that passing the timeout and it timing out raises the right error
+def test_timeout_actually_timing_out(requests_mock):
+    requests_mock.post(BASE_URL + 'projects/',
+                       exc=requests.exceptions.ConnectTimeout)
+    client = LuminosoClient.connect(BASE_URL, token='fake', timeout=2)
+    client = client.client_for_path('projects')
+    try:
+        client.post(param='value')
+    except LuminosoTimeoutError:
+        pass
 
 # The logic in wait_for_build() and wait_for_sentiment_build() gets a little
 # complex, so we test that logic more thoroughly here.
