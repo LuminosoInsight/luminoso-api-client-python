@@ -208,8 +208,7 @@ class LuminosoClient(object):
                 else:
                     error_class = LuminosoError
                 raise error_class(error)
-        except (requests.Timeout, requests.exceptions.ConnectTimeout,
-                requests.exceptions.ReadTimeout):
+        except requests.Timeout:
             raise LuminosoTimeoutError()
         return result
 
