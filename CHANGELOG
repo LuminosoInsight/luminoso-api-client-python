@@ -1,4 +1,4 @@
-Version 2.0.1 (Not yet released)
+Version 2.0.1 (2020-07-10)
 
   * Added a new method, `wait_for_sentiment_build`, to allow users to wait for
     the new document-level sentiment build to finish instead of waiting for
