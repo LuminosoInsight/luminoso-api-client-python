@@ -5,6 +5,7 @@ Version 2.0.1 (Not yet released)
     the main build process (which happens first).  `wait_for_build` remains as
     a method for users who want to know when non-sentiment API endpoints become
     ready to use.
+
   * Added a new timeout optional parameter to the v5 client to be able to pass
     it the the underlying requests object. Without setting it the request can
     hang forever if the server does not respond in a timely fashion. In case of
