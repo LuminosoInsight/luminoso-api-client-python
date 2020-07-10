@@ -6,7 +6,6 @@ from luminoso_api.errors import (
 
 import pytest
 import requests
-import sys
 
 BASE_URL = 'http://mock-api.localhost/api/v5/'
 
