@@ -46,6 +46,7 @@ setup(
     entry_points={
         'console_scripts': [
             'lumi-api = luminoso_api.v5_cli:main',
+            'lumi-save-token = luminoso_api.v5_save_token:main',
             'lumi-upload = luminoso_api.v5_upload:main',
             'lumi-download = luminoso_api.v5_download:main',
         ]},
