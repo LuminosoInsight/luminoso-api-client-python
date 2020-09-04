@@ -132,6 +132,11 @@ def _main(argv):
         help='API root url, default: %s' % URL_BASE,
     )
     parser.add_argument(
+        '-f',
+        '--token-file',
+        help='file where an API token was saved'
+    )
+    parser.add_argument(
         '-a',
         '--account-id',
         default=None,
@@ -156,7 +161,8 @@ def _main(argv):
     args = parser.parse_args(argv)
 
     client = LuminosoClient.connect(
-        url=args.base_url, user_agent_suffix='lumi-upload'
+        url=args.base_url, token_file=args.token_file,
+        user_agent_suffix='lumi-upload'
     )
 
     name = args.project_name
