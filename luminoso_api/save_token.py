@@ -7,7 +7,7 @@ from .v5_client import LuminosoClient, get_token_filename
 from .v5_constants import URL_BASE
 
 
-def main():
+def _main(argv):
     default_domain_base = urlparse(URL_BASE).netloc
     default_token_filename = get_token_filename()
     parser = argparse.ArgumentParser(
@@ -21,7 +21,7 @@ def main():
     parser.add_argument('-f', '--token_file', default=default_token_filename,
                         help=(f'File in which to store the token, default'
                               f' {default_token_filename}'))
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     # Make this as friendly as possible: turn any of "daylight.luminoso.com",
     # "daylight.luminoso.com/api/v5", or "http://daylight.luminoso.com/", into
@@ -34,3 +34,10 @@ def main():
 
     LuminosoClient.save_token(args.token, domain=domain,
                               token_file=args.token_file)
+
+
+def main():
+    """
+    The setuptools entry point.
+    """
+    _main(sys.argv[1:])
