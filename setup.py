@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-VERSION = "2.0.1"
+VERSION = "2.1.0"
 
 from setuptools import setup, find_packages
 import sys
@@ -46,6 +46,7 @@ setup(
     entry_points={
         'console_scripts': [
             'lumi-api = luminoso_api.v5_cli:main',
+            'lumi-save-token = luminoso_api.save_token:main',
             'lumi-upload = luminoso_api.v5_upload:main',
             'lumi-download = luminoso_api.v5_download:main',
         ]},

@@ -57,6 +57,11 @@ get a long-lived API token.  (To get a token, go to the "User settings" option
 in the upper right dropdown menu, and click the "API tokens" button.)  Once you
 have one, you can use it to connect to the API.
 
+Note that while saved tokens are specific for each domain (tokens for
+`daylight.luminoso.com` will not work on an onsite installation, or vice
+versa), the token for a given domain will provide access to both the v4 and
+v5 APIs.  You do not need to save separate tokens for each.
+
 ```python
 from luminoso_api import LuminosoClient
 project = LuminosoClient.connect('/projects/my_project_id', token='my_token')
@@ -67,7 +72,8 @@ docs = project.get('docs', limit=10)
 
 Instead of specifying the token when connecting, you can also use the
 LuminosoClient to save a token to a file, at which point you can connect
-without having to specify a token.
+without having to specify a token.  (Saving a token can also be done at the
+command line; see "Using the API from the command line" below.)
 
 ```python
 from luminoso_api import LuminosoClient
@@ -173,39 +179,40 @@ array([ 0.00046539,  0.00222015, -0.08491898, -0.0014534 , -0.00127411], dtype=f
 Using the API from the command line
 -----------------------------------
 
-This library includes three experimental tools usable from the command line:
-`lumi-api`, `lumi-upload`, and `lumi-download`.  Running them with `-h` will
-provide more detailed documentation on available parameters.  In addition, the
-following examples may provide some guidance on using `lumi-api` to access the
-API:
+This library includes experimental tools usable from the command line:
+`lumi-save-token`, `lumi-api`, `lumi-upload`, and `lumi-download`.  Running them
+with `-h` will provide more detailed documentation on available parameters.  In
+addition, the following examples may provide some guidance on using `lumi-api`
+to access the API:
 
 ```
+# save a token obtained from the UI - note that you must run this first for the following commands to work!
+# (also, this is not a real API token, but yours will look similar)
+lumi-save-token gF1XgbExN30O4DfBXse95vCjm6V069Ko
+
 # get a project list
-lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_token get /projects
+lumi-api -b https://daylight.luminoso.com/api/v5/ get /projects
 
 # get a project list in CSV format
-lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_token get /projects -c
-
-# get a project list and save the token so the next call wouldn't need "-t my_token" parameter
-lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_token -s get /projects -c
+lumi-api -b https://daylight.luminoso.com/api/v5/ get /projects -c
 
 # create a project
-lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_token post /projects/ -p 'name=project name' -p 'language=en'
+lumi-api -b https://daylight.luminoso.com/api/v5/ post /projects/ -p 'name=project name' -p 'language=en'
 
 # upload documents
 # my_data.json format: {"docs":[{"text": "..", "title": "..", "metadata": [..]}, {"text": "..", "title": "..", "metadata": [..]}]}
-lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_tokens post /projects/my_project_id/upload my_data.json
+lumi-api -b https://daylight.luminoso.com/api/v5/ post /projects/my_project_id/upload my_data.json
 
 # build project
 # this takes time, if you want to be notified via email when the build is done, add -j '{"notify": true}' parameter
-lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_tokens post /projects/my_project_id/build
+lumi-api -b https://daylight.luminoso.com/api/v5/ post /projects/my_project_id/build
 
 # get concepts from project
-lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_tokens get /projects/my_project_id/concepts
+lumi-api -b https://daylight.luminoso.com/api/v5/ get /projects/my_project_id/concepts
 
 # get project's match counts
-lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_token get /projects/my_project_id/concepts/match_counts
+lumi-api -b https://daylight.luminoso.com/api/v5/ get /projects/my_project_id/concepts/match_counts
 
 # create a saved concept
-lumi-api -b https://daylight.luminoso.com/api/v5/ -t my_token post /projects/my_project_id/concepts/saved -j '{"concepts": [{"texts": ["My new concept text"]}]}'
+lumi-api -b https://daylight.luminoso.com/api/v5/ post /projects/my_project_id/concepts/saved -j '{"concepts": [{"texts": ["My new concept text"]}]}'
 ```

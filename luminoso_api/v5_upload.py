@@ -2,7 +2,6 @@ import argparse
 import json
 import time
 import sys
-from urllib.parse import urlparse
 from itertools import islice, chain
 from tqdm import tqdm
 
@@ -133,6 +132,11 @@ def _main(argv):
         help='API root url, default: %s' % URL_BASE,
     )
     parser.add_argument(
+        '-f',
+        '--token-file',
+        help='file where an API token was saved'
+    )
+    parser.add_argument(
         '-a',
         '--account-id',
         default=None,
@@ -143,13 +147,6 @@ def _main(argv):
         '--language',
         default='en',
         help='The language code for the language the text is in. Default: en',
-    )
-    parser.add_argument('-t', '--token', help="API authentication token")
-    parser.add_argument(
-        '-s',
-        '--save-token',
-        action='store_true',
-        help='save --token for --base-url to ~/.luminoso/tokens.json',
     )
     parser.add_argument(
         'input_filename',
@@ -162,14 +159,10 @@ def _main(argv):
         help='What the project should be called',
     )
     args = parser.parse_args(argv)
-    if args.save_token:
-        if not args.token:
-            raise ValueError("error: no token provided")
-        LuminosoClient.save_token(args.token,
-                                  domain=urlparse(args.base_url).netloc)
 
     client = LuminosoClient.connect(
-        url=args.base_url, token=args.token, user_agent_suffix='lumi-upload'
+        url=args.base_url, token_file=args.token_file,
+        user_agent_suffix='lumi-upload'
     )
 
     name = args.project_name

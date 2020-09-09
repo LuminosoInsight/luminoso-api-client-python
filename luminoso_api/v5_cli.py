@@ -4,7 +4,6 @@ import json
 import os
 import sys
 from signal import signal, SIGPIPE, SIG_DFL
-from urllib.parse import urlparse
 
 from .v5_client import LuminosoClient
 from .v5_constants import URL_BASE
@@ -75,10 +74,8 @@ def _main(*vargs):
     )
     parser.add_argument('-b', '--base-url', default=URL_BASE,
                         help="API root url, default: %s" % URL_BASE)
-    parser.add_argument('-t', '--token', help="API authentication token")
-    parser.add_argument('-s', '--save-token', action='store_true',
-                        help="save --token for --base-url to"
-                             " ~/.luminoso/tokens.json")
+    parser.add_argument('-f', '--token-file',
+                        help='file where an API token was saved')
     parser.add_argument('-p', '--param', action='append', default=[],
                         help="key=value parameters")
     parser.add_argument('-j', '--json-body', help="JSON object parameter")
@@ -90,14 +87,11 @@ def _main(*vargs):
     parser.add_argument('input_file', nargs='?', type=open)
 
     args = parser.parse_args(vargs)
-    if args.save_token:
-        if not args.token:
-            raise ValueError("error: no token provided")
-        LuminosoClient.save_token(args.token,
-                                  domain=urlparse(args.base_url).netloc)
-
-    client = LuminosoClient.connect(url=args.base_url, token=args.token,
-                                    user_agent_suffix='lumi-cli')
+    client = LuminosoClient.connect(
+        url=args.base_url,
+        token_file=args.token_file,
+        user_agent_suffix='lumi-cli'
+    )
 
     if args.method == 'delete':
         confirm = input('confirm %s %s? [Y/n] ' % (args.method, args.path))

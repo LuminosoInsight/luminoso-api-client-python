@@ -79,6 +79,11 @@ client.save_token()
 proj = V4LuminosoClient.connect('/projects/account_id/my_project_id')
 ```
 
+Note that while saved tokens are specific for each domain (tokens for
+`daylight.luminoso.com` will not work on an onsite installation, or vice
+versa), the token for a given domain will provide access to both the v4 and
+v5 APIs.  You do not need to save separate tokens for each.
+
 HTTP methods
 ------------
 
