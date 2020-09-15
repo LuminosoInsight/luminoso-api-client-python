@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-VERSION = "2.2.0"
-
 from setuptools import setup, find_packages
-import sys
+
+VERSION = "3.0.0"
 
 classifiers = [
     'Intended Audience :: Developers',
@@ -14,12 +12,6 @@ classifiers = [
 
 GITHUB_URL = 'http://github.com/LuminosoInsight/luminoso-api-client-python'
 
-
-# Choose a version of ftfy to use depending on the version of Python
-if sys.version_info[0] < 3:
-    FTFY_DEP = 'ftfy >= 4.3, < 5'
-else:
-    FTFY_DEP = 'ftfy >= 5'
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -40,7 +32,6 @@ setup(
     install_requires=[
         'requests >= 1.2.1, < 3.0',
         'tqdm',
-        FTFY_DEP
     ],
     tests_require=['pytest', 'requests-mock'],
     entry_points={

@@ -1,3 +1,24 @@
+Version 3.0.0 (DATE TK)
+
+  * Removed long-deprecated functionality:
+
+    - Compatibility with Python 2
+
+    - Ability to connect to the v4 API with a password, and to retrieve an
+      API token from it (connecting to the v4 API should now be done entirely
+      through a stored token, retrieved either through the UI or through
+      the v5 client's save_token() method, which does allow password
+      authentication for that purpose)
+
+    - Ability to connect to the v5 API with a password (which was introduced
+      in version 1.1.1 to ease the transition from v4 to v5; see above with
+      reference to stored tokens)
+
+    - Specialized post_data/put_data/patch_data on the v4 client
+
+    - Requirement for ftfy in setup (which hasn't been needed for several
+      years)
+
 Version 2.2.0 (2020-11-30)
 
   * Removed `save_token()` from the v4 client, as the API endpoints that
