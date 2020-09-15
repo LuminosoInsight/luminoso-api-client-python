@@ -1,8 +1,10 @@
 import argparse
+import getpass
 import os
 import sys
 from urllib.parse import urlparse
 
+from .v4_client import LuminosoClient as V4LuminosoClient
 from .v5_client import LuminosoClient, get_token_filename
 from .v5_constants import URL_BASE
 
@@ -13,8 +15,14 @@ def _main(argv):
     parser = argparse.ArgumentParser(
         description='Save a token for the Luminoso Daylight API.',
     )
-    parser.add_argument('token',
-                        help='API token (see "Settings - Tokens" in the UI)')
+    token_group = parser.add_mutually_exclusive_group(required=True)
+    token_group.add_argument('-t','--token',
+                        help='API token (see "Settings - Tokens" in the UI)',
+                        required=False)
+    token_group.add_argument('-u','--username',
+                        help='The username to use for login',
+                        required=False)
+
     parser.add_argument('domain', default=default_domain_base,
                         help=f'API domain, default {default_domain_base}',
                         nargs='?')
@@ -32,8 +40,17 @@ def _main(argv):
     else:
         domain = domain.split('/')[0]
 
-    LuminosoClient.save_token(args.token, domain=domain,
-                              token_file=args.token_file)
+    if args.token:
+        LuminosoClient.save_token(args.token, domain=domain,
+                                token_file=args.token_file)
+
+    if args.username:
+        print("got username: "+args.username)
+        print("domainbase: "+args.domain)
+        password = getpass.getpass()
+        client = V4LuminosoClient.connect(url=args.domain,username=args.username,password=password)
+        client.save_token()
+
 
 
 def main():
