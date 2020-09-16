@@ -1,5 +1,4 @@
 import argparse
-import os
 import sys
 from urllib.parse import urlparse
 
@@ -11,28 +10,21 @@ def _main(argv):
     default_domain_base = urlparse(URL_BASE).netloc
     default_token_filename = get_token_filename()
     parser = argparse.ArgumentParser(
-        description='Save a token for the Luminoso Daylight API.',
+        description=('Save a token for the Luminoso Daylight API.  If no token'
+                     ' is specified, you will be prompted for a username and'
+                     ' password, and a new token will be created.'),
     )
     parser.add_argument('token',
-                        help='API token (see "Settings - Tokens" in the UI)')
-    parser.add_argument('domain', default=default_domain_base,
-                        help=f'API domain, default {default_domain_base}',
+                        help='API token (see "Settings - Tokens" in the UI)',
                         nargs='?')
+    parser.add_argument('-d', '--domain', default=default_domain_base,
+                        help=f'API domain, default {default_domain_base}')
     parser.add_argument('-f', '--token_file', default=default_token_filename,
                         help=(f'File in which to store the token, default'
                               f' {default_token_filename}'))
     args = parser.parse_args(argv)
 
-    # Make this as friendly as possible: turn any of "daylight.luminoso.com",
-    # "daylight.luminoso.com/api/v5", or "http://daylight.luminoso.com/", into
-    # just the domain
-    domain = args.domain
-    if '://' in domain:
-        domain = urlparse(domain).netloc
-    else:
-        domain = domain.split('/')[0]
-
-    LuminosoClient.save_token(args.token, domain=domain,
+    LuminosoClient.save_token(token=args.token, domain=args.domain,
                               token_file=args.token_file)
 
 
