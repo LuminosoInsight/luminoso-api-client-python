@@ -75,7 +75,10 @@ REPETITIVE_DOC = {'title': 'Yadda', 'text': 'yadda yadda', 'metadata': []}
 
 
 def doc_paring_callback(request, context):
-
+    # The "qs" attribute on the mock request is the result of running
+    # urllib.parse.parse_qs on the query string, which maps the query variable
+    # names to lists of their values; thus we want the json-decoded value of
+    # the first (and only) element of the "fields" parameter
     fields = json.loads(request.qs['fields'][0])
     docs = [
         {field: value for field, value in doc.items() if field in fields}
