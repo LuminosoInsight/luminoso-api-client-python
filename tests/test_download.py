@@ -24,7 +24,7 @@ PROJECT_RECORD = {
     'permissions': ['read', 'write', 'create']
 }
 
-RAW_DOCS = [
+FULL_DOCS = [
     {
         'title': 'Document 1',
         'text': 'hello',
@@ -75,10 +75,11 @@ REPETITIVE_DOC = {'title': 'Yadda', 'text': 'yadda yadda', 'metadata': []}
 
 
 def doc_paring_callback(request, context):
+
     fields = json.loads(request.qs['fields'][0])
     docs = [
         {field: value for field, value in doc.items() if field in fields}
-        for doc in RAW_DOCS
+        for doc in FULL_DOCS
     ]
     return {'result': docs, 'total_count': 2, 'filter_count': 2, 'search': None}
 
