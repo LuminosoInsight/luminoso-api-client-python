@@ -11,11 +11,9 @@ from .v5_constants import URL_BASE
 DESCRIPTION = 'Download documents from a Luminoso project via the command line.'
 DOCS_PER_BATCH = 1000
 
-# If we aren't being asked for "expanded" results, we only output these fields.
+# The fields we want for "concise" or "expanded" downloads
 CONCISE_FIELDS = ['title', 'text', 'metadata']
-
-# Even in the "expanded" version, we don't need these fields.
-UNNECESSARY_FIELDS = ['match_score', 'doc_id']
+EXPANDED_FIELDS = CONCISE_FIELDS + ['terms', 'fragments', 'vector']
 
 
 def _sanitize_filename(filename):
@@ -47,16 +45,12 @@ def iterate_docs(client, expanded=False, progress=False):
             progress_bar = tqdm(desc='Downloading documents', total=num_docs)
 
         for offset in range(0, num_docs, DOCS_PER_BATCH):
-            response = client.get('docs', offset=offset, limit=DOCS_PER_BATCH)
+            response = client.get(
+                'docs', offset=offset, limit=DOCS_PER_BATCH,
+                fields=EXPANDED_FIELDS if expanded else CONCISE_FIELDS
+            )
             docs = response['result']
             for doc in docs:
-                # Get the appropriate set of fields for each document
-                if expanded:
-                    for field in UNNECESSARY_FIELDS:
-                        doc.pop(field, None)
-                else:
-                    doc = {field: doc[field] for field in CONCISE_FIELDS}
-
                 if progress:
                     progress_bar.update()
                 yield doc

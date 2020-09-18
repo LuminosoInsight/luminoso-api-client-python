@@ -10,6 +10,9 @@ Version 2.1.0 (2020-09-04)
     using the `save_token()` method, rather than requiring a token acquired
     through the UI.
 
+  * Tweaked the `lumi-download` command to improve performance by using the
+    (relatively new) `fields` parameter on the document-downloading endpoint.
+
 Version 2.0.1 (2020-07-10)
 
   * Added a new method, `wait_for_sentiment_build`, to allow users to wait for
