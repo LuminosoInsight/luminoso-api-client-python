@@ -152,9 +152,14 @@ class LuminosoClient(object):
             domain = domain.split('/')[0]
 
         if token is None:
-            default_url = f'https://{domain}/'
-            url = input(f'URL (or press enter if "{default_url}" is'
-                        f' correct): ') or default_url
+            protocol = None
+            while protocol is None:
+                prompt = input('Use https? (y/n, default=y): ').lower()
+                if not prompt or prompt.startswith('y'):
+                    protocol = 'https'
+                elif prompt.startswith('n'):
+                    protocol = 'http'
+            url = f'{protocol}://{domain}/'
             username = input('Username: ')
             password = getpass('Password: ')
             client = cls.connect_with_username_and_password(
