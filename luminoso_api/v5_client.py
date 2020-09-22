@@ -145,14 +145,18 @@ class LuminosoClient(object):
         """
         # Make this as friendly as possible: turn any of
         # "daylight.luminoso.com", "daylight.luminoso.com/api/v5", or
-        # "http://daylight.luminoso.com/" into just the domain
+        # "https://daylight.luminoso.com/" into just the domain
         if '://' in domain:
-            domain = urlparse(domain).netloc
+            parsed = urlparse(domain)
+            domain = parsed.netloc
+            protocol = parsed.scheme
         else:
             domain = domain.split('/')[0]
+            protocol = None
 
         if token is None:
-            protocol = None
+            if domain == 'daylight.luminoso.com':
+                protocol = 'https'
             while protocol is None:
                 prompt = input('Use https? (y/n, default=y): ').lower()
                 if not prompt or prompt.startswith('y'):
