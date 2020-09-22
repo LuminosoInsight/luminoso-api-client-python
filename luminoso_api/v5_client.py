@@ -7,6 +7,7 @@ import logging
 import os
 import requests
 import time
+from getpass import getpass
 from urllib.parse import urlparse
 
 from .v5_constants import URL_BASE
@@ -129,14 +130,51 @@ class LuminosoClient(object):
         return cls(session, url, user_agent_suffix=user_agent_suffix,
                    timeout=timeout)
 
-    @staticmethod
-    def save_token(token, domain='daylight.luminoso.com', token_file=None):
+    @classmethod
+    def save_token(cls, token=None, domain='daylight.luminoso.com',
+                   token_file=None):
         """
         Take a long-lived API token and store it to a local file.  Long-lived
-        tokens can be retrieved through the UI.  Optional arguments are the
-        domain for which the token is valid and the file in which to store the
-        token.
+        tokens *should* be retrieved through the UI and specified as the
+        `token` argument to this method.  As a dispreferred alternative, if no
+        token is specified, you will be prompted for a username and password
+        and a new token will be created and saved.
+
+        Other optional arguments are the domain for which the token is valid
+        and the file in which to store the token.
         """
+        # Make this as friendly as possible: turn any of
+        # "daylight.luminoso.com", "daylight.luminoso.com/api/v5", or
+        # "https://daylight.luminoso.com/" into just the domain
+        if '://' in domain:
+            parsed = urlparse(domain)
+            domain = parsed.netloc
+            protocol = parsed.scheme
+        else:
+            domain = domain.split('/')[0]
+            protocol = None
+
+        if token is None:
+            if domain == 'daylight.luminoso.com':
+                protocol = 'https'
+            while protocol is None:
+                prompt = input('Use https? (y/n, default=y): ').lower()
+                if not prompt or prompt.startswith('y'):
+                    protocol = 'https'
+                elif prompt.startswith('n'):
+                    protocol = 'http'
+            url = f'{protocol}://{domain}/'
+            username = input('Username: ')
+            password = getpass('Password: ')
+            client = cls.connect_with_username_and_password(
+                url=url, username=username, password=password
+            )
+            client.user_agent += ' save_token()'
+            token = client.post(
+                'tokens', password=password,
+                description='token created through LuminosoClient.save_token()'
+            )['token']
+
         token_file = token_file or get_token_filename()
         if os.path.exists(token_file):
             saved_tokens = json.load(open(token_file))

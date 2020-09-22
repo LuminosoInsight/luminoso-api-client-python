@@ -6,6 +6,10 @@ Version 2.1.0 (2020-09-04)
   * Added a new command, `lumi-save-token`, as an interface to LuminosoClient's
     existing "save_token" functionality.
 
+  * Added the option to have the LuminosoClient create a new API token when
+    using the `save_token()` method, rather than requiring a token acquired
+    through the UI.
+
   * Tweaked the `lumi-download` command to improve performance by using the
     (relatively new) `fields` parameter on the document-downloading endpoint.
 
