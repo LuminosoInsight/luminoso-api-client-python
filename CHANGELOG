@@ -1,4 +1,4 @@
-Version 2.1.0 (2020-09-04)
+Version 2.1.0 (2020-10-02)
 
   * Removed the ability to specify a token when using lumi-api, lumi-download,
     and lumi-upload.
