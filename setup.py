@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 
 from setuptools import setup, find_packages
 import sys
