@@ -137,30 +137,15 @@ class LuminosoClient(object):
 
     def save_token(self, token_file=None):
         """
-        Obtain the user's long-lived API token and save it in a local file.
-        If the user has no long-lived API token, one will be created.
-        Returns the token that was saved.
+        The functionality backing this method has been removed from the v4 API.
+        Please use save_token() on the v5 client, or the command-line tool
+        lumi-save-token.
         """
-        tokens = self._json_request('get', self.root_url + '/user/tokens/')
-        long_lived = [token['type'] == 'long_lived' for token in tokens]
-        if any(long_lived):
-            dic = tokens[long_lived.index(True)]
-        else:
-            # User doesn't have a long-lived token, so create one
-            dic = self._json_request('post', self.root_url + '/user/tokens/')
-        token = dic['token']
-        token_file = token_file or get_token_filename()
-        if os.path.exists(token_file):
-            saved_tokens = json.load(open(token_file))
-        else:
-            saved_tokens = {}
-        saved_tokens[urlparse(self.root_url).netloc] = token
-        directory, filename = os.path.split(token_file)
-        if directory and not os.path.exists(directory):
-            os.makedirs(directory)
-        with open(token_file, 'w') as f:
-            json.dump(saved_tokens, f)
-        return token
+        raise NotImplementedError(
+            "The functionality backing this method has been removed from the"
+            " v4 API.  Please use save_token() on the v5 client, or the"
+            " command-line tool lumi-save-token."
+        )
 
     def _request(self, req_type, url, **kwargs):
         """

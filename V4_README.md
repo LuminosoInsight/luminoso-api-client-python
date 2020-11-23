@@ -65,19 +65,9 @@ from luminoso_api import V4LuminosoClient
 proj = V4LuminosoClient.connect('/user', token='my-api-token-here')
 ```
 
-You can even save your API token to a file on your computer and load it
-automatically, so that you don't have to specify any credentials:
-
-```python
-from luminoso_api import V4LuminosoClient
-client = V4LuminosoClient.connect(token='my-api-token-here')
-# This will save a non-expiring token, regardless of whether you are currently
-# using that token or some other token.
-client.save_token()
-# Now you can exit Python, restart your computer, etc., and your token will
-# still be saved when you come back.
-proj = V4LuminosoClient.connect('/projects/account_id/my_project_id')
-```
+You can save an API token locally so that you do not need to specify it each
+time, though that functionality no longer exists in the v4 client; to do so, use
+either the v5 client or the `lumi-save-token` command.
 
 Note that while saved tokens are specific for each domain (tokens for
 `daylight.luminoso.com` will not work on an onsite installation, or vice

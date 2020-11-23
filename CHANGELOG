@@ -1,3 +1,8 @@
+Version 2.2.0 (2020-11-23)
+
+  * Removed `save_token()` from the v4 client, as the API endpoints that
+    supported it have been removed.
+
 Version 2.1.0 (2020-10-02)
 
   * Removed the ability to specify a token when using lumi-api, lumi-download,
