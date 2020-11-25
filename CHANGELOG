@@ -1,4 +1,4 @@
-Version 2.2.0 (2020-11-23)
+Version 2.2.0 (2020-11-30)
 
   * Removed `save_token()` from the v4 client, as the API endpoints that
     supported it have been removed.
