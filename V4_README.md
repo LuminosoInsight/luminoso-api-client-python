@@ -24,7 +24,7 @@ and call methods on it that will be properly authenticated.
 
 Installation
 ---------------
-This client API is designed to be used with Python 2.6, 2.7, 3.3, or 3.4.
+This client API is designed to be used with Python 3.
 
 You can download and install it using a Python package manager:
 
@@ -48,21 +48,12 @@ You interact with the API using a V4LuminosoClient object, which sends HTTP
 requests to URLs starting with a given path, and keeps track of your
 authentication information.
 
-You can connect using a username and password:
-
-```python
->>> from luminoso_api import V4LuminosoClient
->>> client = V4LuminosoClient.connect('/user/', username='my_username')
-Password for my_username: [here you enter your password]
->>> client.get('profile')
-[your user profile here]
-```
-
-Or you can connect using an existing API token:
+You can connect using an API token, which you can get from the UI:
 
 ```python
 from luminoso_api import V4LuminosoClient
-proj = V4LuminosoClient.connect('/user', token='my-api-token-here')
+client = V4LuminosoClient.connect('/user', token='my-api-token-here')
+client.get('profile')  # returns your user profile
 ```
 
 You can save an API token locally so that you do not need to specify it each

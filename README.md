@@ -82,14 +82,6 @@ project = LuminosoClient.connect('/projects/my_project_id')
 docs = project.get('docs', limit=10)
 ```
 
-There is also a method, provided temporarily to ease the transition from the v4
-API, that allows you to connect with a username and password:
-
-```python
-from luminoso_api import LuminosoClient
-project = LuminosoClient.connect_with_username_and_password('/projects/my_project_id', username='my_username')
-```
-
 Note that all leading and trailing slashes in paths are optional, because the
 LuminosoClient ensures that slashes are put in the right places.  For example,
 all of the following calls will go to the endpoint
@@ -102,10 +94,10 @@ LuminosoClient.connect('/projects/my_project_id/').get('docs/')
 LuminosoClient.connect('projects/my_project_id').get('/docs/')
 ```
 
-Both of the connect methods also provide an optional timeout parameter. This 
-will set both the connect and read timeout used in the underlying request. If 
-this is set and the connection or reading the response on the requests times 
-out then a LuminosoTimeoutError exception will be raised. 
+The connect method also provides an optional timeout parameter. This will set
+both the connect and read timeout used in the underlying request. If this is set
+and the connection or reading the response on the requests times out then a
+LuminosoTimeoutError exception will be raised.
 
 HTTP methods
 ------------

@@ -46,6 +46,8 @@ class LuminosoClient(object):
     starting with `/`, it will go back to the `root_url` instead of adding to
     the existing URL.
     """
+    _URL_BASE = URL_BASE
+
     def __init__(self, session, url, user_agent_suffix=None, timeout=None):
         """
         Create a LuminosoClient given an existing Session object that has a
@@ -58,7 +60,7 @@ class LuminosoClient(object):
         self.timeout = timeout
         self.url = ensure_trailing_slash(url)
         # Don't warn this time; warning happened in connect()
-        self.root_url = get_root_url(url, warn=False)
+        self.root_url = self.get_root_url(url, warn=False)
         # Calculate the full user agent suffix, but also store the suffix so it
         # can be preserved by client_for_path().
         self._user_agent_suffix = user_agent_suffix
@@ -95,10 +97,10 @@ class LuminosoClient(object):
             url = '/'
 
         if url.startswith('http'):
-            root_url = get_root_url(url)
+            root_url = cls.get_root_url(url)
         else:
-            url = URL_BASE + '/' + url.lstrip('/')
-            root_url = URL_BASE
+            url = cls._URL_BASE + '/' + url.lstrip('/')
+            root_url = cls._URL_BASE
 
         if token is None:
             token_file = token_file or get_token_filename()
@@ -166,14 +168,30 @@ class LuminosoClient(object):
             url = f'{protocol}://{domain}/'
             username = input('Username: ')
             password = getpass('Password: ')
-            client = cls.connect_with_username_and_password(
-                url=url, username=username, password=password
+
+            session = requests.session()
+            headers = {'user-agent': f'LuminosoClient/{VERSION} save_token()'}
+            temp_token_resp = session.post(
+                url.rstrip('/') + '/api/v4/user/login/', headers=headers,
+                data={'username': username, 'password': password}
             )
-            client.user_agent += ' save_token()'
-            token = client.post(
-                'tokens', password=password,
-                description='token created through LuminosoClient.save_token()'
-            )['token']
+            temp_token_resp.raise_for_status()
+            temp_token = temp_token_resp.json()['result']['token']
+
+            headers = {**headers,
+                       'Content-Type': 'application/json',
+                       'Authorization': 'Token ' + temp_token}
+            token_resp = requests.post(
+                url.rstrip('/') + '/api/v5/tokens/',
+                data=json.dumps(
+                    {'password': password,
+                     'description': ('token created through'
+                                     ' LuminosoClient.save_token()')}
+                ),
+                headers=headers,
+            )
+            token_resp.raise_for_status()
+            token = token_resp.json()['token']
 
         token_file = token_file or get_token_filename()
         if os.path.exists(token_file):
@@ -186,37 +204,6 @@ class LuminosoClient(object):
             os.makedirs(directory)
         with open(token_file, 'w') as f:
             json.dump(saved_tokens, f)
-
-    @classmethod
-    def connect_with_username_and_password(cls, url=None, username=None,
-                                           password=None, timeout=None):
-        """
-        Returns an object that makes requests to the API, authenticated with
-        a short-lived token retrieved from username and password.  If username
-        or password is not supplied, the method will prompt for a username
-        and/or password to be entered interactively.
-
-        See the connect method for more details about the `url` argument.
-
-        PLEASE NOTE: This method is being provided as a temporary measure.  We
-        strongly encourage users of the Luminoso API to use a long-lived token
-        instead, as explained in the V5_README file.
-        """
-        from .v4_client import LuminosoClient as v4LC
-        if username is None:
-            username = input('Username: ')
-        v4client = v4LC.connect(url=url, username=username, password=password)
-
-        if url is None:
-            url = '/'
-
-        if url.startswith('http'):
-            root_url = get_root_url(url)
-        else:
-            url = URL_BASE + '/' + url.lstrip('/')
-            root_url = URL_BASE
-
-        return cls(v4client.session, root_url, timeout=timeout)
 
     def _request(self, req_type, url, **kwargs):
         """
@@ -254,9 +241,6 @@ class LuminosoClient(object):
         """
         Make a request of the specified type and expect a JSON object in
         response.
-
-        If the result has an 'error' value, raise a LuminosoAPIError with
-        its contents. Otherwise, return the contents of the 'result' value.
         """
         response = self._request(req_type, url, **kwargs)
         try:
@@ -458,6 +442,28 @@ class LuminosoClient(object):
         with open(filename, 'wb') as f:
             f.write(content)
 
+    @staticmethod
+    def get_root_url(url, warn=True):
+        """
+        Get the "root URL" for a URL, as described in the LuminosoClient
+        documentation.
+        """
+        parsed_url = urlparse(url)
+
+        # Make sure it's a complete URL, not a relative one
+        if not parsed_url.scheme:
+            raise ValueError('Please supply a full URL, beginning with http://'
+                             ' or https:// .')
+
+        # Issue a warning if the path didn't already start with /api/v5
+        root_url = '%s://%s/api/v5' % (parsed_url.scheme, parsed_url.netloc)
+        if warn and not parsed_url.path.startswith('/api/v5'):
+            logger.warning('Using %s as the root url' % root_url)
+        return root_url
+
+
+get_root_url = LuminosoClient.get_root_url
+
 
 class _TokenAuth(requests.auth.AuthBase):
     """
@@ -477,25 +483,6 @@ def get_token_filename():
     Return the default filename for storing API tokens.
     """
     return os.path.join(os.path.expanduser('~'), '.luminoso', 'tokens.json')
-
-
-def get_root_url(url, warn=True):
-    """
-    Get the "root URL" for a URL, as described in the LuminosoClient
-    documentation.
-    """
-    parsed_url = urlparse(url)
-
-    # Make sure it's a complete URL, not a relative one
-    if not parsed_url.scheme:
-        raise ValueError('Please supply a full URL, beginning with http:// '
-                         'or https:// .')
-
-    # Issue a warning if the path didn't already start with /api/v5
-    root_url = '%s://%s/api/v5' % (parsed_url.scheme, parsed_url.netloc)
-    if warn and not parsed_url.path.startswith('/api/v5'):
-        logger.warning('Using %s as the root url' % root_url)
-    return root_url
 
 
 def ensure_trailing_slash(url):
