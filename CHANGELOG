@@ -1,20 +1,18 @@
 Version 3.0.0 (DATE TK)
 
-  * Removed long-deprecated functionality:
+  * Removed v4 client.  Now that all v4 API functionality exists in the v5 API,
+    new users should never need the old v4 client.  Existing users who have not
+    yet transitioned their code to use v5 should continue to use version 2.2.0.
+
+  * Removed other long-deprecated functionality:
 
     - Compatibility with Python 2
 
-    - Ability to connect to the v4 API with a password, and to retrieve an
-      API token from it (connecting to the v4 API should now be done entirely
-      through a stored token, retrieved either through the UI or through
-      the v5 client's save_token() method, which does allow password
-      authentication for that purpose)
-
-    - Ability to connect to the v5 API with a password (which was introduced
-      in version 1.1.1 to ease the transition from v4 to v5; see above with
-      reference to stored tokens)
-
-    - Specialized post_data/put_data/patch_data on the v4 client
+    - Ability to connect to the v5 API with a password, which was introduced
+      in version 1.1.1 to ease the transition from v4 to v5; connecting to the
+      API should now be done entirely through a stored token, retrieved either
+      through the UI or through the v5 client's save_token() method, which does
+      allow password authentication for that purpose
 
     - Requirement for ftfy in setup (which hasn't been needed for several
       years)
