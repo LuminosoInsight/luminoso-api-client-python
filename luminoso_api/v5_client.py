@@ -170,18 +170,17 @@ class LuminosoClient(object):
             password = getpass('Password: ')
 
             session = requests.session()
-            headers = {'user-agent': f'LuminosoClient/{VERSION} save_token()'}
+            headers = {'user-agent': f'LuminosoClient/{VERSION} save_token()',
+                       'Content-Type': 'application/json'}
             temp_token_resp = session.post(
-                url.rstrip('/') + '/api/v4/user/login/', headers=headers,
-                data={'username': username, 'password': password}
+                url.rstrip('/') + '/api/v5/login/', headers=headers,
+                data=json.dumps({'username': username, 'password': password})
             )
             temp_token_resp.raise_for_status()
-            temp_token = temp_token_resp.json()['result']['token']
+            temp_token = temp_token_resp.json()['token']
 
-            headers = {**headers,
-                       'Content-Type': 'application/json',
-                       'Authorization': 'Token ' + temp_token}
-            token_resp = requests.post(
+            headers = {**headers, 'Authorization': 'Token ' + temp_token}
+            token_resp = session.post(
                 url.rstrip('/') + '/api/v5/tokens/',
                 data=json.dumps(
                     {'password': password,
@@ -192,6 +191,9 @@ class LuminosoClient(object):
             )
             token_resp.raise_for_status()
             token = token_resp.json()['token']
+
+            headers.pop('Content-Type')
+            session.post(url.rstrip('/') + '/api/v5/logout/', headers=headers)
 
         token_file = token_file or get_token_filename()
         if os.path.exists(token_file):
