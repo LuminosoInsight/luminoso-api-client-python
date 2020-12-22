@@ -8,24 +8,6 @@ In this code, instead of having to authenticate each request separately,
 you make a "session" object that keeps track of your login information,
 and call methods on it that will be properly authenticated.
 
-
-Important note: API version and client version
-----------------------------------------------
-
-This page covers the client that connects to the v5 API; this client is the
-object named `luminoso_api.LuminosoClient`, which is an alias for
-`luminoso_api.v5_client.LuminosoClient`.
-
-The v4 API is still available for user and account management purposes, as is a
-client for using it. That client can be accessed as
-`luminoso_api.V4LuminosoClient` (or directly at
-`luminoso_api.v4_client.LuminosoClient`). Documentation for the old client can
-be found
-[here](https://github.com/LuminosoInsight/luminoso-api-client-python/blob/master/V4_README.md).
-This client will be maintained until we have set up user and account management
-endpoints in the v5 API, at which point the v4 endpoints and this client will
-enter a sunset period.
-
 Installation
 ------------
 This client API is designed to be used with Python 3.
@@ -57,10 +39,9 @@ get a long-lived API token.  (To get a token, go to the "User settings" option
 in the upper right dropdown menu, and click the "API tokens" button.)  Once you
 have one, you can use it to connect to the API.
 
-Note that while saved tokens are specific for each domain (tokens for
+Note that saved tokens are specific for each domain (tokens for
 `daylight.luminoso.com` will not work on an onsite installation, or vice
-versa), the token for a given domain will provide access to both the v4 and
-v5 APIs.  You do not need to save separate tokens for each.
+versa).
 
 ```python
 from luminoso_api import LuminosoClient
