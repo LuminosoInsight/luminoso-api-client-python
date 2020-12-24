@@ -1,4 +1,4 @@
-Version 3.0.0 (DATE TK)
+Version 3.0.0 (2021-01-04)
 
   * Removed v4 client.  Now that all v4 API functionality exists in the v5 API,
     new users should never need the old v4 client.  Existing users who have not
