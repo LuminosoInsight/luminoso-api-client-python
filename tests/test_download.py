@@ -19,7 +19,7 @@ PROJECT_RECORD = {
     'last_metaupdate': None,
     'last_build_info': {},
     'project_id': 'projid',
-    'account_id': 'account',
+    'workspace_id': 'workspace',
     'document_count': 2,
     'permissions': ['read', 'write', 'create']
 }
