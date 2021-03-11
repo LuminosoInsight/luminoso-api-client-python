@@ -1,3 +1,8 @@
+Version 3.0.1 (2021-03-15)
+
+  * Fixed the `lumi-upload` command to use the correct (i.e., non-deprecated)
+    parameter for specifying a workspace.
+
 Version 3.0.0 (2021-01-04)
 
   * Removed v4 client.  Now that all v4 API functionality exists in the v5 API,

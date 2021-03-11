@@ -55,19 +55,19 @@ def iterate_json_lines(filename):
 
 
 def create_project_with_docs(
-    client, docs, language, name, account=None, progress=False
+    client, docs, language, name, workspace=None, progress=False
 ):
     """
     Given an iterator of documents, upload them as a Luminoso project.
     """
     description = 'Uploaded using lumi-upload at {}'.format(time.asctime())
-    if account is not None:
+    if workspace is not None:
         proj_record = client.post(
             'projects',
             name=name,
             language=language,
             description=description,
-            account_id=account,
+            workspace_id=workspace,
         )
     else:
         proj_record = client.post(
@@ -105,7 +105,7 @@ def create_project_with_docs(
 
 
 def upload_docs(
-    client, input_filename, language, name, account=None, progress=False
+    client, input_filename, language, name, workspace=None, progress=False
 ):
     """
     Given a LuminosoClient pointing to the root of the API, and a filename to
@@ -113,7 +113,7 @@ def upload_docs(
     """
     docs = iterate_json_lines(input_filename)
     return create_project_with_docs(
-        client, docs, language, name, account, progress=progress
+        client, docs, language, name, workspace=workspace, progress=progress
     )
 
 
@@ -137,10 +137,10 @@ def _main(argv):
         help='file where an API token was saved'
     )
     parser.add_argument(
-        '-a',
-        '--account-id',
+        '-w',
+        '--workspace-id',
         default=None,
-        help='Account ID that should own the project, if not the default',
+        help='Workspace ID that should own the project, if not the default',
     )
     parser.add_argument(
         '-l',
@@ -177,7 +177,7 @@ def _main(argv):
         args.input_filename,
         args.language,
         name,
-        account=args.account_id,
+        workspace=args.workspace_id,
         progress=True,
     )
     print(
