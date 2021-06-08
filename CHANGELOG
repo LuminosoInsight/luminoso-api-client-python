@@ -1,3 +1,12 @@
+Version 3.1.0 (2021-06-14)
+
+  * Added an adapter to the client to retry after one second upon receiving a
+    429 error.  (At the time of release, the API does not yet return 429
+    errors, but we are planning the addition of rate limiting: still allowing
+    multiple calls per second, but only up to a limit to be determined.  A
+    one-second delay in retrying will suffice and should not impact most use
+    cases.)
+
 Version 3.0.1 (2021-03-15)
 
   * Fixed the `lumi-upload` command to use the correct (i.e., non-deprecated)
