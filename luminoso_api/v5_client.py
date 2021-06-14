@@ -8,6 +8,8 @@ import os
 import requests
 import time
 from getpass import getpass
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 from urllib.parse import urlparse
 
 from .v5_constants import URL_BASE
@@ -129,6 +131,17 @@ class LuminosoClient(object):
 
         session = requests.session()
         session.auth = _TokenAuth(token)
+        # By default, requests will only retry things like connection timeouts,
+        # not any server responses.  We use urllib3's Retry class to say that,
+        # if a call failed specifically on a 429 ("too many requests"), wait a
+        # full second and try one more time.  (Technically it tries again
+        # immediately, but then it gets another 429 and tries again at twice
+        # the backoff factor.)
+        retry_strategy = Retry(total=2, backoff_factor=.5,
+                               status_forcelist=[429])
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        session.mount("https://", adapter)
+        session.mount("http://", adapter)
         return cls(session, url, user_agent_suffix=user_agent_suffix,
                    timeout=timeout)
 
