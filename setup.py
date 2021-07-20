@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = "3.1.0"
+VERSION = "3.1.1"
 
 classifiers = [
     'Intended Audience :: Developers',

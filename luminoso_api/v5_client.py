@@ -134,10 +134,11 @@ class LuminosoClient(object):
         # By default, requests will only retry things like connection timeouts,
         # not any server responses.  We use urllib3's Retry class to say that,
         # if a call failed specifically on a 429 ("too many requests"), wait a
-        # full second and try one more time.  (Technically it tries again
-        # immediately, but then it gets another 429 and tries again at twice
-        # the backoff factor.)
-        retry_strategy = Retry(total=2, backoff_factor=.5,
+        # full second and try again.  (Technically it tries again immediately,
+        # but then it gets another 429 and tries again at twice the backoff
+        # factor.)  The total retries is 10, which is 256 seconds (four
+        # minutes, 16 seconds; or a cumulative wait of 8.5 minutes).
+        retry_strategy = Retry(total=10, backoff_factor=.5,
                                status_forcelist=[429])
         adapter = HTTPAdapter(max_retries=retry_strategy)
         session.mount("https://", adapter)

@@ -1,3 +1,14 @@
+Version 3.1.1 (2021-07-23)
+
+  * Updated the retry adapter to retry nine times instead of once (resulting in
+    a four and a half minute wait before the last retry).  While a single retry
+    after one second is sufficient for most uses, some users reported unhandled
+    429 responses when using multiple threads.
+
+    Please note that we do not recommend using multiple threads for API calls.
+    As the rate limit applies to all calls collectively and not separately to
+    each thread, parallel calls will not be any faster.
+
 Version 3.1.0 (2021-06-14)
 
   * Added an adapter to the client to retry after one second upon receiving a
