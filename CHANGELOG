@@ -6,7 +6,7 @@ Version 3.1.1 (2021-07-23)
     429 responses when using multiple threads.
 
     Please note that we do not recommend using multiple threads for API calls.
-    Aas the rate limit applies to all calls collectively and not separately to
+    As the rate limit applies to all calls collectively and not separately to
     each thread, parallel calls will not be any faster.
 
 Version 3.1.0 (2021-06-14)
